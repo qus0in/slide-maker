@@ -1,0 +1,612 @@
+/* 1. 새로운 9대 두께의 에이투지체 @font-face 선언 */
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-1Thin.woff2') format('woff2');
+    font-weight: 100;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-2ExtraLight.woff2') format('woff2');
+    font-weight: 200;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-3Light.woff2') format('woff2');
+    font-weight: 300;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-4Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-5Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-6SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-7Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-8ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'A2z';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-9Black.woff2') format('woff2');
+    font-weight: 900;
+    font-display: swap;
+}
+
+/* 2. 본문 KoddiUD 온고딕 @font-face 선언 */
+@font-face {
+  font-family: 'KoddiudOngodic';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'KoddiudOngodic';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2.1 코딩 전용 D2Coding 서체 선언 */
+@font-face {
+    font-family: 'D2Coding';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_three@1.0/D2Coding.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+}
+
+/* 3. 전역 변수 설정 */
+:root {
+  --slide-bg: #02343F;
+  --slide-fg: #F0EDCC;
+  
+  /* 🌟 [CODE BACKGROUND FIXED] 틸-차콜 네이비 배경 적용 */
+  --code-bg: #0d2026; 
+  
+  /* 🌟 [CODE FONT OVERRIDE] Slidev 및 UnoCSS D2Coding 서체 변수 장악 */
+  --slidev-code-font-family: 'D2Coding', monospace !important;
+}
+
+/* 4. Slidev 전역 레이아웃 및 본문 폰트/컬러 통제 */
+html,
+body,
+#slide-content,
+.slidev-layout {
+  background: var(--slide-bg) !important;
+  color: var(--slide-fg) !important;
+}
+
+/* 🌟 [수직 중앙 정렬 분쇄 및 상단 고정 완전 보장] 🌟
+   cover 레이아웃을 제외한 일반 레이아웃(.default, .two-cols 등)에 대해서만
+   정밀하게 상단 고정(flex-start) 및 stretch를 강제합니다. */
+.slidev-layout.default,
+.slidev-layout.two-cols {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  align-content: flex-start !important;
+  place-content: flex-start !important;
+  place-items: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 3.5rem 4rem !important; /* 와이드하고 조화로운 레이아웃 여백 */
+  box-sizing: border-box !important;
+}
+
+/* 🌟 [COVER LAYOUT ONLY] 오직 대문(타이틀) 슬라이드에만 완벽한 수직/수평 정중앙 정렬 부여 */
+.slidev-layout.cover {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  align-content: center !important;
+  place-content: center !important;
+  place-items: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 4rem !important;
+  box-sizing: border-box !important;
+}
+
+/* Slidev 내부 직계 .my-auto 래퍼의 상하 마진 리셋 (Cover 레이아웃은 본래의 중앙 정렬 유지) */
+.slidev-layout:not(.cover) > .my-auto,
+.slidev-layout:not(.cover) > div.my-auto,
+.slidev-layout:not(.cover) > div:not(h1) {
+  margin-top: 0 !important;
+  margin-bottom: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+}
+
+/* Cover 레이아웃의 내부 래퍼도 완벽 정중앙 동기화 */
+.slidev-layout.cover > .my-auto,
+.slidev-layout.cover > div.my-auto,
+.slidev-layout.cover > div {
+  margin: auto !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* 대제목 h1 바로 뒤에 달라붙는 본문 시작 위치의 여백(Breathing Room)을 황금 비율 간격(2rem)으로 강제 고정 (Cover 제외) */
+.slidev-layout:not(.cover) h1 + *,
+.slidev-layout:not(.cover) h1 + .my-auto,
+.slidev-layout:not(.cover) h1 + div {
+  margin-top: 2rem !important;
+}
+
+.slidev-layout,
+.slidev-layout p,
+.slidev-layout li,
+.slidev-layout span:not(pre *):not(code *):not(.shiki *):not(.token),
+.slidev-layout div:not(pre *):not(code *):not(.shiki *):not(.slidev-code-wrapper):not(.slidev-code),
+.slidev-layout blockquote,
+.slidev-layout table,
+.slidev-layout td,
+.slidev-layout th {
+  font-family: 'KoddiudOngodic', sans-serif !important;
+}
+
+/* Shiki 원본 듀얼 테마 변수 컬러 복원 (우리의 전역 !important 침투 차단 및 복구) */
+.shiki span,
+pre span,
+code span {
+  color: var(--shiki-dark) !important;
+}
+
+html:not(.dark) .shiki span,
+html:not(.dark) pre span,
+html:not(.dark) code span {
+  color: var(--shiki-light) !important;
+}
+
+.slidev-layout p,
+.slidev-layout li,
+.slidev-layout span:not(pre *):not(code *):not(.shiki *):not(.token),
+.slidev-layout div:not(pre *):not(code *):not(.shiki *):not(.slidev-code-wrapper):not(.slidev-code),
+.slidev-layout blockquote,
+.slidev-layout blockquote * {
+  color: var(--slide-fg) !important;
+}
+
+/* 🌟 [A2z HEADER SCALING FINE-TUNED] 에이투지체 제목 크기를 단정하고 가독성 높게 조정 🌟 */
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3,
+.slidev-layout h4,
+.slidev-layout .font-title,
+.slidev-layout h1 *,
+.slidev-layout h2 * {
+  font-family: 'A2z', sans-serif !important;
+  color: var(--slide-fg) !important;
+}
+
+/* 대제목 */
+.slidev-layout:not(.cover) h1 {
+  font-size: 2.3rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  border-bottom: 3.5px solid var(--slide-fg) !important;
+  padding-bottom: 0.4em !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important; /* 아래 여백은 h1 + * 선택자가 margin-top으로 완전히 통제 */
+  width: 100% !important;
+}
+
+/* 🌟 [COVER TITLE STYLE] 대문 커버 슬라이드 전용 h1 데코레이션 */
+.slidev-layout.cover h1 {
+  font-size: 3.5rem !important; /* 한결 더 웅장하고 품격 높은 커버 서체 크기 */
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  border-bottom: none !important; /* 대문 전용: 밑줄을 과감하게 생략하여 절제된 미학 달성 */
+  padding-bottom: 0 !important;
+  margin-bottom: 1.5rem !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* 부제목 / 섹션 타이틀 */
+.slidev-layout h2 {
+  font-size: 1.6rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.15rem !important;
+  width: 100% !important;
+}
+
+/* 소제목 */
+.slidev-layout h3 {
+  font-size: 1.3rem !important;
+  font-weight: 400 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.9rem !important;
+  width: 100% !important;
+}
+
+/* 🌟 [SPACING & LAYOUT EXTRA OVERRIDE] 문장들 간의 촘촘하고 가독성 높은 거리감 확보 🌟 */
+.slidev-layout p {
+  line-height: 1.65 !important;
+  margin-bottom: 0.8rem !important;
+  width: 100% !important;
+}
+
+.slidev-layout li {
+  line-height: 1.65 !important;
+  margin-bottom: 0.55rem !important;
+}
+
+.slidev-layout ul, 
+.slidev-layout ol {
+  margin-bottom: 1rem !important;
+  width: 100% !important;
+}
+
+/* 🌟 [BLOCKQUOTE VISIBILITY & SLIM SPACING] 인용구 다이어트 및 패딩 최적화 🌟 */
+.slidev-layout blockquote {
+  border-left: 5px solid var(--slide-fg) !important;
+  padding: 0.45rem 1.1rem 0.3rem 1.1rem !important; /* 특히 하단 패딩을 0.3rem으로 얇게 조절 */
+  margin: 0.5rem 0 0.6rem 0 !important; /* 위아래 외부 마진을 절반에 가깝게 줄여 컴팩트하게 거치 */
+  background: rgba(240, 237, 204, 0.06) !important;
+  opacity: 1 !important;
+  border-radius: 2px;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.slidev-layout blockquote {
+  color: var(--slide-fg) !important;
+  font-size: 1.12rem !important;
+  line-height: 1.6 !important;
+}
+
+.slidev-layout blockquote * {
+  color: var(--slide-fg) !important;
+  font-size: 1.12rem !important;
+  line-height: 1.6 !important;
+}
+
+/* blockquote 내부 bold 명시 복원 */
+.slidev-layout blockquote strong,
+.slidev-layout blockquote b {
+  font-weight: bold !important;
+}
+
+/* 🌟 [DEVELOPER-FRIENDLY CODE BLOCKS] 코드 구문 강조 컬러셋과 블랙 배경 조화 🌟 */
+.slidev-layout :not(pre) > code {
+  background: rgba(13, 32, 38, 0.85) !important; /* 인라인 코딩 배경도 틸-차콜 네이비로 동기화 */
+  color: var(--slide-fg) !important;
+  padding: 0.2rem 0.4rem !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(240, 237, 204, 0.15) !important;
+  font-size: 0.95em !important;
+  font-family: 'D2Coding', monospace !important; /* D2Coding 서체 탑재 */
+}
+
+/* 🌟 [DEVELOPER-FRIENDLY CODE BLOCKS & PRINT ENGINES EXACT COLOR FORCE] 🌟
+   인쇄 엔진(PDF) 및 Browser Exporter 내부에서 브라우저가 코드 블록 배경과 구문 강조 컬러를
+   탈색하거나 흑백으로 뭉개지 못하도록 강제 지정합니다. */
+pre,
+code,
+pre *,
+code * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.slidev-layout pre,
+.print-slide-container pre,
+pre {
+  background-color: var(--code-bg) !important;
+  border: 1px solid rgba(240, 237, 204, 0.15) !important;
+  border-radius: 6px !important;
+  padding: 0.9rem 1.1rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 1rem !important;
+  overflow-x: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.slidev-layout pre,
+.slidev-layout pre code,
+.print-slide-container pre,
+.shiki,
+.shiki *,
+.slidev-code,
+.slidev-code *,
+pre,
+code,
+pre *,
+code * {
+  font-family: 'D2Coding', monospace !important; /* D2Coding 서체 탑재 */
+  font-size: 1.05rem !important;
+  line-height: 1.5 !important;
+}
+
+/* 🌟 [BRIGHT & VIBRANT SYNTAX OVERRIDE] 🌟
+   Shiki v1의 듀얼 테마(CSS Variables) 및 인라인 스타일과 클래스 기반 렌더링에 모두 대응하는
+   하이브리드 구문 강조 규칙입니다. Exporter와 PDF 인쇄 상태에서도 쨍하게 빛나도록 보장합니다. */
+
+/* 1. 예약어 (const, function, let, return, new, if 등) -> 화사하고 맑은 핑크 (#ff92df) */
+pre span[style*="color:#0000FF"], 
+pre span[style*="color:#0033B0"],
+pre span[style*="color:#0000af"],
+pre span[style*="color:#d73a49"],
+pre span[style*="color:#D73A49"],
+pre span[style*="color:#CF222E"],
+pre span[style*="--shiki-default:#d73a49"],
+pre span[style*="--shiki-dark:#d73a49"],
+pre span[style*="--shiki-default:#CF222E"],
+pre span[style*="--shiki-dark:#CF222E"],
+pre span[style*="--shiki-default:#0000FF"],
+pre span[style*="--shiki-dark:#0000FF"],
+pre span.token.keyword,
+pre span.keyword,
+pre span.storage {
+  color: #ff92df !important;
+  font-weight: bold !important;
+}
+
+/* 2. 클래스, 객체 및 타입 지시어 (Console, String, System, Object 등) -> 완전히 맑은 네온 아쿠아 (#93f5ff) */
+pre span[style*="color:#000000"],
+pre span[style*="color:#268BD2"],
+pre span[style*="color:#6F42C1"],
+pre span[style*="color:#6f42c1"],
+pre span[style*="color:#005CC5"],
+pre span[style*="color:#005cc5"],
+pre span[style*="--shiki-default:#6F42C1"],
+pre span[style*="--shiki-dark:#6f42c1"],
+pre span[style*="--shiki-default:#005CC5"],
+pre span[style*="--shiki-dark:#005cc5"],
+pre span[style*="--shiki-default:#268BD2"],
+pre span[style*="--shiki-dark:#268BD2"],
+pre span.token.class-name,
+pre span.token.type,
+pre span.class,
+pre span.type {
+  color: #93f5ff !important;
+}
+
+/* 3. 함수, 메서드 지시어 (log, triple, double, println 등) -> 싱그럽고 반짝이는 라임 그린 (#69ff94) */
+pre span[style*="color:#795DA3"],
+pre span[style*="color:#795da3"],
+pre span[style*="color:#A6E22E"],
+pre span[style*="color:#b58900"],
+pre span[style*="--shiki-default:#795DA3"],
+pre span[style*="--shiki-dark:#795da3"],
+pre span[style*="--shiki-default:#A6E22E"],
+pre span[style*="--shiki-dark:#A6E22E"],
+pre span.token.function,
+pre span.function,
+pre span.method {
+  color: #69ff94 !important;
+}
+
+/* 4. 리터럴 문자열, 숫자 ("kim", 95, 9, 27 등) -> 쨍하고 맑은 형광 옐로우 (#ffffa5) */
+pre span[style*="color:#a31515"],
+pre span[style*="color:#A31515"],
+pre span[style*="color:#2AA198"],
+pre span[style*="color:#032F62"],
+pre span[style*="color:#032f62"],
+pre span[style*="--shiki-default:#032F62"],
+pre span[style*="--shiki-dark:#032f62"],
+pre span[style*="--shiki-default:#2AA198"],
+pre span[style*="--shiki-dark:#2AA198"],
+pre span.token.string,
+pre span.token.number,
+pre span.string,
+pre span.number,
+pre span.literal {
+  color: #ffffa5 !important;
+}
+
+/* 5. 코드 주석 (// 주석 등) -> 아늑하고 읽기 편한 파스텔 라벤더 회색 (#a5b4fc) */
+pre span[style*="color:#008000"],
+pre span[style*="color:#586E75"],
+pre span[style*="color:#6A737D"],
+pre span[style*="color:#6a737d"],
+pre span[style*="--shiki-default:#6A737D"],
+pre span[style*="--shiki-dark:#6a737d"],
+pre span[style*="--shiki-default:#586E75"],
+pre span[style*="--shiki-dark:#586E75"],
+pre span.token.comment,
+pre span.comment {
+  color: #a5b4fc !important;
+  font-style: italic !important;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  width: 100% !important;
+}
+
+th,
+td {
+  border: 1px solid rgba(240, 237, 204, 0.25);
+  padding: 0.5rem 0.8rem !important;
+}
+
+/* 🌟 [FANCY CHECKLIST] 체크리스트 고급 스타일링 🌟 */
+
+/* 체크박스 아이콘 자체 스타일 */
+.slidev-layout input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 1.15em !important;
+  height: 1.15em !important;
+  margin-top: 0.18em !important;
+  border: 1.5px solid rgba(240, 237, 204, 0.55) !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  vertical-align: middle !important;
+}
+
+/* 체크리스트 li 아이템: 기본 불릿 제거 + flex 가로 정렬 + 하단 구분선 제거 */
+.slidev-layout .task-list-item,
+.slidev-layout li:has(> input[type="checkbox"]) {
+  list-style: none !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  text-align: left !important;
+  gap: 0.8rem !important;
+  padding: 0.6rem 0.9rem !important;
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 6px !important;
+  background: rgba(240, 237, 204, 0.03) !important; /* 체크리스트별 개별 카드 느낌 부여 */
+  border: 1px solid rgba(240, 237, 204, 0.08) !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* 체크리스트의 상위 ul 요소도 전체 너비 사용 및 정렬 */
+.slidev-layout ul:has(li > input[type="checkbox"]) {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  list-style: none !important;
+  text-align: left !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
+* {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* ==========================================================================
+   🌟 [BROWSER EXPORTER UI HIGH-CONTRAST DARK OPTIMIZATION] 🌟
+   Browser Exporter 화면이 다 밝은색이어서 글씨와 폼 요소가 묻히던 고질적 문제를 해결합니다.
+   전체 배경을 딥한 틸-네이비 테마에 맞추고 텍스트 대비와 폼 요소를 고급스러운 다크 스타일로 완성합니다.
+   ========================================================================== */
+
+/* 1. Exporter 루트 및 전체 컨테이너 다크 테마 */
+html:has(#export-container),
+body:has(#export-container),
+html:has(#export-container) body,
+html:has(#export-container) #app,
+div:has(> #export-container),
+div.bg-main {
+  background-color: #022027 !important; /* 슬라이드 테마와 통일감을 주는 웅장한 딥 틸-블랙 */
+  background: #022027 !important;
+  color: #F0EDCC !important;
+}
+
+/* 2. Exporter 왼쪽 컨트롤 패널 다크 카드 스타일링 */
+html:has(#export-container) .print\:hidden.min-w-fit,
+div:has(> #export-container) .print\:hidden.min-w-fit,
+div:has(> #export-container) div[flex~="col"][gap-2] {
+  background-color: #032b34 !important; /* 패널 전용 다크 틸 배경 */
+  border-right: 1.5px solid rgba(240, 237, 204, 0.15) !important;
+  color: #F0EDCC !important;
+}
+
+/* 3. 하위 폼 레이블, 제목, 문단 고대비 크림색 강제 고정 (슬라이드 본문 영역 침투 완전 차단) */
+html:has(#export-container) .print\:hidden.min-w-fit h1,
+html:has(#export-container) .print\:hidden.min-w-fit h2,
+html:has(#export-container) .print\:hidden.min-w-fit span,
+html:has(#export-container) .print\:hidden.min-w-fit label,
+html:has(#export-container) .print\:hidden.min-w-fit p,
+html:has(#export-container) .print\:hidden.min-w-fit div {
+  color: #F0EDCC !important;
+}
+
+/* 4. 입력 필드 (Title, Range, Delay 등)의 고가시성 다크 스타일링 */
+html:has(#export-container) input[type="text"],
+html:has(#export-container) input[type="number"],
+div:has(> #export-container) input[type="text"],
+div:has(> #export-container) input[type="number"] {
+  background-color: #0d2026 !important;
+  color: #F0EDCC !important;
+  border: 1.5px solid rgba(240, 237, 204, 0.35) !important;
+  border-radius: 4px !important;
+  padding: 0.4rem 0.7rem !important;
+  font-family: inherit !important;
+  transition: all 0.2s ease !important;
+}
+
+html:has(#export-container) input:focus,
+div:has(> #export-container) input:focus {
+  border-color: #F0EDCC !important;
+  box-shadow: 0 0 5px rgba(240, 237, 204, 0.25) !important;
+  outline: none !important;
+}
+
+/* 5. 내보내기 각종 버튼(PDF, PPTX 등)을 화사하고 품격 높은 크림 버튼 칩으로 연출 */
+html:has(#export-container) .slidev-form-button,
+html:has(#export-container) button,
+div:has(> #export-container) .slidev-form-button,
+div:has(> #export-container) button {
+  background-color: #F0EDCC !important;
+  color: #02343F !important;
+  font-weight: bold !important;
+  font-family: inherit !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 0.6rem 1.2rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+html:has(#export-container) .slidev-form-button:hover,
+html:has(#export-container) button:hover,
+div:has(> #export-container) .slidev-form-button:hover,
+div:has(> #export-container) button:hover {
+  background-color: #ffffff !important;
+  color: #02343F !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(240, 237, 204, 0.3) !important;
+}
+
+/* 6. 다크 테마 하에서의 테두리 라인 보정 */
+html:has(#export-container) div[border~="main"] {
+  border: 1.5px solid rgba(240, 237, 204, 0.2) !important;
+}
