@@ -39,28 +39,3 @@
 ├── package.json      # Slidev 및 종속 라이브러리 스펙
 └── AGENTS.md         # AI 코딩 에이전트용 작업 수칙 (지배 규칙)
 ```
-
-## 4. 환경 기동 및 빌드 명령어
-
-### 의존성 설치
-```bash
-pnpm install
-```
-
-### 실시간 개발 서버 기동
-```bash
-pnpm run dev
-```
-* 서버가 실행되면 로컬 환경(`http://localhost:3030`)에서 실시간으로 화면 변환을 미리보며 슬라이드를 가공할 수 있습니다.
-
-### 프로덕션 SPA 빌드
-```bash
-pnpm run build
-```
-* `dist/` 디렉터리에 배포 가능한 단일 정적 웹 애플리케이션 리소스를 완성합니다.
-
-### 강의안 PDF 추출
-```bash
-pnpm run export
-```
-* Playwright-Chromium 기반 인쇄 엔진을 활용해 교안용 단일 PDF 파일(`slides.pdf`)을 안정적으로 빌드합니다.
