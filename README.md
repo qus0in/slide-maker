@@ -1,11 +1,45 @@
-# Welcome to [Slidev](https://github.com/slidevjs/slidev)!
+# Slidev Lecture Slides: JavaScript 자료구조 심화
 
-To start the slide show:
+이 저장소는 자바스크립트의 고급 데이터 처리 기법과 참조 관리 메커니즘을 시각적이고 체계적으로 교육하기 위해 제작된 **Slidev** 기반의 강의 슬라이드 프로젝트입니다.
 
-- `pnpm install`
-- `pnpm run dev`
-- visit <http://localhost:3030>
+## 1. 슬라이드 주요 학습 내용
 
-Edit the [slides.md](./slides.md) to see the changes.
+본 강의안(`slides.md`)은 입문 단계를 거친 학습자가 한 단계 높은 실전 자바스크립트 코딩 방식을 터득할 수 있도록 다음 4가지 핵심 의제를 점진적으로 학습합니다.
 
-Learn more about Slidev at the [documentation](https://sli.dev/).
+* **배열 제어와 고차함수**: `forEach()`, `map()`, `filter()`, `reduce()`의 용도별 구분 및 콜백 제어
+* **메서드 체이닝 (Method Chaining)**: 중간 변수를 줄이고 데이터 파이프라인을 유기적으로 결합하는 선언적 코딩
+* **변수 재할당과 참조 공유**: 메모리 힙(Heap) 영역에서의 동작 방식과 예기치 못한 부수 효과(Side Effect)
+* **얕은 복사 vs 깊은 복사**: 스프레드 연산자(`...`)의 다차원 객체 복사 한계와 `structuredClone()` 표준 방어 코딩
+
+## 2. 개발 및 실행 방법
+
+이 슬라이드는 Vite 및 Vue 기반의 슬라이드 도구인 **Slidev**로 구동됩니다. 아래 명령어를 통해 로컬 서버를 기동하거나 정적 파일로 변환하여 활용할 수 있습니다.
+
+### 패키지 설치
+```bash
+pnpm install
+```
+
+### 개발용 로컬 서버 구동 (실시간 편집 반영)
+```bash
+pnpm run dev
+```
+* 서버 기동 후 브라우저에서 `http://localhost:3030`으로 접속하여 실시간 슬라이드 화면을 확인할 수 있습니다.
+
+### 정적 SPA 배포 빌드
+```bash
+pnpm run build
+```
+* 빌드가 완료되면 `dist/` 폴더에 배포 가능한 단일 정적 웹페이지 번들이 생성됩니다.
+
+### PDF 강의안 파일 추출
+```bash
+pnpm run export
+```
+* Playwright-Chromium 브라우저를 백그라운드에서 구동하여 인쇄 전용 PDF 파일(`slides.pdf`)을 생성합니다.
+
+## 3. 프로젝트 디자인 가이드
+
+* **색상 체계 (Color System)**: 심해 틸 그린배경(`background: #02343F`) 위에 명도가 높은 소프트 크림 텍스트(`color: #F0EDCC`)를 결합해 장시간 강의에도 피로도가 낮고 높은 가독성을 유도합니다.
+* **서체 디자인**: 제목군에는 에이투지체(`A2z`), 일반 본문 단락에는 KoddiUD 온고딕, 코드 블록 가시성을 위해 D2Coding 서체를 탑재해 디자인 통일성을 제공합니다.
+* **정적 최적화**: 인쇄나 오프라인 렌더링 호환성을 위해 슬라이드 애니메이션(`v-click` 등)은 제거하고 정적 렌더링에 최적화하여 작성했습니다.
