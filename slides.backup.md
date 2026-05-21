@@ -10,6 +10,10 @@ title: JavaScript 함수 기초
 info: false
 ---
 
+# JavaScript 함수 기초
+
+---
+
 # 학습 체크리스트 (1/2)
 
 - [ ] 함수 선언문(`function`)과 함수 표현식(`const fn = function`) — 문법 차이 및 호이스팅 유무
@@ -139,22 +143,35 @@ console.log(double3(5)); // 10
 
 ---
 
-# 매개변수와 인자
+# 매개변수와 인자 — 개념
 
 > **매개변수 (Parameter)**
 >
-> 함수를 정의할 때 소괄호 안에 선언하는 수신용 변수 이름
+> 함수를 정의할 때 소괄호 안에 선언하는 변수로,
+> 외부에서 전달될 데이터를 안으로 수집하는 매개체
 
 > **인자 (Argument)**
 >
-> 함수를 호출할 때 매개변수 자리에 실제로 전달하는 값
+> 함수를 호출할 때 괄호 안에 실제로 넣어 전달하는
+> 구체적인 값 또는 데이터 자체
+
+- **수집과 전달:** 매개변수는 데이터를 받는 상자, 인자는 넣는 물건
+- **이름과 값:** 매개변수는 변수의 이름이며, 인자는 실재하는 값
+
+---
+
+# 매개변수와 인자 — 코드 예시
 
 ```javascript
-function triple(num) {   // num → 매개변수 (Parameter)
+// num은 전달되는 값을 수신하기 위해 정의된 '매개변수 (Parameter)'
+function triple(num) {
   return num * 3;
 }
 
-console.log(triple(9));  // 9 → 인자 (Argument)  →  27
+// 9는 함수 실행 시 매개변수에 주입하는 '인자 (Argument)'
+const result = triple(9); 
+
+console.log(result); // 27
 ```
 
 ---

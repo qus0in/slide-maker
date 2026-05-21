@@ -187,6 +187,20 @@ body,
   font-family: 'KoddiudOngodic', sans-serif !important;
 }
 
+/* 🌟 [KOREAN WORD-BREAK PREVENTION] 한글 끝 어절 끊김 방지 및 안전 줄바꿈 확보 🌟 */
+.slidev-layout p,
+.slidev-layout li,
+.slidev-layout span,
+.slidev-layout div,
+.slidev-layout blockquote,
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3,
+.slidev-layout h4 {
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+}
+
 /* Shiki 원본 듀얼 테마 변수 컬러 복원 (우리의 전역 !important 침투 차단 및 복구) */
 .shiki span,
 pre span,
