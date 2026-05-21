@@ -335,26 +335,9 @@ Strictly forbidden:
 
 All information must be visible immediately.
 
-# File Safety Rules
-
-## 13. Mandatory Backup Before Large Changes
-
-Before:
-- overwriting `slides.md`
-- restructuring slides
-- automated refactors
-- large edits
-
-Create backup first.
-
-Example:
-```bash
-cp slides.md slides.backup.md
-```
-
 # Required CSS Injection
 
-## 14. Mandatory style.css Centralization
+## 13. Mandatory style.css Centralization
 
 To ensure 100% clean structural separation and solid global override in Slidev compilation, **ALL custom CSS styling, typography definitions, and webfont loaders MUST be offloaded to `style.css` in the project root directory.**
 
@@ -362,7 +345,7 @@ The main file `slides.md` **MUST NOT** contain `<style>` tags at the end. 모든
 
 # AI Agent Execution Policy
 
-## 15. Lecture Slide Priority Order
+## 14. Lecture Slide Priority Order
 
 Priority order:
 
@@ -373,7 +356,7 @@ Priority order:
 5. PDF compatibility
 6. visual consistency
 
-## 16. Default Agent Behavior
+## 15. Default Agent Behavior
 
 Unless explicitly instructed otherwise:
 
