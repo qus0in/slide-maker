@@ -3,128 +3,95 @@ theme: default
 background: '#02343F'
 class: text-center
 highlighter: shiki
+shikiConfig:
+  themes:
+    dark: one-dark-pro
+    light: one-dark-pro
 lineNumbers: true
 drawings:
   persist: false
 transition: slide-left
-title: JavaScript 예외처리
+title: DSA
 layout: cover
 ---
 
-# JavaScript 예외처리
+# DSA
 
 ---
 layout: default
 ---
 
-## 학습 체크리스트 (1/2)
+## 학습 체크리스트
 
-- [ ] 에러 방어를 위한 `try-catch` 문의 기본 구조 및 작동 흐름 이해
-- [ ] `catch(error)` 매개변수를 통한 에러 객체(`message`, `name`, `stack`) 활용
-- [ ] `instanceof` 연산자 기반의 에러 유형별 분기 감지 및 커스텀 익셉션 패턴 적용
-- [ ] 예외 조건 발생 시 `throw` 키워드를 이용한 강제 에러 발생 및 제어
-
----
-layout: default
----
-
-## 학습 체크리스트 (2/2)
-
-- [ ] 상위 호출자로 에러 처리를 위임하는 `rethrow` 패턴의 이해 및 활용
-- [ ] 예외 발생 여부와 무관하게 필수 실행되는 `finally` 블록의 Cleanup 원리 숙지
-- [ ] `finally` 블록 내 `return` 선언 시 앞선 반환값을 덮어쓰는(Override) 동작 파악
-- [ ] `try-catch-finally` 블록 레벨 스코프와 상위 `let` 공통 변수 설계 방식 파악
+- [ ] 코딩테스트의 두 핵심 평가 축(정확성·효율성) 이해 및 DSA·PS 개념 구분
+- [ ] 자바스크립트 코딩테스트 응시의 장단점과 언어 전환 고려 기준 파악
+- [ ] 언어 숙달 → 문제 도전 → 심화 DSA 분기까지의 단계별 준비 흐름 파악
+- [ ] 로드맵·교재·필수 문제·추가 문제 단계별 핵심 리소스 인지
 
 ---
 layout: default
 ---
 
-## 예외 처리 (try-catch)
+## 코딩테스트의 두 핵심 축
 
-> **예외 처리 (try-catch)**
+> **정확성 · 효율성 (Correctness · Efficiency)**
 >
-> 런타임 에러 발생 시 프로그램 즉각 종료를 방지하고 예외 대응용 대안 코드를 실행하는 제어 흐름 구조
+> 알고리즘 평가는 모든 입력에서 정답을 내는 정확성과, 제한 시간·메모리 안에 연산을 끝내는 효율성으로 구성됨
 
 <br>
 
-* **에러 객체 매개변수**: `catch(err)`의 에러 객체는 `name`, `message`, `stack` 등의 속성 제공
-* **매개변수 생략**: ES2019부터 catch 매개변수가 불필요하다면 `catch { ... }` 형태로 생략 가능
-* **커스텀 에러 상속**: 내장 `Error` 클래스를 상속받아 커스텀 에러 클래스 정의 및 구분 처리 가능
+* **정확성**: 경계값·예외 입력 포함 모든 케이스에서 정답 출력
+* **효율성**: 시간·메모리 제한(예: 1초, 128MB) 이내 연산 종료
+* **DSA** (Data Structures & Algorithms): 데이터를 가공·저장하는 구조와 이를 활용한 문제 해결 절차의 총칭
+* **PS** (Problem Solving): 실무·학문 영역에서 DSA를 적용한 문제 해결 역량을 지칭하는 용어
 
 ---
 layout: default
 ---
 
-## 커스텀 에러 클래스 선언
+## 코딩테스트 준비 적기
 
-```javascript
-class ValidationError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
-function verifyUser(user) {
-  if (!user.name) {
-    throw new ValidationError("이름 누락!");
-  }
-}
-```
-
----
-layout: default
----
-
-## 예외 감지 및 분기 처리
-
-```javascript
-try {
-  const user = {}; // 이름 누락 상황
-  verifyUser(user);
-} catch (error) {
-  if (error instanceof ValidationError) {
-    console.error(`[검증 오류] ${error.message}`);
-  } else {
-    console.error(`[기타 오류] ${error.message}`);
-  }
-}
-```
-
----
-layout: default
----
-
-## 에러 던지기 (throw)
-
-> **에러 던지기 (throw)**
+> **학습 집중도가 가장 높은 진입 시점**
 >
-> 특정 예외 조건 감지 시 예외 발생을 알리기 위해 강제로 에러를 생성하여 던지는 키워드
+> 기초 자료구조(`Array`, `Map`, `Set`) 학습 직후, 외부 프레임워크 진입 이전
 
 <br>
 
-* **에러 객체 던지기**: 관례 및 스택 추적 디버깅 정보를 위해 문자열 등이 아닌 `new Error()` 등의 객체를 던지는 것을 권장
-* **호출 스택 전파**: `throw` 실행 시 현재 흐름이 즉시 중단되고 호출 스택을 거슬러 올라가며 가장 가까운 `catch` 블록을 탐색
-* **rethrow 패턴**: 감지한 에러 중 감당할 수 없거나 상위 위임이 필요한 경우 상위 호출자에게 다시 에러를 던져 예외 처리를 위임
+* **자료구조 연계 가능**: 제약 조건에 맞는 자료구조 매칭 훈련 시작 가능 시점
+* **제어 흐름 기반 확보**: 조건 분기·반복문 숙지 상태로 다중 루프 최적화 접근 가능
+* **학습 집중도 확보**: 서버·DB·보안 등 대형 스택 학습 이전이므로 알고리즘 단독 집중 가능
 
 ---
 layout: default
 ---
 
-## 예외 발생 및 위임(Rethrow)
+## JS 코딩테스트의 득실
 
-```javascript
-function loadConfig(configJson) {
-  try {
-    const config = JSON.parse(configJson);
-    if (!config.apiUri) throw new SyntaxError("URI 누락!");
-    return config;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return { apiUri: "https://default-api.com" }; // 기본값 복구
+> **JavaScript는 웹 직군 지원에 유리하나 핵심 자료구조를 직접 구현해야 함**
+
+<br>
+
+* **내장 라이브러리 부재**: `Queue`, `Stack`, `Priority Queue`, `Linked List` 등 직접 구현 필요
+* **웹 직군 응시 시 유리**: Node.js·프런트엔드·풀스택 직군은 JS 응시로 언어 최적화 실력 어필 가능
+* **타 언어 전환 고려 기준**: 고난도 알고리즘 전형(주요 포털·대기업 시스템 직군) 목표 시 Python·C++·Java 등 표준 라이브러리 지원 언어 선택지로 검토
+
+---
+layout: default
+---
+
+## Java의 빌트인 Queue 선언
+
+```java
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Main {
+    public static void main(String[] args) {
+        Queue<String> q = new LinkedList<>();
+        q.offer("이름");
+        q.offer("이메일");
+        System.out.println(q.poll()); // "이름" — O(1) 추출
     }
-    throw error; // 처리 불가능한 에러는 상위로 위임 (Rethrow)
-  }
 }
 ```
 
@@ -132,47 +99,49 @@ function loadConfig(configJson) {
 layout: default
 ---
 
-## 최상위 예외 감지 및 처리
+## JS의 `Array.shift()` 성능 문제
 
-```javascript
-try {
-  loadConfig("{ broken json... }"); // JSON 파싱 실패 오류 발생
-} catch (err) {
-  console.log("최상단 감지 에러:", err.message); // 상위 위임 확인
-}
-```
-
----
-layout: default
----
-
-## 마무리 블록 (finally)
-
-> **마무리 블록 (finally)**
+> **`Array.shift()`의 $O(N)$ 문제**
 >
-> 에러 발생 여부 및 return 실행 여부와 상관없이 제어 흐름의 가장 마지막에 무조건 실행되는 정리용 블록
+> 배열에서 맨 앞 요소를 꺼낼 때 뒤따르는 모든 요소의 인덱스를 재정렬하여 선형 시간이 발생
 
 <br>
 
-* **클린업 코드**: 파일 닫기, 네트워크 연결 종료, 로딩 UI 비활성화 등 필수 실행되어야 하는 뒷정리 코드를 배치함
-* **return 흐름 제어**: `try`나 `catch`에서 `return`이 먼저 실행되어도 함수의 반환 전에 `finally` 블록이 먼저 호출됨
-* **return 덮어쓰기**: `finally` 내부에서 `return`을 선언하면 이전 블록의 `return` 값은 덮어씌워져(Override) 소멸함
+* **`Array.shift()`**: 호출할 때마다 배열 전체를 한 칸씩 앞으로 당기므로 $O(N)$ 부하 발생
+* **Object 기반 설계**: 숫자 키(`head`, `tail`)로 포인터만 이동하면 $O(1)$ 추출 실현 가능
 
 ---
 layout: default
 ---
 
-## finally 내 return 덮어쓰기
+## FastQueue: 내부 필드 및 enqueue 선언
 
 ```javascript
-function checkReturnFlow() {
-  try {
-    console.log("try 블록 진입");
-    return "try 결과"; // 즉시 반환하지 않고 finally로 분기
-  } finally {
-    console.log("finally 블록 진입");
-    return "finally가 최종 가로챈 결과!"; // 가로챔 발생
+class FastQueue {
+  #storage = {};
+  #head = 0;
+  #tail = 0;
+
+  enqueue(item) {
+    this.#storage[this.#tail++] = item; // O(1) 삽입
   }
+```
+
+---
+layout: default
+---
+
+## FastQueue: dequeue 및 size 선언
+
+```javascript
+  dequeue() {
+    if (this.size === 0) return undefined;
+    const item = this.#storage[this.#head];
+    delete this.#storage[this.#head++]; // 메모리 정리
+    return item; // O(1) 추출
+  }
+
+  get size() { return this.#tail - this.#head; }
 }
 ```
 
@@ -180,64 +149,196 @@ function checkReturnFlow() {
 layout: default
 ---
 
-## return 덮어쓰기 결과 확인
+## FastQueue 동작 확인
 
 ```javascript
-console.log(checkReturnFlow());
-// 출력 결과:
-// "try 블록 진입"
-// "finally 블록 진입"
-// "finally가 최종 가로챈 결과!"
+const q = new FastQueue();
+q.enqueue("이름");
+q.enqueue("이메일");
+
+console.log(q.dequeue()); // "이름"  — O(1) 추출
+console.log(q.size);      // 1
 ```
 
 ---
 layout: default
 ---
 
-## 예외 처리와 블록 스코프
+## 코딩테스트 준비 단계
 
-> **예외 처리와 블록 스코프 (Block Scope)**
->
-> try, catch, finally 블록 스코프 내부의 const, let 변수가 외부 및 다른 블록에서 공유되지 않고 고립되는 스코프 구조
+> **언어 숙달 → 쉬운 문제 해결 → DSA 이론 연계 → 방향 분기 선택**
 
 <br>
 
-* **블록 레벨 변수**: `try` 블록 안에서 선언된 변수는 `catch`나 `finally` 블록 및 하위 스코프 외부에서 접근할 수 없음
-* **공통 변수 설계**: 여러 블록에서 공유하거나 예외 처리 후에도 활용하려면 상위 스코프에서 `let`으로 먼저 공통 선언해야 함
+* **1단계**: 기초 문법 및 메서드 제어 (언어 숙달)
+* **2단계**: 프로그래머스 Lv.0~1 / 리트코드 Easy 도전
+* **3단계**: 제약 패턴 인식 및 DSA 이론 연계
+* **분기 A (심화형)**: Python·Java·C++ 정착 → 유형별 집중 학습 → 고난도 전형 대처
+* **분기 B (실무형)**: 시뮬레이션 패턴 훈련 → 구현 위주 기업 우회 전형 공략
 
 ---
 layout: default
 ---
 
-## 예외 처리 스코프 안티패턴
+## 준비 절차
 
-```javascript
-function badScope() {
-  try {
-    const data = "민감한 데이터";
-  } catch (err) {
-    // console.log(data); // ReferenceError! (data 변수 참조 불가)
-  }
-}
+> **언어 숙달 → 쉬운 문제 해결 → DSA 이론 연계 → 분기 선택**
+
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#FFFBE6"
+    arrowheadColor: "#FFFBE6"
+    edgeLabelBackground: "#02343F"
+  flowchart:
+    padding: 8
+    nodeSpacing: 48
+    rankSpacing: 48
+---
+flowchart LR
+    Start(["코딩테스트<br>대비 입문"])
+    Start --> Step1["1단계: 언어 숙달<br>기초 문법 및 메서드 제어"]
+    Step1 --> Step2["2단계: 쉬운 문제<br>Lv.0~1 / Easy"]
+    Step2 --> Step3["3단계: 제약 패턴<br>DSA 이론 연계"]
+    Step3 --> Decision{"준비 방향<br>선택"}
+
+    class Start,Step1,Step2,Step3 step
+    class Decision branch
+    classDef step fill:#0d2026,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
+    classDef branch fill:#FFFBE6,stroke:#FFFBE6,color:#02343F,stroke-width:2px
+    linkStyle default stroke:#FFFBE6,stroke-width:4px
 ```
 
 ---
 layout: default
 ---
 
-## 상위 스코프 공통 변수 설계
+## 심화 DSA 대비
 
-```javascript
-function goodScope() {
-  let data = null; // 상위 스코프에 let 선언 및 초기화
-  
-  try {
-    data = "성공적으로 불러온 데이터";
-  } catch (err) {
-    console.error("오류 시점 데이터 참조:", data);
-  }
-  
-  console.log("최종 결과:", data); // 외부 스코프에서 활용 가능
-}
-goodScope();
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#FFFBE6"
+    arrowheadColor: "#FFFBE6"
+    edgeLabelBackground: "#02343F"
+  flowchart:
+    padding: 8
+    nodeSpacing: 52
+    rankSpacing: 48
+---
+flowchart LR
+    PathA["분기 A<br>심화형 DSA 정착"]
+    PathA --> Lang["주류 언어 정착<br>Python · Java · C++"]
+    Lang --> Type["유형별 집중 학습<br>고득점 키트 / 리트코드 75"]
+    Type --> Hard["고난도 전형 대처<br>Lv.2~3 / Medium 이상"]
+
+    class PathA branch
+    class Lang,Type,Hard deep
+    classDef branch fill:#FFFBE6,stroke:#FFFBE6,color:#02343F,stroke-width:2px
+    classDef deep fill:#063c45,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
+    linkStyle default stroke:#FFFBE6,stroke-width:4px
 ```
+
+고난도 알고리즘 전형을 목표로 언어와 자료구조·알고리즘 유형을 깊게 다지는 경로
+
+---
+layout: default
+---
+
+## 실무/우회 대비
+
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#FFFBE6"
+    arrowheadColor: "#FFFBE6"
+    edgeLabelBackground: "#02343F"
+  flowchart:
+    padding: 8
+    nodeSpacing: 52
+    rankSpacing: 48
+---
+flowchart LR
+    PathB["분기 B<br>실무형 시뮬레이션 및 우회"]
+    PathB --> Sim["시뮬레이션 패턴 훈련<br>기초 논리 전개 위주"]
+    Sim --> Target["우회 전형 공략<br>구현 위주 기업"]
+
+    class PathB branch
+    class Sim,Target practical
+    classDef branch fill:#FFFBE6,stroke:#FFFBE6,color:#02343F,stroke-width:2px
+    classDef practical fill:#123139,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
+    linkStyle default stroke:#FFFBE6,stroke-width:4px
+```
+
+구현력 중심 기업이나 과제형 전형에 맞춰 시뮬레이션·문제 해석 훈련을 강화하는 경로
+
+---
+layout: default
+---
+
+## 학습 추천 순서 (A → D)
+
+> **로드맵 확인 → 교재 개념 정립 → 필수 문제 풀이 → 추가 문제 반복**
+
+<br>
+
+| 단계 | 목적 | 대표 리소스 |
+|:----:|------|------------|
+| **A** | 얼마나, 어느 순서로 | SW마에스트로 기준표, roadmap.sh DSA |
+| **B** | 교재 개념 정립 | 바킹독, Hello-Algo|
+| **C** | 필수 문제 풀이 | 프로그래머스 고득점 키트, 리트코드 75 |
+| **D** | 추가 문제 반복 | SWEA, 현대 NGV |
+
+---
+layout: two-cols-header
+---
+
+## 단계별 핵심 리소스 (A · B)
+
+::left::
+
+**[A] 얼마나, 어느 순서로**
+
+  * [SW마에스트로 기초/심화 코딩테스트 기준표](https://swmaestro.ai/sw/main/notifyMentee.do?menuNo=200091)
+  * 국내
+    * [소프티어(Softeer) 로드맵](http://web.archive.org/web/20241005131540/https://softeer.ai/class/roadmap)
+    * [코드트리 101 커리큘럼](https://www.codetree.ai/ko/trails/complete/dashboard/codetree-101)
+  * 해외
+    * [알고마스터 DSA 코스](https://algomaster.io/learn/dsa/course-roadmap)
+    * [roadmap.sh DSA 로드맵](https://roadmap.sh/datastructures-and-algorithms)
+
+::right::
+
+**[B] 교재**
+
+* 국내
+  * [SWEA 코스](https://swexpertacademy.com/main/learn/course/courseList.do)
+  * [바킹독](https://github.com/encrypted-def/basic-algo-lecture)
+* 해외
+  * [Hello-Algo](https://www.hello-algo.com/en/chapter_hello_algo/)
+
+---
+layout: two-cols-header
+---
+
+## 단계별 핵심 리소스 (C · D)
+
+::left::
+
+**[C] 필수 문제**
+
+* [프로그래머스 고득점 키트](https://school.programmers.co.kr/learn/challenges?tab=algorithm_practice_kit)
+* [프로그래머스 카카오 기출문제](https://school.programmers.co.kr/learn/challenges?order=recent&page=1&partIds=94316%2C94315%2C58464%2C37527%2C31236%2C25448%2C20069%2C17214%2C12286%2C9317%2C22586%2C18498%2C17931%2C300%2C301)
+* [리트코드 75 스터디 플랜](https://leetcode.com/studyplan/leetcode-75/)
+* [리트코드 Top Interview 150](https://leetcode.com/studyplan/top-interview-150/)
+
+::right::
+
+**[D] 더 많은 문제**
+
+* [SWEA](https://swexpertacademy.com/main/code/problem/problemList.do)
+* [현대 NGV](https://exam.hyundai-ngv.com/practice?type=ALGORITHM&page=0)
+* [코드트리 기출문제](https://www.codetree.ai/ko/frequent-problems)
