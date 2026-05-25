@@ -7,264 +7,237 @@ lineNumbers: true
 drawings:
   persist: false
 transition: slide-left
-title: JavaScript 자료구조 심화
+title: JavaScript 예외처리
 layout: cover
 ---
 
-# JavaScript 자료구조 심화
+# JavaScript 예외처리
 
 ---
 layout: default
 ---
 
-## 학습 체크리스트
+## 학습 체크리스트 (1/2)
 
-- [ ] 고차함수(forEach, filter, map, reduce)의 매개변수 및 콜백을 통한 배열 제어 여부
-- [ ] 여러 고차함수들을 직관적으로 연쇄 구동하는 메서드 체이닝(Method Chaining) 기법 구현 여부
-- [ ] 변수 재할당(참조 공유)과 원소의 물리적 공간을 분리하는 복사(Copy)의 차이 인지 여부
-- [ ] 얕은 복사(Shallow Copy)와 깊은 복사(Deep Copy)의 다차원 객체 오염 한계성 비교 및 방어 코딩 적용 여부
+- [ ] 에러 방어를 위한 `try-catch` 문의 기본 구조 및 작동 흐름 이해
+- [ ] `catch(error)` 매개변수를 통한 에러 객체(`message`, `name`, `stack`) 활용
+- [ ] `instanceof` 연산자 기반의 에러 유형별 분기 감지 및 커스텀 익셉션 패턴 적용
+- [ ] 예외 조건 발생 시 `throw` 키워드를 이용한 강제 에러 발생 및 제어
 
 ---
 layout: default
 ---
 
-## 고차함수의 개념
+## 학습 체크리스트 (2/2)
 
-> **고차함수 (Higher-Order Function)**
+- [ ] 상위 호출자로 에러 처리를 위임하는 `rethrow` 패턴의 이해 및 활용
+- [ ] 예외 발생 여부와 무관하게 필수 실행되는 `finally` 블록의 Cleanup 원리 숙지
+- [ ] `finally` 블록 내 `return` 선언 시 앞선 반환값을 덮어쓰는(Override) 동작 파악
+- [ ] `try-catch-finally` 블록 레벨 스코프와 상위 `let` 공통 변수 설계 방식 파악
+
+---
+layout: default
+---
+
+## 예외 처리 (try-catch)
+
+> **예외 처리 (try-catch)**
 >
-> 함수를 인자로 전달받거나 함수를 결과로 반환하는 특수한 함수로, 자바스크립트에서는 배열을 순회 가공하기 위한 내장 API들이 고차함수로 구현됨
+> 런타임 에러 발생 시 프로그램 즉각 종료를 방지하고 예외 대응용 대안 코드를 실행하는 제어 흐름 구조
 
 <br>
 
-* **값으로서의 함수**: 자바스크립트의 함수는 일급 객체이므로 다른 함수의 인자로 전달 가능함
-* **동적 제어**: 데이터 처리 방식을 호출 시점에 콜백 함수로 결정하여 유연성을 제공함
-* **선언형 패턴**: 데이터를 어떻게(How) 가공할지보다 무엇을(What) 할지에 집중함
+* **에러 객체 매개변수**: `catch(err)`의 에러 객체는 `name`, `message`, `stack` 등의 속성 제공
+* **매개변수 생략**: ES2019부터 catch 매개변수가 불필요하다면 `catch { ... }` 형태로 생략 가능
+* **커스텀 에러 상속**: 내장 `Error` 클래스를 상속받아 커스텀 에러 클래스 정의 및 구분 처리 가능
 
 ---
 layout: default
 ---
 
-## 4대 배열 고차함수 (forEach & map)
+## 커스텀 에러 클래스 선언
 
-* **forEach() - 단순 순회 및 조회**
-  - 배열의 모든 요소를 순차적으로 순회하며 전달받은 콜백을 실행함
-  - 별도의 반환값(ReturnValue)이 없으며, 주로 단순 출력이나 부수 효과(Side Effect)를 일으킬 때 사용함
+```javascript
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
 
-<br>
-
-* **map() - 요소 전체 변형**
-  - 배열의 모든 요소를 가공하여 **동일한 크기의 새로운 배열**을 생성함
-  - 원본 배열은 전혀 수정하지 않는 안전한 비파괴적 메서드임
-
----
-layout: default
----
-
-## forEach & map 실전 코드
-
-```js
-const items = [10, 20, 30];
-
-// 1. forEach: 단순 조회 및 출력
-items.forEach(n => console.log(n));
-
-// 2. map: 각 원소를 2배로 가공하여 새로운 배열 반환
-const doubled = items.map(n => n * 2); // [20, 40, 60]
+function verifyUser(user) {
+  if (!user.name) {
+    throw new ValidationError("이름 누락!");
+  }
+}
 ```
 
-<br>
-
-* **비파괴적 특징**: `map()`을 실행한 후에도 원본 `items` 배열은 원본 그대로 유지됨
-* **용도 구분**: 단순 출력/저장 등은 `forEach`, 새 가공 배열이 필요하면 `map`을 사용함
-
 ---
 layout: default
 ---
 
-## 4대 배열 고차함수 (filter & reduce)
+## 예외 감지 및 분기 처리
 
-* **filter() - 조건부 요소 선별**
-  - 콜백 함수의 판정 조건이 `true`를 반환하는 요소들만 추출하여 **새로운 부분 배열**을 생성함
-  - 조건에 만족하는 원소가 배열에 없으면 빈 배열(`[]`)을 반환함
-
-<br>
-
-* **reduce() - 단일값 압축 수렴**
-  - 배열을 돌며 누적값(`acc`)과 현재값(`cur`)을 연산하여 **단 하나의 최종값**으로 압축함
-  - 누적 연산의 시작점이 되는 두 번째 인자(초기값) 설정이 매우 중요함
-
----
-layout: default
----
-
-## filter & reduce 실전 코드
-
-```js
-const items = [10, 20, 30];
-
-// 1. filter: 25보다 큰 요소만 걸러내어 부분 배열 생성
-const filtered = items.filter(n => n > 25); // [30]
-
-// 2. reduce: 모든 요소를 합산하여 하나의 값으로 압축
-const sum = items.reduce((acc, cur) => acc + cur, 0); // 60
+```javascript
+try {
+  const user = {}; // 이름 누락 상황
+  verifyUser(user);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(`[검증 오류] ${error.message}`);
+  } else {
+    console.error(`[기타 오류] ${error.message}`);
+  }
+}
 ```
 
-<br>
-
-* **부분 수집**: `filter`는 원본 배열의 크기보다 작거나 같은 크기의 배열을 반환함
-* **누적 연산**: `reduce`의 `acc`(accumulator)에는 각 반복마다 계산된 중간 결과가 계속 누적됨
-
 ---
 layout: default
 ---
 
-## 메서드 체이닝 (Method Chaining)
+## 에러 던지기 (throw)
 
-> **메서드 체이닝 (Method Chaining)**
+> **에러 던지기 (throw)**
 >
-> 객체나 배열 메서드가 새로운 값을 반환할 때, 그 반환값에 연이어 다른 메서드를 꼬리 물어 호출하는 표현 기법
+> 특정 예외 조건 감지 시 예외 발생을 알리기 위해 강제로 에러를 생성하여 던지는 키워드
 
 <br>
 
-* **임시 변수 제거**: 가공 과정에서 생성되는 중간 상태 변수들을 획기적으로 줄여줌
-* **가시적 흐름**: 데이터가 정제되고 변형되는 파이프라인 흐름을 위에서 아래로 직관적으로 추적할 수 있음
-* **코드 집약성**: 동일한 데이터 소스에 대한 여러 가공 연산을 유기적으로 결합함
+* **에러 객체 던지기**: 관례 및 스택 추적 디버깅 정보를 위해 문자열 등이 아닌 `new Error()` 등의 객체를 던지는 것을 권장
+* **호출 스택 전파**: `throw` 실행 시 현재 흐름이 즉시 중단되고 호출 스택을 거슬러 올라가며 가장 가까운 `catch` 블록을 탐색
+* **rethrow 패턴**: 감지한 에러 중 감당할 수 없거나 상위 위임이 필요한 경우 상위 호출자에게 다시 에러를 던져 예외 처리를 위임
 
 ---
 layout: default
 ---
 
-## 메서드 체이닝 실전 코드
+## 예외 발생 및 위임(Rethrow)
 
-```js
-const scores = [45, 82, 60, 95, 30];
-
-// 60점 이상 필터링 -> 각각 10점씩 가산 -> 최종 합산
-const passedTotal = scores
-  .filter(score => score >= 60) // 1. [82, 60, 95]로 선별
-  .map(score => score + 10)     // 2. [92, 70, 105]로 가공
-  .reduce((acc, cur) => acc + cur, 0); // 3. 최종 누적합 구하기
-
-console.log(passedTotal); // 267
+```javascript
+function loadConfig(configJson) {
+  try {
+    const config = JSON.parse(configJson);
+    if (!config.apiUri) throw new SyntaxError("URI 누락!");
+    return config;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return { apiUri: "https://default-api.com" }; // 기본값 복구
+    }
+    throw error; // 처리 불가능한 에러는 상위로 위임 (Rethrow)
+  }
+}
 ```
 
-<br>
+---
+layout: default
+---
 
-* **파이프라인 구조**: 각 단계가 이전 단계의 결과 배열을 전달받아 유기적으로 처리함
-* **안전한 가공**: 원본 `scores` 배열은 보존되며, 최종 결과값만 간결하게 도출됨
+## 최상위 예외 감지 및 처리
+
+```javascript
+try {
+  loadConfig("{ broken json... }"); // JSON 파싱 실패 오류 발생
+} catch (err) {
+  console.log("최상단 감지 에러:", err.message); // 상위 위임 확인
+}
+```
 
 ---
 layout: default
 ---
 
-## 참조 타입과 복사의 필요성
+## 마무리 블록 (finally)
 
-> **참조 타입 복사 (Reference Copy)**
+> **마무리 블록 (finally)**
 >
-> 객체나 배열 같은 참조 타입은 메모리 힙(Heap) 공간에 실제 데이터를 보관하고 변수에는 해당 주소값을 담으므로 복사 시 참조 범위를 제어해야 함
+> 에러 발생 여부 및 return 실행 여부와 상관없이 제어 흐름의 가장 마지막에 무조건 실행되는 정리용 블록
 
 <br>
 
-* **참조(Address) 전달**: 자바스크립트에서 객체나 배열은 값 자체가 아닌 주소값으로 소통함
-* **의도치 않은 수정**: 하나의 참조를 여러 변수가 공유하면 예기치 못한 원본 오염이 발생함
-* **불변성 지향**: 현대 프로그래밍에서는 원본을 유지하고 안전하게 복사하는 불변성이 필수임
+* **클린업 코드**: 파일 닫기, 네트워크 연결 종료, 로딩 UI 비활성화 등 필수 실행되어야 하는 뒷정리 코드를 배치함
+* **return 흐름 제어**: `try`나 `catch`에서 `return`이 먼저 실행되어도 함수의 반환 전에 `finally` 블록이 먼저 호출됨
+* **return 덮어쓰기**: `finally` 내부에서 `return`을 선언하면 이전 블록의 `return` 값은 덮어씌워져(Override) 소멸함
 
 ---
 layout: default
 ---
 
-## 단순 재할당 (Reassignment)
+## finally 내 return 덮어쓰기
 
-* **개념**: 변수에 담긴 객체의 **메모리 주소값 자체**를 그대로 복제하여 대입하는 행위
-* **결과**: 두 변수가 물리적으로 완벽히 동일한 힙(Heap) 영역의 객체를 가리키게 됨
-
-```js
-const userA = { name: "철수" };
-const userB = userA; // 주소값만 그대로 공유 (재할당)
-
-// userB의 이름을 바꾸었으나, userA의 이름도 바뀜
-userB.name = "영희";
-
-console.log(userA.name); // "영희" ⚠️ (동일한 주소를 공유하므로 원본 오염 발생)
-console.log(userA === userB); // true (물리적으로 같은 객체)
+```javascript
+function checkReturnFlow() {
+  try {
+    console.log("try 블록 진입");
+    return "try 결과"; // 즉시 반환하지 않고 finally로 분기
+  } finally {
+    console.log("finally 블록 진입");
+    return "finally가 최종 가로챈 결과!"; // 가로챔 발생
+  }
+}
 ```
 
 ---
 layout: default
 ---
 
-## 얕은 복사 (Shallow Copy)
+## return 덮어쓰기 결과 확인
 
-> **얕은 복사 (Shallow Copy)**
+```javascript
+console.log(checkReturnFlow());
+// 출력 결과:
+// "try 블록 진입"
+// "finally 블록 진입"
+// "finally가 최종 가로챈 결과!"
+```
+
+---
+layout: default
+---
+
+## 예외 처리와 블록 스코프
+
+> **예외 처리와 블록 스코프 (Block Scope)**
 >
-> 객체의 1단계 깊이(Top-level) 프로퍼티만 독립된 새 메모리에 복사하고, 중첩된 다차원 객체는 기존 주소값을 그대로 복제 공유하는 방식
+> try, catch, finally 블록 스코프 내부의 const, let 변수가 외부 및 다른 블록에서 공유되지 않고 고립되는 스코프 구조
 
 <br>
 
-* **1단계 독립**: 1단계 깊이의 일반적인 단일 속성 값은 완전히 다른 주소로 격리됨
-* **구현 기법**: 스프레드 연산자(`...`), `Object.assign()` 메서드 사용
-* **다차원 한계**: 내부에 중첩된 객체나 배열은 주소 복제에 그쳐 여전히 같은 대상을 가리킴
+* **블록 레벨 변수**: `try` 블록 안에서 선언된 변수는 `catch`나 `finally` 블록 및 하위 스코프 외부에서 접근할 수 없음
+* **공통 변수 설계**: 여러 블록에서 공유하거나 예외 처리 후에도 활용하려면 상위 스코프에서 `let`으로 먼저 공통 선언해야 함
 
 ---
 layout: default
 ---
 
-## 얕은 복사의 한계와 오염 예시
+## 예외 처리 스코프 안티패턴
 
-```js
-const original = { name: "노트북", detail: { color: "Silver" } };
-
-// 얕은 복사 수행 (Spread 연산자 활용)
-const copy = { ...original };
-
-copy.name = "태블릿";            // 1단계 값 수정 -> 원본에 영향 없음
-copy.detail.color = "SpaceGray";  // ⚠️ 중첩 객체 값 수정 -> 원본도 같이 변경됨!
-
-console.log(original.name);         // "노트북" (안전함)
-console.log(original.detail.color); // "SpaceGray" ⚠️ (오염 발생!)
+```javascript
+function badScope() {
+  try {
+    const data = "민감한 데이터";
+  } catch (err) {
+    // console.log(data); // ReferenceError! (data 변수 참조 불가)
+  }
+}
 ```
 
-<br>
-
-* **1단계(`name`)**: 정상적으로 복사되어 원본 보존 성공
-* **중첩 객체(`detail`)**: 참조 주소만 복제되었으므로 결국 같은 `detail` 객체를 수정하게 됨
-
 ---
 layout: default
 ---
 
-## 깊은 복사 (Deep Copy)
+## 상위 스코프 공통 변수 설계
 
-> **깊은 복사 (Deep Copy)**
->
-> 1단계뿐만 아니라 내부에 중첩된 다차원 객체까지 싹 추적하여 완전히 새로운 메모리 영역에 개별 복제하는 안전한 방식
-
-<br>
-
-* **완전 격리**: 모든 차원의 중첩 객체까지 개별 복제되므로 어떠한 상황에서도 원본이 오염되지 않음
-* **내장 API**: 최신 브라우저와 Node.js 환경에서 표준 내장 지원하는 `structuredClone()` API 사용 권장
-* **이전 방식의 제약**: `JSON.stringify` 활용법은 함수나 `undefined` 속성이 누락되는 한계가 있음
-
----
-layout: default
----
-
-## 깊은 복사 실전 코드
-
-```js
-const originalObj = { name: "노트북", detail: { color: "Silver" } };
-
-// 안전한 표준 깊은 복사 수행 (structuredClone API 구동)
-const deepCopy = structuredClone(originalObj);
-
-// 중첩 객체 내부 수정
-deepCopy.detail.color = "SpaceGray";
-
-console.log(originalObj.detail.color); // "Silver" (오염 없이 완전히 격리 보존!)
-console.log(deepCopy.detail.color);    // "SpaceGray" (독립된 변경 사항 적용)
+```javascript
+function goodScope() {
+  let data = null; // 상위 스코프에 let 선언 및 초기화
+  
+  try {
+    data = "성공적으로 불러온 데이터";
+  } catch (err) {
+    console.error("오류 시점 데이터 참조:", data);
+  }
+  
+  console.log("최종 결과:", data); // 외부 스코프에서 활용 가능
+}
+goodScope();
 ```
-
-<br>
-
-* **안전성 확보**: 복합 다차원 데이터를 다룰 때 부수 효과를 사전에 완전 차단함
-* **structuredClone()**: 빠르고 표준 규격을 완벽히 따르는 자바스크립트 공식 깊은 복사 도구
