@@ -11,11 +11,11 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Agentic Coding Environment
+title: Harness Engineering
 layout: cover
 ---
 
-# Agentic Coding Environment
+# Harness Engineering
 
 ---
 layout: default
@@ -23,9 +23,10 @@ layout: default
 
 ## 학습 체크리스트 (1/2)
 
-- [ ] 특정 벤더나 독점 모델에 종속되지 않는 에이전틱 코딩 도구의 필요성 이해
-- [ ] OpenCode CLI 설치 및 로컬 터미널 환경에서의 정상 실행 확인
-- [ ] OpenCode 기본 무료 모델의 사용 제한 및 프롬프트 보안 주의사항 인지
+- [ ] 에이전트의 제어 성능과 지시 이행력을 향상시키는 하네스 엔지니어링의 개념 이해
+- [ ] AGENTS.md, SKILLS.md, DESIGN.md의 개별 역할 및 하네스 문서 정의 방법 숙지
+- [ ] AI 에이전트에 최적화된 행동 규칙과 환경 정보를 전달하는 AGENTS.md 작성 및 최적화
+- [ ] 외부 도구 및 스킬 연동 명세를 수립하고 활용하는 SKILLS.md 적용 흐름 파악
 
 ---
 layout: default
@@ -33,161 +34,145 @@ layout: default
 
 ## 학습 체크리스트 (2/2)
 
-- [ ] Nvidia NIM(NVIDIA Inference Microservice)의 개념 및 무료 API 한도 파악
-- [ ] Nvidia Developer 포털을 통한 가입 및 NIM API Key 발급 완료
-- [ ] OpenCode에 NIM API Key를 연동하여 Nemotron 3 Super 외부 고성능 모델 적용
-- [ ] 성능 분석 사이트 정보를 기반으로 작업에 맞는 최적의 LLM 탐색 및 변경
+- [ ] 일관된 프리미엄 UI/UX 구현을 위한 디자인 가이드라인인 DESIGN.md 활용
+- [ ] 모델 콘텍스트 프로토콜(MCP)의 탄생 배경과 클라이언트-서버 구조의 핵심 아키텍처 이해
+- [ ] Stitch 플랫폼의 MCP 설정을 복제하여 OpenCode 클라이언트에 연결하고 정상 구동 확인
 
 ---
 layout: default
 ---
 
-## 에이전틱 유연성의 의의
+## 하네스 엔지니어링 개요
 
-> **에이전틱 유연성 (Agentic Flexibility)**
+> **하네스 엔지니어링 (Harness Engineering)**
 >
-> 특정 벤더나 독점 모델에 종속되지 않고 다양한 LLM을 유연하게 교체하며 활용할 수 있는 역량
+> AI 코딩 에이전트가 작동하는 작업 공간(리포지토리)에 규격화된 지침, 도구(Skill), 디자인 사양을 주입하여 제어 성능과 지시 이행력을 극대화하는 엔지니어링 기법
 
-- **독점 모델 의존성 탈피**: Claude Code, Codex 등 특정 벤더 제품의 서비스 제약 극복
-- **비용 및 성능 최적화**: 로컬 프라이빗 모델부터 상용 초고성능 모델까지 자유롭게 설계
-- **기술 발전 속도 수용**: 나날이 변화하는 글로벌 LLM 생태계의 최신 모델을 즉각 연동
+- **제어력 향상**: 에이전트가 리포지토리의 맥락을 정확히 인지하고 목적에 맞게 활동하도록 통제
+- **하네스 파일 구성**: `AGENTS.md`, `SKILLS.md`, `DESIGN.md` 등 세 축의 문서 체계를 활용
+- **일관성 확보**: 인프라 환경 명시와 사전에 정의된 도구/디자인 사양으로 안정적 결과 도출
 
 ---
 layout: default
 ---
 
-## OpenCode 에이전트 CLI
+## AGENTS.md 에이전트 명세서
 
-> **오픈코드 (OpenCode)**
+> **에이전트 명세서 (AGENTS.md)**
 >
-> 다양한 거대언어모델(LLM)을 연동하여 로컬 환경에서 개발을 보조하는 독립형 에이전틱 CLI 도구
+> AI 에이전트가 리포지토리 내에서 반드시 준수해야 할 정체성, 미션, 터미널 지침, 코딩 컨벤션을 기술한 기본 규칙 문서
 
-- **높은 유연성**: 단일 서비스 벤더에 종속되지 않는 유연한 모델 교체 아키텍처 제공
-- **로컬 개발 최적화**: 터미널 환경에 직접 통합되어 개발 작업 흐름의 맥락을 끊김 없이 보조
-- **광범위한 확장성**: 상용 모델뿐만 아니라 다양한 오픈소스 및 로컬 추론 모델 연동 지원
-- **공식 리소스**: [OpenCode 공식 홈페이지](https://opencode.ai/ko) 참조
+- **페르소나 지정**: 특정 프레임워크(React, Next.js 등)에 특화된 시니어 에이전트 페르소나 설계
+- **개발 환경 주입**: OS, 패키지 매니저 버전 등 개발에 필요한 기본 인프라 정보 명시
+- **에이전틱 지침 수립**: 주석 정책, 리팩토링 규칙, 커밋 메시지 컨벤션 등 강제 규칙 지정
+- **공식 리소스**: [AGENTS.md 공식 사양](https://agents.md/) 참고
 
 ---
 layout: default
 ---
 
-## OpenCode 기본 무료 모델
+## AGENTS.md 피드백 루프
 
-> **기본 무료 모델 (Built-in Free Model)**
+- **설명**: 개발 흐름과 프로젝트 규모가 진척됨에 따라 지침을 점진적으로 강화하는 환류(Feedback) 모델입니다.
+- **주요 전략**:
+  * **동적 규칙 갱신**: 개발 프로세스의 진행 상황에 맞추어 지침을 지속적으로 수정 및 보완
+  * **지침 최적화 요구**: 필요할 때 에이전트에게 관련 문서를 재작성 및 갱신하도록 명시적으로 지시
+  * **지속적 학습 축적**: 축적된 지침을 통해 에이전트가 실무 워크플로우에 최적화된 형태로 안착
+
+---
+layout: default
+---
+
+## SKILLS.md 스킬 명세서
+
+> **스킬 명세서 (SKILLS.md)**
 >
-> 외부 API 키 등록 없이도 에이전트 CLI 실행 즉시 제공되는 내장 추론 모델
+> 에이전트가 샌드박스 내부 또는 외부 환경에서 직접 호출하고 실행할 수 있는 커스텀 도구들의 목록과 명세 문서
 
-- **별도 등록 불필요**: 복잡한 클라우드 결제나 계정 생성 없이 즉시 사용 가능한 상태 보장
-- **무료 추론 한도**: 하루 최대 200회 분량의 에이전틱 코딩 요청 기회 제공
-- **기본 탑재 엔진**: 효율적인 속도와 가벼운 성능을 갖춘 DeepSeek V4 Flash Free 지원
+- **도구 목록 관리**: 에이전트가 기본 생성 능력을 넘어 파일 가공, API 통신, 보안 감사를 수행하도록 보조
+- **스킬 활용 확장**: 필요한 커스텀 동작을 명세화하여 에이전트의 터미널 수행 능력의 한계 돌파
+- **공식 리소스**: [Agent Skills 공식 소개](https://agentskills.io/home) 및 [Skills Reference](https://www.skills.sh/) 참고
 
 ---
 layout: default
 ---
 
-## 무료 모델 사용 시 보안 주의사항
+## 스킬의 획득 및 연동 기법
 
-> **데이터 프라이버시 (Data Privacy)**
+- **설명**: 에이전트가 사용할 도구(Tool)를 설계하고 외부 환경과 안정적으로 바인딩하는 방법론입니다.
+- **도구 획득 방식**:
+  * **Skill Creator 기법**: GUI 웹 도구 및 스킬 메이커를 활용해 요구 사항에 딱 맞는 커스텀 함수 설계
+  * **npx 패키지 연동**: 이미 검증된 공통 스킬셋 패키지를 `npx` 명령어로 다운로드하여 즉각 바인딩
+  * **맥락적 도구 호출**: 에이전트가 `SKILLS.md`를 스스로 참고하여 적절한 시점에 도구를 호출하도록 지원
+
+---
+layout: default
+---
+
+## DESIGN.md를 통한 UI/UX 통제
+
+> **디자인 사양서 (DESIGN.md)**
 >
-> 외부 API 연동 및 서비스 이용 시 소스코드나 개인정보 등의 민감 데이터가 무단 유출되거나 재학습되지 않도록 방지하는 보안 정책
+> 애플리케이션의 핵심 디자인 시스템, 테마 컬러 토큰, 컴포넌트 레이아웃 규칙을 정밀하게 기록한 스타일 가이드 문서
 
-- **프롬프트 데이터 재학습**: 기본 무료 모델에 제공된 입력 데이터는 AI 모델 재학습에 이용됨
-- **민감 데이터 입력 주의**: API 키, 사내 핵심 소스코드, 개인정보 탑재 프롬프트 작성 제한
-- **보안 권장 방향**: 독립된 서드파티 고성능 API Key를 활용하거나 보안 인프라 연동 필수
-- **프라이버시 지침**: [OpenCode 데이터 보안 지침](https://opencode.ai/docs/zen) 참고
-
----
-layout: default
----
-
-## OpenCode 설치 및 실행 절차
-
-- **설명**: 로컬 터미널 환경에 OpenCode CLI를 간편하게 세팅하고 구동하는 과정입니다.
-- **절차 안내**:
-  1. CLI 설치 스크립트를 다운로드하여 셸 환경에 환경 변수 및 실행 파일 등록
-  2. 터미널 환경에서 `opencode` 명령어를 수행하여 대화형 셸 활성화
-  3. 에이전트 대화 창 내부에서 `/models` 명령어를 실행하여 사용 가능한 모델 목록 탐색
-  4. 기본 탑재된 `DeepSeek V4 Flash Free` 모델을 선택하여 구동 준비 완료
+- **디자인 왜곡 방지**: 확정된 기획 레이아웃 사양 및 컬러 토큰 정보를 템플릿 형태로 고정 보관
+- **Stitch 컴포넌트 설계 반영**: 구글의 AI 디자인 설계 툴에서 도출한 컴포넌트 설계를 명세화하여 이식
+- **프리미엄 UI/UX 지향**: 에이전트가 그라데이션, 유리 효과(Glassmorphism), 애니메이션을 빌드하도록 유도
+- **참조 리소스**: [Stitch Design.md Overview](https://stitch.withgoogle.com/docs/design-md/overview) 및 [GetDesign.md](https://getdesign.md/) ([Awesome Design MD](https://github.com/voltagent/awesome-design-md) 포함)
 
 ---
 layout: default
 ---
 
-## OpenCode CLI 설치 및 에이전트 구동
+## Model Context Protocol (MCP) 개요
+
+> **모델 콘텍스트 프로토콜 (Model Context Protocol)**
+>
+> AI 모델이 다양한 데이터 소스, 외부 개발 도구, 실행 환경과 표준화되고 안전하게 통신할 수 있도록 설계된 오픈소스 규약
+
+- **통합 표준 프로토콜**: 파편화된 외부 도구 연동 규격을 하나로 묶는 업계 표준 개방형 프로토콜
+- **안전한 통신**: 샌드박스 및 표준 채널을 통해 로컬 개발망과 AI 모델 간의 통신 보안 제공
+- **참조 문서**: [MCP 공식 문서](http://modelcontextprotocol.io/docs/getting-started/intro) 및 [Google Discover MCP](https://cloud.google.com/discover/what-is-model-context-protocol?hl=ko)
+
+---
+layout: default
+---
+
+## MCP 클라이언트-서버 구조
+
+- **설명**: AI 에이전트 플랫폼과 외부 리소스 간의 안전하고 유기적인 결합을 가능하게 하는 표준 아키텍처입니다.
+- **주요 구성 요소**:
+  * **호스트 (클라이언트)**: OpenCode와 같은 IDE/에이전트가 실행 흐름을 제어하는 주체 역할 수행
+  * **MCP 서버**: 파일 시스템 탐색기, DB 커넥터, API 서버 등 실제 도구와 리소스를 제공하는 서비스
+  * **동적 리소스 쿼리**: 호스트가 MCP 서버에 질의하여 사용 가능한 도구 목록을 수집한 뒤 유기적으로 가동
+
+---
+layout: default
+---
+
+## Stitch MCP 설정 및 OpenCode 연동 절차
+
+- **설명**: 구글 Stitch 디자인 허브의 MCP 프로토콜 설정을 OpenCode 클라이언트에 연결하는 단계입니다.
+- **연동 과정**:
+  1. [Stitch 플랫폼](https://stitch.withgoogle.com/) 로그인 후 원하는 프로젝트 내 `내보내기` > `MCP` > `MCP 설정` 이동
+  2. 연동할 클라이언트 목록에서 `OpenCode`를 지정한 뒤 화면에 나타난 MCP 설정 JSON을 복사
+  3. 로컬 프로젝트의 루트 디렉토리에 `touch ./opencode.json`으로 빈 파일을 생성
+  4. 생성된 파일 내부에 복사한 설정 JSON 코드를 누락 없이 붙여넣고 저장
+  5. 로컬 터미널에서 `opencode` 실행 후 `/mcps` 명령어를 입력하여 정상 연동 여부 검증
+
+---
+layout: default
+---
+
+## OpenCode MCP 연동 파일 생성 및 검증
 
 ```sh
-# 1. 설치 스크립트 실행 및 터미널 환경 연동
-curl -fsSL https://opencode.ai/install | bash
+# 1. 로컬 프로젝트 루트에 설정 파일 생성
+touch ./opencode.json
 
-# 2. OpenCode 에이전트 실행
-opencode
-```
-
----
-layout: default
----
-
-## OpenCode 핵심 제어 명령어
-
-- **설명**: OpenCode CLI 세션 내에서 에이전트를 조작하고 설정을 변경하는 핵심 명령체계입니다.
-- **슬래시 명령어**:
-  * `/models`: 에이전트에 적용할 로컬 및 글로벌 LLM 추론 모델 선택 화면 호출
-  * `/connect`: Nvidia NIM 등 외부 고성능 AI 플랫폼의 API 키 연동 인터페이스 진입
-  * `/quit` 또는 `/exit`: 에이전틱 인터랙션 세션을 정상 종료하고 로컬 터미널로 복귀
-
----
-layout: default
----
-
-## Nvidia NIM 추론 마이크로서비스
-
-> **엔비디아 님 (Nvidia NIM)**
->
-> 최적화된 AI 모델들을 클라우드 및 에지 환경에서 즉각 추론할 수 있도록 패키징한 컨테이너화된 마이크로서비스
-
-- **추론 최적화**: NVIDIA 인프라를 바탕으로 극대화된 연산 속도와 낮은 지연 시간 보장
-- **무료 API 혜택**: 개발자 계정 가입 시 분당 40회(RPM 40) 외 일일 사용량에 실질적 제한 없음
-- **높은 활용성**: 코딩 에이전트의 정밀한 모델 지원 외에도 타 에이전트 프레임워크 연계 가능
-- **엔비디아 오퍼링**: [Nvidia NIM 서비스 홈페이지](https://developer.nvidia.com/nim) 참고
-
----
-layout: default
----
-
-## Developer 포털 가입 및 API Key 발급
-
-- **설명**: 고성능 NIM 모델 사용을 위해 Nvidia API Key를 발급받는 보안 연동 절차입니다.
-- **진행 단계**:
-  1. [Nvidia Developer 로그인](https://developer.nvidia.com/login) 페이지 접속 및 계정 가입
-  2. 이메일 인증 절차를 통과한 후 [Nvidia build](https://build.nvidia.com/explore/discover) 접속
-  3. 모바일 문자 인증을 거쳐 고유한 NVIDIA Cloud Account 생성 작업 마무리
-  4. 대시보드에서 `Generate Key` 버튼을 클릭한 뒤 생성된 `nvapi-...` 고유 API Key 복사
-
----
-layout: default
----
-
-## Nvidia NIM API Key 연동 및 모델 선택
-
-```sh
-# 1. 에이전트 터미널 진입
+# 2. JSON 코드 입력 및 저장 완료 후 OpenCode 실행
 opencode
 
-# 2. 연동 명령어 실행 후 Nvidia 선택 및 발급된 Key 입력
-/connect
-
-# 3. 고성능 Nemotron 3 Super 모델을 선택하여 교체 완료
+# 3. 에이전트 세션 내에서 MCP 연동 상태 체크
+/mcps
 ```
-
----
-layout: default
----
-
-## 최적의 LLM 탐색과 실시간 모델 변경
-
-- **설명**: 작업의 난이도와 에이전트 응답성에 맞춰 실시간으로 최적의 인텔리전스를 매칭합니다.
-- **고려 사항**:
-  * **Artificial Analysis 정보**: 성능 분석 벤치마크 사이트를 참조하여 객관적 품질 검증
-  * **체감 성능과 레이턴시**: 단순 벤치마크 점수 외에 실제 에이전트 구동 지연 시간 조율
-  * **유동적인 모델 변경**: `/model` 명령어를 통해 개발 도중 언제든지 다른 고성능 모델로 스위칭
-  * **성능 벤치마크**: [Artificial Analysis 모델 성능 지표](https://artificialanalysis.ai/models) 참조
