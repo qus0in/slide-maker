@@ -10,335 +10,180 @@ shikiConfig:
 lineNumbers: true
 drawings:
   persist: false
-transition: slide-left
-title: DSA
+transition: none
+title: Agentic Coding Environment
 layout: cover
 ---
 
-# DSA
+# Agentic Coding Environment
 
 ---
 layout: default
 ---
 
-## 학습 체크리스트
+## 학습 체크리스트 (1/2)
 
-- [ ] 코딩테스트의 두 핵심 평가 축(정확성·효율성) 이해 및 DSA·PS 개념 구분
-- [ ] 자바스크립트 코딩테스트 응시의 장단점과 언어 전환 고려 기준 파악
-- [ ] 언어 숙달 → 문제 도전 → 심화 DSA 분기까지의 단계별 준비 흐름 파악
-- [ ] 로드맵·교재·필수 문제·추가 문제 단계별 핵심 리소스 인지
+- [ ] 특정 벤더나 독점 모델에 종속되지 않는 에이전틱 코딩 도구의 필요성 이해
+- [ ] OpenCode CLI 설치 및 로컬 터미널 환경에서의 정상 실행 확인
+- [ ] OpenCode 기본 무료 모델의 사용 제한 및 프롬프트 보안 주의사항 인지
 
 ---
 layout: default
 ---
 
-## 코딩테스트의 두 핵심 축
+## 학습 체크리스트 (2/2)
 
-> **정확성 · 효율성 (Correctness · Efficiency)**
+- [ ] Nvidia NIM(NVIDIA Inference Microservice)의 개념 및 무료 API 한도 파악
+- [ ] Nvidia Developer 포털을 통한 가입 및 NIM API Key 발급 완료
+- [ ] OpenCode에 NIM API Key를 연동하여 Nemotron 3 Super 외부 고성능 모델 적용
+- [ ] 성능 분석 사이트 정보를 기반으로 작업에 맞는 최적의 LLM 탐색 및 변경
+
+---
+layout: default
+---
+
+## 에이전틱 유연성의 의의
+
+> **에이전틱 유연성 (Agentic Flexibility)**
 >
-> 알고리즘 평가는 모든 입력에서 정답을 내는 정확성과, 제한 시간·메모리 안에 연산을 끝내는 효율성으로 구성됨
+> 특정 벤더나 독점 모델에 종속되지 않고 다양한 LLM을 유연하게 교체하며 활용할 수 있는 역량
 
-<br>
-
-* **정확성**: 경계값·예외 입력 포함 모든 케이스에서 정답 출력
-* **효율성**: 시간·메모리 제한(예: 1초, 128MB) 이내 연산 종료
-* **DSA** (Data Structures & Algorithms): 데이터를 가공·저장하는 구조와 이를 활용한 문제 해결 절차의 총칭
-* **PS** (Problem Solving): 실무·학문 영역에서 DSA를 적용한 문제 해결 역량을 지칭하는 용어
+- **독점 모델 의존성 탈피**: Claude Code, Codex 등 특정 벤더 제품의 서비스 제약 극복
+- **비용 및 성능 최적화**: 로컬 프라이빗 모델부터 상용 초고성능 모델까지 자유롭게 설계
+- **기술 발전 속도 수용**: 나날이 변화하는 글로벌 LLM 생태계의 최신 모델을 즉각 연동
 
 ---
 layout: default
 ---
 
-## 코딩테스트 준비 적기
+## OpenCode 에이전트 CLI
 
-> **학습 집중도가 가장 높은 진입 시점**
+> **오픈코드 (OpenCode)**
 >
-> 기초 자료구조(`Array`, `Map`, `Set`) 학습 직후, 외부 프레임워크 진입 이전
+> 다양한 거대언어모델(LLM)을 연동하여 로컬 환경에서 개발을 보조하는 독립형 에이전틱 CLI 도구
 
-<br>
-
-* **자료구조 연계 가능**: 제약 조건에 맞는 자료구조 매칭 훈련 시작 가능 시점
-* **제어 흐름 기반 확보**: 조건 분기·반복문 숙지 상태로 다중 루프 최적화 접근 가능
-* **학습 집중도 확보**: 서버·DB·보안 등 대형 스택 학습 이전이므로 알고리즘 단독 집중 가능
+- **높은 유연성**: 단일 서비스 벤더에 종속되지 않는 유연한 모델 교체 아키텍처 제공
+- **로컬 개발 최적화**: 터미널 환경에 직접 통합되어 개발 작업 흐름의 맥락을 끊김 없이 보조
+- **광범위한 확장성**: 상용 모델뿐만 아니라 다양한 오픈소스 및 로컬 추론 모델 연동 지원
 
 ---
 layout: default
 ---
 
-## JS 코딩테스트의 득실
+## OpenCode 기본 무료 모델
 
-> **JavaScript는 웹 직군 지원에 유리하나 핵심 자료구조를 직접 구현해야 함**
-
-<br>
-
-* **내장 라이브러리 부재**: `Queue`, `Stack`, `Priority Queue`, `Linked List` 등 직접 구현 필요
-* **웹 직군 응시 시 유리**: Node.js·프런트엔드·풀스택 직군은 JS 응시로 언어 최적화 실력 어필 가능
-* **타 언어 전환 고려 기준**: 고난도 알고리즘 전형(주요 포털·대기업 시스템 직군) 목표 시 Python·C++·Java 등 표준 라이브러리 지원 언어 선택지로 검토
-
----
-layout: default
----
-
-## Java의 빌트인 Queue 선언
-
-```java
-import java.util.LinkedList;
-import java.util.Queue;
-
-public class Main {
-    public static void main(String[] args) {
-        Queue<String> q = new LinkedList<>();
-        q.offer("이름");
-        q.offer("이메일");
-        System.out.println(q.poll()); // "이름" — O(1) 추출
-    }
-}
-```
-
----
-layout: default
----
-
-## JS의 `Array.shift()` 성능 문제
-
-> **`Array.shift()`의 $O(N)$ 문제**
+> **기본 무료 모델 (Built-in Free Model)**
 >
-> 배열에서 맨 앞 요소를 꺼낼 때 뒤따르는 모든 요소의 인덱스를 재정렬하여 선형 시간이 발생
+> 외부 API 키 등록 없이도 에이전트 CLI 실행 즉시 제공되는 내장 추론 모델
 
-<br>
-
-* **`Array.shift()`**: 호출할 때마다 배열 전체를 한 칸씩 앞으로 당기므로 $O(N)$ 부하 발생
-* **Object 기반 설계**: 숫자 키(`head`, `tail`)로 포인터만 이동하면 $O(1)$ 추출 실현 가능
+- **별도 등록 불필요**: 복잡한 클라우드 결제나 계정 생성 없이 즉시 사용 가능한 상태 보장
+- **무료 추론 한도**: 하루 최대 200회 분량의 에이전틱 코딩 요청 기회 제공
+- **기본 탑재 엔진**: 효율적인 속도와 가벼운 성능을 갖춘 DeepSeek V4 Flash Free 지원
 
 ---
 layout: default
 ---
 
-## FastQueue: 내부 필드 및 enqueue 선언
+## 무료 모델 사용 시 보안 주의사항
 
-```javascript
-class FastQueue {
-  #storage = {};
-  #head = 0;
-  #tail = 0;
+> **데이터 프라이버시 (Data Privacy)**
+>
+> 외부 API 연동 및 서비스 이용 시 소스코드나 개인정보 등의 민감 데이터가 무단 유출되거나 재학습되지 않도록 방지하는 보안 정책
 
-  enqueue(item) {
-    this.#storage[this.#tail++] = item; // O(1) 삽입
-  }
+- **프롬프트 데이터 재학습**: 기본 무료 모델에 제공된 입력 데이터는 AI 모델 재학습에 이용됨
+- **민감 데이터 입력 주의**: API 키, 사내 핵심 소스코드, 개인정보 탑재 프롬프트 작성 제한
+- **보안 권장 방향**: 독립된 서드파티 고성능 API Key를 활용하거나 보안 인프라 연동 필수
+
+---
+layout: default
+---
+
+## OpenCode 설치 및 실행 절차
+
+- **설명**: 로컬 터미널 환경에 OpenCode CLI를 간편하게 세팅하고 구동하는 과정입니다.
+- **절차 안내**:
+  1. CLI 설치 스크립트를 다운로드하여 셸 환경에 환경 변수 및 실행 파일 등록
+  2. 터미널 환경에서 `opencode` 명령어를 수행하여 대화형 셸 활성화
+  3. 에이전트 대화 창 내부에서 `/models` 명령어를 실행하여 사용 가능한 모델 목록 탐색
+  4. 기본 탑재된 `DeepSeek V4 Flash Free` 모델을 선택하여 구동 준비 완료
+
+---
+layout: default
+---
+
+## OpenCode CLI 설치 및 에이전트 구동
+
+```sh
+# 1. 설치 스크립트 실행 및 터미널 환경 연동
+curl -fsSL https://opencode.ai/install | bash
+
+# 2. OpenCode 에이전트 실행
+opencode
 ```
 
 ---
 layout: default
 ---
 
-## FastQueue: dequeue 및 size 선언
+## OpenCode 핵심 제어 명령어
 
-```javascript
-  dequeue() {
-    if (this.size === 0) return undefined;
-    const item = this.#storage[this.#head];
-    delete this.#storage[this.#head++]; // 메모리 정리
-    return item; // O(1) 추출
-  }
+- **설명**: OpenCode CLI 세션 내에서 에이전트를 조작하고 설정을 변경하는 핵심 명령체계입니다.
+- **슬래시 명령어**:
+  * `/models`: 에이전트에 적용할 로컬 및 글로벌 LLM 추론 모델 선택 화면 호출
+  * `/connect`: Nvidia NIM 등 외부 고성능 AI 플랫폼의 API 키 연동 인터페이스 진입
+  * `/quit` 또는 `/exit`: 에이전틱 인터랙션 세션을 정상 종료하고 로컬 터미널로 복귀
 
-  get size() { return this.#tail - this.#head; }
-}
+---
+layout: default
+---
+
+## Nvidia NIM 추론 마이크로서비스
+
+> **엔비디아 님 (Nvidia NIM)**
+>
+> 최적화된 AI 모델들을 클라우드 및 에지 환경에서 즉각 추론할 수 있도록 패키징한 컨테이너화된 마이크로서비스
+
+- **추론 최적화**: NVIDIA 인프라를 바탕으로 극대화된 연산 속도와 낮은 지연 시간 보장
+- **무료 API 혜택**: 개발자 계정 가입 시 분당 40회(RPM 40) 외 일일 사용량에 실질적 제한 없음
+- **높은 활용성**: 코딩 에이전트의 정밀한 모델 지원 외에도 타 에이전트 프레임워크 연계 가능
+
+---
+layout: default
+---
+
+## Developer 포털 가입 및 API Key 발급
+
+- **설명**: 고성능 NIM 모델 사용을 위해 Nvidia API Key를 발급받는 보안 연동 절차입니다.
+- **진행 단계**:
+  1. [Nvidia Developer 로그인](https://developer.nvidia.com/login) 페이지 접속 및 계정 가입
+  2. 이메일 인증 절차를 통과한 후 [Nvidia build](https://build.nvidia.com/explore/discover) 접속
+  3. 모바일 문자 인증을 거쳐 고유한 NVIDIA Cloud Account 생성 작업 마무리
+  4. 대시보드에서 `Generate Key` 버튼을 클릭한 뒤 생성된 `nvapi-...` 고유 API Key 복사
+
+---
+layout: default
+---
+
+## Nvidia NIM API Key 연동 및 모델 선택
+
+```sh
+# 1. 에이전트 터미널 진입
+opencode
+
+# 2. 연동 명령어 실행 후 Nvidia 선택 및 발급된 Key 입력
+/connect
+
+# 3. 고성능 Nemotron 3 Super 모델을 선택하여 교체 완료
 ```
 
 ---
 layout: default
 ---
 
-## FastQueue 동작 확인
+## 최적의 LLM 탐색과 실시간 모델 변경
 
-```javascript
-const q = new FastQueue();
-q.enqueue("이름");
-q.enqueue("이메일");
-
-console.log(q.dequeue()); // "이름"  — O(1) 추출
-console.log(q.size);      // 1
-```
-
----
-layout: default
----
-
-## 코딩테스트 준비 단계
-
-> **언어 숙달 → 쉬운 문제 해결 → DSA 이론 연계 → 방향 분기 선택**
-
-<br>
-
-* **1단계**: 기초 문법 및 메서드 제어 (언어 숙달)
-* **2단계**: 프로그래머스 Lv.0~1 / 리트코드 Easy 도전
-* **3단계**: 제약 패턴 인식 및 DSA 이론 연계
-* **분기 A (심화형)**: Python·Java·C++ 정착 → 유형별 집중 학습 → 고난도 전형 대처
-* **분기 B (실무형)**: 시뮬레이션 패턴 훈련 → 구현 위주 기업 우회 전형 공략
-
----
-layout: default
----
-
-## 준비 절차
-
-> **언어 숙달 → 쉬운 문제 해결 → DSA 이론 연계 → 분기 선택**
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#FFFBE6"
-    arrowheadColor: "#FFFBE6"
-    edgeLabelBackground: "#02343F"
-  flowchart:
-    padding: 8
-    nodeSpacing: 48
-    rankSpacing: 48
----
-flowchart LR
-    Start(["코딩테스트<br>대비 입문"])
-    Start --> Step1["1단계: 언어 숙달<br>기초 문법 및 메서드 제어"]
-    Step1 --> Step2["2단계: 쉬운 문제<br>Lv.0~1 / Easy"]
-    Step2 --> Step3["3단계: 제약 패턴<br>DSA 이론 연계"]
-    Step3 --> Decision{"준비 방향<br>선택"}
-
-    class Start,Step1,Step2,Step3 step
-    class Decision branch
-    classDef step fill:#0d2026,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
-    classDef branch fill:#FFFBE6,stroke:#FFFBE6,color:#02343F,stroke-width:2px
-    linkStyle default stroke:#FFFBE6,stroke-width:4px
-```
-
----
-layout: default
----
-
-## 심화 DSA 대비
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#FFFBE6"
-    arrowheadColor: "#FFFBE6"
-    edgeLabelBackground: "#02343F"
-  flowchart:
-    padding: 8
-    nodeSpacing: 52
-    rankSpacing: 48
----
-flowchart LR
-    PathA["분기 A<br>심화형 DSA 정착"]
-    PathA --> Lang["주류 언어 정착<br>Python · Java · C++"]
-    Lang --> Type["유형별 집중 학습<br>고득점 키트 / 리트코드 75"]
-    Type --> Hard["고난도 전형 대처<br>Lv.2~3 / Medium 이상"]
-
-    class PathA branch
-    class Lang,Type,Hard deep
-    classDef branch fill:#FFFBE6,stroke:#FFFBE6,color:#02343F,stroke-width:2px
-    classDef deep fill:#063c45,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
-    linkStyle default stroke:#FFFBE6,stroke-width:4px
-```
-
-고난도 알고리즘 전형을 목표로 언어와 자료구조·알고리즘 유형을 깊게 다지는 경로
-
----
-layout: default
----
-
-## 실무/우회 대비
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#FFFBE6"
-    arrowheadColor: "#FFFBE6"
-    edgeLabelBackground: "#02343F"
-  flowchart:
-    padding: 8
-    nodeSpacing: 52
-    rankSpacing: 48
----
-flowchart LR
-    PathB["분기 B<br>실무형 시뮬레이션 및 우회"]
-    PathB --> Sim["시뮬레이션 패턴 훈련<br>기초 논리 전개 위주"]
-    Sim --> Target["우회 전형 공략<br>구현 위주 기업"]
-
-    class PathB branch
-    class Sim,Target practical
-    classDef branch fill:#FFFBE6,stroke:#FFFBE6,color:#02343F,stroke-width:2px
-    classDef practical fill:#123139,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
-    linkStyle default stroke:#FFFBE6,stroke-width:4px
-```
-
-구현력 중심 기업이나 과제형 전형에 맞춰 시뮬레이션·문제 해석 훈련을 강화하는 경로
-
----
-layout: default
----
-
-## 학습 추천 순서 (A → D)
-
-> **로드맵 확인 → 교재 개념 정립 → 필수 문제 풀이 → 추가 문제 반복**
-
-<br>
-
-| 단계 | 목적 | 대표 리소스 |
-|:----:|------|------------|
-| **A** | 얼마나, 어느 순서로 | SW마에스트로 기준표, roadmap.sh DSA |
-| **B** | 교재 개념 정립 | 바킹독, Hello-Algo|
-| **C** | 필수 문제 풀이 | 프로그래머스 고득점 키트, 리트코드 75 |
-| **D** | 추가 문제 반복 | SWEA, 현대 NGV |
-
----
-layout: two-cols-header
----
-
-## 단계별 핵심 리소스 (A · B)
-
-::left::
-
-**[A] 얼마나, 어느 순서로**
-
-  * [SW마에스트로 기초/심화 코딩테스트 기준표](https://swmaestro.ai/sw/main/notifyMentee.do?menuNo=200091)
-  * 국내
-    * [소프티어(Softeer) 로드맵](http://web.archive.org/web/20241005131540/https://softeer.ai/class/roadmap)
-    * [코드트리 101 커리큘럼](https://www.codetree.ai/ko/trails/complete/dashboard/codetree-101)
-  * 해외
-    * [알고마스터 DSA 코스](https://algomaster.io/learn/dsa/course-roadmap)
-    * [roadmap.sh DSA 로드맵](https://roadmap.sh/datastructures-and-algorithms)
-
-::right::
-
-**[B] 교재**
-
-* 국내
-  * [SWEA 코스](https://swexpertacademy.com/main/learn/course/courseList.do)
-  * [바킹독](https://github.com/encrypted-def/basic-algo-lecture)
-* 해외
-  * [Hello-Algo](https://www.hello-algo.com/en/chapter_hello_algo/)
-
----
-layout: two-cols-header
----
-
-## 단계별 핵심 리소스 (C · D)
-
-::left::
-
-**[C] 필수 문제**
-
-* [프로그래머스 고득점 키트](https://school.programmers.co.kr/learn/challenges?tab=algorithm_practice_kit)
-* [프로그래머스 카카오 기출문제](https://school.programmers.co.kr/learn/challenges?order=recent&page=1&partIds=94316%2C94315%2C58464%2C37527%2C31236%2C25448%2C20069%2C17214%2C12286%2C9317%2C22586%2C18498%2C17931%2C300%2C301)
-* [리트코드 75 스터디 플랜](https://leetcode.com/studyplan/leetcode-75/)
-* [리트코드 Top Interview 150](https://leetcode.com/studyplan/top-interview-150/)
-
-::right::
-
-**[D] 더 많은 문제**
-
-* [SWEA](https://swexpertacademy.com/main/code/problem/problemList.do)
-* [현대 NGV](https://exam.hyundai-ngv.com/practice?type=ALGORITHM&page=0)
-* [코드트리 기출문제](https://www.codetree.ai/ko/frequent-problems)
+- **설명**: 작업의 난이도와 에이전트 응답성에 맞춰 실시간으로 최적의 인텔리전스를 매칭합니다.
+- **고려 사항**:
+  * **Artificial Analysis 정보**: 성능 분석 벤치마크 사이트를 참조하여 객관적 품질 검증
+  * **체감 성능과 레이턴시**: 단순 벤치마크 점수 외에 실제 에이전트 구동 지연 시간 조율
+  * **유동적인 모델 변경**: `/model` 명령어를 통해 개발 도중 언제든지 다른 고성능 모델로 스위칭
