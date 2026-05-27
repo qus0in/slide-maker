@@ -626,8 +626,19 @@ td {
 .slidev-layout .mermaid .node ellipse,
 .slidev-layout .mermaid .node polygon,
 .slidev-layout .mermaid .node path {
+  fill: #0d2026 !important;
+  stroke: rgba(240, 237, 204, 0.82) !important;
+  stroke-width: 2.2px !important;
   rx: 6px !important;
   ry: 6px !important;
+}
+
+.slidev-layout .mermaid .cluster rect,
+.slidev-layout .mermaid .cluster polygon,
+.slidev-layout .mermaid .cluster path {
+  fill: rgba(13, 32, 38, 0.42) !important;
+  stroke: rgba(240, 237, 204, 0.45) !important;
+  stroke-width: 1.6px !important;
 }
 
 .slidev-layout .mermaid .nodeLabel,
@@ -638,32 +649,71 @@ td {
   font-family: 'KoddiudOngodic', sans-serif !important;
   font-size: 15px !important;
   font-weight: 700 !important;
+  fill: var(--slide-fg) !important;
+  color: var(--slide-fg) !important;
 }
 
 .slidev-layout .mermaid .edgePath .path,
-.slidev-layout .mermaid .flowchart-link {
-  stroke: #FFFBE6 !important;
-  stroke-width: 4px !important;
+.slidev-layout .mermaid .flowchart-link,
+.slidev-layout .mermaid .messageLine0,
+.slidev-layout .mermaid .messageLine1,
+.slidev-layout .mermaid line {
+  stroke: rgba(240, 237, 204, 0.86) !important;
+  stroke-width: 2.8px !important;
   opacity: 1 !important;
 }
 
 .slidev-layout .mermaid marker path,
 .slidev-layout .mermaid marker polygon,
 .slidev-layout .mermaid .arrowheadPath {
-  fill: #FFFBE6 !important;
-  stroke: #FFFBE6 !important;
+  fill: var(--slide-fg) !important;
+  stroke: var(--slide-fg) !important;
   opacity: 1 !important;
 }
 
-.slidev-layout .mermaid .edgeLabel {
+.slidev-layout .mermaid .edgeLabel,
+.slidev-layout .mermaid .messageText,
+.slidev-layout .mermaid .loopText,
+.slidev-layout .mermaid .labelText {
   background-color: #02343F !important;
   color: var(--slide-fg) !important;
+  fill: var(--slide-fg) !important;
+  font-weight: 700 !important;
 }
 
 .slidev-layout .mermaid .edgeLabel rect,
-.slidev-layout .mermaid .labelBkg {
+.slidev-layout .mermaid .labelBkg,
+.slidev-layout .mermaid .labelBox {
   fill: #02343F !important;
-  stroke: rgba(240, 237, 204, 0.28) !important;
+  stroke: rgba(240, 237, 204, 0.35) !important;
+  rx: 4px !important;
+  ry: 4px !important;
+}
+
+.slidev-layout .mermaid .actor,
+.slidev-layout .mermaid .actor-man circle,
+.slidev-layout .mermaid .actor-man line {
+  fill: #0d2026 !important;
+  stroke: rgba(240, 237, 204, 0.85) !important;
+  stroke-width: 2px !important;
+}
+
+.slidev-layout .mermaid .actor-line,
+.slidev-layout .mermaid .activation0,
+.slidev-layout .mermaid .activation1,
+.slidev-layout .mermaid .activation2 {
+  stroke: rgba(240, 237, 204, 0.55) !important;
+  fill: rgba(240, 237, 204, 0.12) !important;
+}
+
+.slidev-layout .mermaid .note {
+  fill: rgba(240, 237, 204, 0.08) !important;
+  stroke: rgba(240, 237, 204, 0.55) !important;
+}
+
+.slidev-layout .mermaid .loopLine,
+.slidev-layout .mermaid .loopLine path {
+  stroke: rgba(240, 237, 204, 0.5) !important;
 }
 
 * {
