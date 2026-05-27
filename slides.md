@@ -11,11 +11,11 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Harness Engineering
+title: Document Object Model
 layout: cover
 ---
 
-# Harness Engineering
+# Document Object Model
 
 ---
 layout: default
@@ -23,10 +23,10 @@ layout: default
 
 ## 학습 체크리스트 (1/2)
 
-- [ ] 에이전트의 제어 성능과 지시 이행력을 향상시키는 하네스 엔지니어링의 개념 이해
-- [ ] AGENTS.md, SKILLS.md, DESIGN.md의 개별 역할 및 하네스 문서 정의 방법 숙지
-- [ ] AI 에이전트에 최적화된 행동 규칙과 환경 정보를 전달하는 AGENTS.md 작성 및 최적화
-- [ ] 외부 도구 및 스킬 연동 명세를 수립하고 활용하는 SKILLS.md 적용 흐름 파악
+- [ ] HTML 문서가 브라우저에 의해 객체 트리 구조인 DOM으로 파싱되는 원리 이해
+- [ ] DOM 트리 내에서 노드(Node)와 엘리먼트(Element)의 상속 관계 및 기능 차이 구분
+- [ ] querySelector 및 querySelectorAll을 활용해 CSS 선택자 기반으로 요소를 탐색하는 방법 숙지
+- [ ] createElement, textContent, append/prepend 등을 사용해 안전한 DOM 동적 생성 기법 구현
 
 ---
 layout: default
@@ -34,145 +34,275 @@ layout: default
 
 ## 학습 체크리스트 (2/2)
 
-- [ ] 일관된 프리미엄 UI/UX 구현을 위한 디자인 가이드라인인 DESIGN.md 활용
-- [ ] 모델 콘텍스트 프로토콜(MCP)의 탄생 배경과 클라이언트-서버 구조의 핵심 아키텍처 이해
-- [ ] Stitch 플랫폼의 MCP 설정을 복제하여 OpenCode 클라이언트에 연결하고 정상 구동 확인
+- [ ] classList API, setAttribute, dataset 등을 이용해 안전하게 요소를 변경하는 최신 기법 활용
+- [ ] 부모 노드를 거치지 않고 대상 엘리먼트를 직접 제거하는 element.remove() 방식 적용
+- [ ] innerHTML 사용 시 발생할 수 있는 XSS 보안 취약성 인지 및 textContent 대체 수단 활용
 
 ---
 layout: default
 ---
 
-## 하네스 엔지니어링 개요
+## DOM이란?
 
-> **하네스 엔지니어링 (Harness Engineering)**
+> **문서 객체 모델 (Document Object Model)**
 >
-> AI 코딩 에이전트가 작동하는 작업 공간(리포지토리)에 규격화된 지침, 도구(Skill), 디자인 사양을 주입하여 제어 성능과 지시 이행력을 극대화하는 엔지니어링 기법
+> 브라우저가 HTML 문서를 파싱하여 생성하는 객체 트리 구조의 프로그래밍 인터페이스
 
-- **제어력 향상**: 에이전트가 리포지토리의 맥락을 정확히 인지하고 목적에 맞게 활동하도록 통제
-- **하네스 파일 구성**: `AGENTS.md`, `SKILLS.md`, `DESIGN.md` 등 세 축의 문서 체계를 활용
-- **일관성 확보**: 인프라 환경 명시와 사전에 정의된 도구/디자인 사양으로 안정적 결과 도출
+- **동적 제어 허용**: JavaScript를 사용해 웹 페이지의 구조, 스타일, 내용을 동적으로 탐색 및 제어 가능
+- **DOM 트리 구조**: HTML의 계층적 구조를 객체 트리 노드로 정밀하게 매핑하여 메모리에 탑재
+- **기본 시작점**: 최상위 `document` 객체를 출발지로 삼아 하위 요소로 계층이 파고드는 구조
 
 ---
 layout: default
 ---
 
-## AGENTS.md 에이전트 명세서
+## Node vs Element 상속 관계
 
-> **에이전트 명세서 (AGENTS.md)**
+> **노드 (Node)**
 >
-> AI 에이전트가 리포지토리 내에서 반드시 준수해야 할 정체성, 미션, 터미널 지침, 코딩 컨벤션을 기술한 기본 규칙 문서
+> DOM 트리를 구성하는 가장 기본적인 추상 구성 단위이자 상위 인터페이스
 
-- **페르소나 지정**: 특정 프레임워크(React, Next.js 등)에 특화된 시니어 에이전트 페르소나 설계
-- **개발 환경 주입**: OS, 패키지 매니저 버전 등 개발에 필요한 기본 인프라 정보 명시
-- **에이전틱 지침 수립**: 주석 정책, 리팩토링 규칙, 커밋 메시지 컨벤션 등 강제 규칙 지정
-- **공식 리소스**: [AGENTS.md 공식 사양](https://agents.md/) 참고
-
----
-layout: default
----
-
-## AGENTS.md 피드백 루프
-
-- **설명**: 개발 흐름과 프로젝트 규모가 진척됨에 따라 지침을 점진적으로 강화하는 환류(Feedback) 모델입니다.
-- **주요 전략**:
-  * **동적 규칙 갱신**: 개발 프로세스의 진행 상황에 맞추어 지침을 지속적으로 수정 및 보완
-  * **지침 최적화 요구**: 필요할 때 에이전트에게 관련 문서를 재작성 및 갱신하도록 명시적으로 지시
-  * **지속적 학습 축적**: 축적된 지침을 통해 에이전트가 실무 워크플로우에 최적화된 형태로 안착
+- **상속 아키텍처**: 모든 DOM 객체는 기본 `Node` 인터페이스를 부모로 상속받아 파생됨
+- **노드의 종류**: 요소(Element), 텍스트(Text), 주석(Comment), 문서(Document) 등 트리 구성원 전체 포함
+- **엘리먼트의 정의**: `Node`를 상속받은 하위 클래스이며, 오직 실제 HTML 마크업 태그(요소)만을 지칭
+- **전용 조작 기능**: 엘리먼트는 어트리뷰트, 클래스명, 스타일 등을 변경할 수 있는 풍부한 제어 도구 제공
 
 ---
 layout: default
 ---
 
-## SKILLS.md 스킬 명세서
+## DOM 탐색 querySelector
 
-> **스킬 명세서 (SKILLS.md)**
+> **쿼리 셀렉터 (querySelector)**
 >
-> 에이전트가 샌드박스 내부 또는 외부 환경에서 직접 호출하고 실행할 수 있는 커스텀 도구들의 목록과 명세 문서
+> CSS 선택자 문법을 활용하여 DOM 트리 내에서 원하는 단일 또는 다중 요소를 탐색하는 현대 표준 API
 
-- **도구 목록 관리**: 에이전트가 기본 생성 능력을 넘어 파일 가공, API 통신, 보안 감사를 수행하도록 보조
-- **스킬 활용 확장**: 필요한 커스텀 동작을 명세화하여 에이전트의 터미널 수행 능력의 한계 돌파
-- **공식 리소스**: [Agent Skills 공식 소개](https://agentskills.io/home) 및 [Skills Reference](https://www.skills.sh/) 참고
-
----
-layout: default
----
-
-## 스킬의 획득 및 연동 기법
-
-- **설명**: 에이전트가 사용할 도구(Tool)를 설계하고 외부 환경과 안정적으로 바인딩하는 방법론입니다.
-- **도구 획득 방식**:
-  * **Skill Creator 기법**: GUI 웹 도구 및 스킬 메이커를 활용해 요구 사항에 딱 맞는 커스텀 함수 설계
-  * **npx 패키지 연동**: 이미 검증된 공통 스킬셋 패키지를 `npx` 명령어로 다운로드하여 즉각 바인딩
-  * **맥락적 도구 호출**: 에이전트가 `SKILLS.md`를 스스로 참고하여 적절한 시점에 도구를 호출하도록 지원
+- **단일 요소 선택 (`querySelector`)**: CSS 선택자와 매칭되는 최초의 단일 엘리먼트 객체 반환 (없으면 `null`)
+- **다중 요소 선택 (`querySelectorAll`)**: 매칭되는 모든 요소를 담은 정적 노드 리스트(`NodeList`) 반환
+- **예측 가능성**: 상태 변화가 실시간 반영되어 오작동을 초래하던 구식 `HTMLCollection`을 완전히 대체
 
 ---
 layout: default
 ---
 
-## DESIGN.md를 통한 UI/UX 통제
+## querySelector 다중 요소 제어
 
-> **디자인 사양서 (DESIGN.md)**
+- **설명**: `querySelectorAll`이 반환하는 `NodeList`를 효과적으로 활용하고 다루는 방법입니다.
+- **주요 활용 규칙**:
+  * **자체 반복문 지원**: `NodeList`는 배열이 아니지만, 자체 `forEach` 메서드를 직접 실행하여 순회 가능
+  * **진짜 배열 형변환**: 고차 함수(`filter`, `map` 등)를 활용하려면 `Array.from()`을 통한 변환 필수
+  * **성능 및 안전성**: 정적 스냅샷 형태의 목록을 보장하므로 예측하기 쉬운 안전한 제어 실현
+
+---
+layout: default
+---
+
+## CSS 선택자 기반 단일 및 다중 요소 탐색
+
+```javascript
+// 1. CSS 선택자로 단일 요소 선택
+const activeItem = document.querySelector('.list-item.active');
+
+// 2. 다중 요소 선택 후 순회 처리
+const cards = document.querySelectorAll('.card');
+cards.forEach(card => card.style.borderColor = 'blue');
+
+// 3. 고차 함수 활용을 위해 NodeList를 진짜 배열로 형변환
+const activeCards = Array.from(cards)
+  .filter(card => card.classList.contains('active'));
+```
+
+---
+layout: default
+---
+
+## 노드 탐색 vs 엘리먼트 탐색
+
+- **설명**: DOM 트리 내에서 부모, 자식, 형제 방향으로 인접 요소를 탐색할 때의 두 가지 경로입니다.
+- **경로 비교**:
+  * **엘리먼트 탐색 (강력 권장)**: 줄바꿈, 공백 등 보이지 않는 텍스트 노드를 제외하고 실제 태그 단위로 탐색
+    - API: `parentElement`, `children`, `firstElementChild`, `nextElementSibling` 등
+  * **노드 탐색 (주의)**: 공백이나 주석 노드를 탐색 범위에 포함하여 예기치 못한 탐색 실패 가능
+    - API: `parentNode`, `childNodes`, `firstChild`, `nextSibling` 등
+
+---
+layout: default
+---
+
+## DOM 동적 생성 및 현대적 삽입
+
+> **요소 동적 생성 (createElement)**
 >
-> 애플리케이션의 핵심 디자인 시스템, 테마 컬러 토큰, 컴포넌트 레이아웃 규칙을 정밀하게 기록한 스타일 가이드 문서
+> 브라우저 메모리상에 명시한 태그명을 가진 빈 엘리먼트 객체를 즉시 생성하여 대기시키는 API
 
-- **디자인 왜곡 방지**: 확정된 기획 레이아웃 사양 및 컬러 토큰 정보를 템플릿 형태로 고정 보관
-- **Stitch 컴포넌트 설계 반영**: 구글의 AI 디자인 설계 툴에서 도출한 컴포넌트 설계를 명세화하여 이식
-- **프리미엄 UI/UX 지향**: 에이전트가 그라데이션, 유리 효과(Glassmorphism), 애니메이션을 빌드하도록 유도
-- **참조 리소스**: [Stitch Design.md Overview](https://stitch.withgoogle.com/docs/design-md/overview) 및 [GetDesign.md](https://getdesign.md/) ([Awesome Design MD](https://github.com/voltagent/awesome-design-md) 포함)
+- **현대적 삽입 API (`append` / `prepend`)**: 여러 개의 노드 객체와 일반 문자열을 동시에 한 번에 삽입 가능
+- **레거시 방식 (`appendChild`) 대비 장점**:
+  * `appendChild`는 문자열 삽입이 불가능하며, 오직 단 하나의 노드 객체만 인자로 전달 가능
+  * `append`는 요소 자식 목록 맨 뒤에, `prepend`는 요소 자식 목록 맨 앞에 정밀 배치
 
 ---
 layout: default
 ---
 
-## Model Context Protocol (MCP) 개요
+## 메모리상 요소 생성 및 다중 자식/문자열 삽입
 
-> **모델 콘텍스트 프로토콜 (Model Context Protocol)**
+```javascript
+// 1. 동적 요소 생성 및 속성 정의
+const newDiv = document.createElement('div');
+newDiv.textContent = '동적 생성 div';
+newDiv.classList.add('box', 'dynamic');
+
+// 2. 현대적 삽입 API 활용 (노드와 문자열을 동시에 한 번에 추가)
+const container = document.querySelector('.container');
+container.append(newDiv, "텍스트 내용 바로 추가");
+```
+
+---
+layout: default
+---
+
+## 정밀 위치 삽입 insertAdjacentElement
+
+> **정밀 위치 삽입 (insertAdjacentElement)**
 >
-> AI 모델이 다양한 데이터 소스, 외부 개발 도구, 실행 환경과 표준화되고 안전하게 통신할 수 있도록 설계된 오픈소스 규약
+> 지정한 타겟 엘리먼트를 기준으로 정밀하게 구분된 네 가지 상대 위치에 새 요소를 삽입하는 API
 
-- **통합 표준 프로토콜**: 파편화된 외부 도구 연동 규격을 하나로 묶는 업계 표준 개방형 프로토콜
-- **안전한 통신**: 샌드박스 및 표준 채널을 통해 로컬 개발망과 AI 모델 간의 통신 보안 제공
-- **참조 문서**: [MCP 공식 문서](http://modelcontextprotocol.io/docs/getting-started/intro) 및 [Google Discover MCP](https://cloud.google.com/discover/what-is-model-context-protocol?hl=ko)
-
----
-layout: default
----
-
-## MCP 클라이언트-서버 구조
-
-- **설명**: AI 에이전트 플랫폼과 외부 리소스 간의 안전하고 유기적인 결합을 가능하게 하는 표준 아키텍처입니다.
-- **주요 구성 요소**:
-  * **호스트 (클라이언트)**: OpenCode와 같은 IDE/에이전트가 실행 흐름을 제어하는 주체 역할 수행
-  * **MCP 서버**: 파일 시스템 탐색기, DB 커넥터, API 서버 등 실제 도구와 리소스를 제공하는 서비스
-  * **동적 리소스 쿼리**: 호스트가 MCP 서버에 질의하여 사용 가능한 도구 목록을 수집한 뒤 유기적으로 가동
+- **`'beforebegin'`**: 타겟 요소 바로 앞 (형제 노드로 추가)
+- **`'afterbegin'`**: 타겟 요소 내부의 첫 번째 자식으로 추가
+- **`'beforeend'`**: 타겟 요소 내부의 마지막 자식으로 추가
+- **`'afterend'`**: 타겟 요소 바로 뒤 (형제 노드로 추가)
 
 ---
 layout: default
 ---
 
-## Stitch MCP 설정 및 OpenCode 연동 절차
+## 지정된 정밀 위치 기준 동적 요소 삽입
 
-- **설명**: 구글 Stitch 디자인 허브의 MCP 프로토콜 설정을 OpenCode 클라이언트에 연결하는 단계입니다.
-- **연동 과정**:
-  1. [Stitch 플랫폼](https://stitch.withgoogle.com/) 로그인 후 원하는 프로젝트 내 `내보내기` > `MCP` > `MCP 설정` 이동
-  2. 연동할 클라이언트 목록에서 `OpenCode`를 지정한 뒤 화면에 나타난 MCP 설정 JSON을 복사
-  3. 로컬 프로젝트의 루트 디렉토리에 `touch ./opencode.json`으로 빈 파일을 생성
-  4. 생성된 파일 내부에 복사한 설정 JSON 코드를 누락 없이 붙여넣고 저장
-  5. 로컬 터미널에서 `opencode` 실행 후 `/mcps` 명령어를 입력하여 정상 연동 여부 검증
+```javascript
+const target = document.querySelector('.target');
+const alertSpan = document.createElement('span');
+alertSpan.textContent = '[공지] ';
+
+// target 엘리먼트 바로 앞(beforebegin) 위치에 형제 노드로 삽입
+target.insertAdjacentElement('beforebegin', alertSpan);
+```
 
 ---
 layout: default
 ---
 
-## OpenCode MCP 연동 파일 생성 및 검증
+## 안전한 텍스트 및 HTML 수정
 
-```sh
-# 1. 로컬 프로젝트 루트에 설정 파일 생성
-touch ./opencode.json
+- **설명**: 웹 보안 표준을 위반하지 않으면서 엘리먼트 내부의 콘텐츠를 변경하는 기술입니다.
+- **수정 API 비교**:
+  * **`textContent` (강력 권장)**: 주입된 문자열을 단순 글자로만 취급하며 HTML 해석을 원천 차단
+    - **보안성**: 악성 스크립트 코드가 실행되지 않고 이스케이프되므로 XSS 공격에 완벽 대비
+  * **`innerHTML` (주의 요망)**: 주입된 문자열을 HTML 마크업으로 파싱하여 주입
+    - **취약성**: 검증되지 않은 외부 사용자의 임의 입력을 그대로 전달할 시 스크립트 실행 취약점 초래
 
-# 2. JSON 코드 입력 및 저장 완료 후 OpenCode 실행
-opencode
+---
+layout: default
+---
 
-# 3. 에이전트 세션 내에서 MCP 연동 상태 체크
-/mcps
+## 크로스 사이트 스크립팅(XSS) 원리
+
+> **크로스 사이트 스크립팅 (Cross-Site Scripting)**
+>
+> 웹 브라우저 상에서 신뢰할 수 없는 악성 스크립트를 동적으로 주입 및 실행시켜 세션을 탈취하거나 민감 정보를 가로채는 보안 취약점
+
+- **DOM 기반 XSS**: 사용자의 폼 입력, URL 해시(`location.hash`) 등에 삽입된 악성 코드가 원인
+- **보안 새니타이징 누락**: 악성 문자열이 JS 필터링을 거치지 않고 `innerHTML` 등의 취약한 API에 직접 기입됨
+- **메모리 강제 구동**: 브라우저가 이 위험한 텍스트를 실제 스크립트로 판단하여 메모리 상에서 실행
+
+---
+layout: default
+---
+
+## XSS 위협 상황과 방어 대책
+
+- **위협 상황**:
+  * **세션/쿠키 하이재킹**: `document.cookie`에 은밀히 접근하여 로그인 토큰을 공격자 서버로 유출
+  * **피싱 UI 생성**: 가짜 로그인 화면을 동적으로 노출시켜 사용자의 자격 증명(ID/PW) 무단 수집
+  * **강제 리다이렉트**: `location.href` 조작을 통해 악성코드 설치나 스팸 사이트로 연결
+- **방어 대책 (Best Practices)**:
+  * **textContent 필수 사용**: HTML 태그를 해석할 필요가 없는 단순 문자열은 무조건 textContent로 기입
+  * **DOMPurify 도입**: 불가피한 HTML 코드 주입 시, 악성 코드 및 이벤트 핸들러를 검증하는 라이브러리 가동
+  * **CSP 규정 수립**: 웹 헤더에 콘텐츠 보안 정책을 설정하여 승인되지 않은 인라인 스크립트 작동 완전 규제
+
+---
+layout: default
+---
+
+## textContent 기반 안전한 텍스트 주입
+
+```javascript
+const desc = document.querySelector('.desc');
+
+// 1. 안전한 텍스트 주입 (strong 태그가 해석되지 않고 문자로 단순 노출)
+desc.textContent = '<strong>안전 확인</strong>'; 
+
+// 2. 마크업 삽입 (오직 신뢰하는 내부 정적 코드에 한해서만 제한적 활용)
+desc.innerHTML = '<em>안전한 내부 로컬 마크업</em>';
+```
+
+---
+layout: default
+---
+
+## 클래스 목록 및 사용자 정의 데이터 제어
+
+- **설명**: 최신 표준 명세에 부합하는 안전한 엘리먼트 속성 및 데이터 조작 기술입니다.
+- **제어 API 구성**:
+  * **클래스 조작 (`classList`)**: add, remove, toggle, contains를 통해 안전하고 직관적인 조작 구현
+  * **데이터셋 조작 (`dataset`)**: HTML5 `data-` 속성을 활용해 JS의 CamelCase 속성 형태로 데이터 공유
+  * **인라인 스타일 (`style`)**: CSS 속성명을 JS 식별자 규격인 CamelCase로 자동 변환하여 직접 제어
+
+---
+layout: default
+---
+
+## 클래스 목록 조작 및 사용자 속성/스타일 제어
+
+```javascript
+const el = document.querySelector('.box');
+
+// 1. classList API를 이용한 클래스 제어
+el.classList.add('active');
+el.classList.toggle('visible');
+
+// 2. data- 속성을 dataset API로 조작 (data-user-role에 대응)
+el.dataset.userRole = 'manager'; 
+
+// 3. 인라인 스타일을 CamelCase 규칙으로 변환 적용
+el.style.backgroundColor = '#eaeaea';
+```
+
+---
+layout: default
+---
+
+## DOM 삭제 API의 현대화
+
+- **설명**: 필요 없어진 요소를 메모리와 화면에서 안전하게 수거하고 파괴하는 방법입니다.
+- **두 API 비교**:
+  * **현대적 삭제 API (`remove()`)**: 대상 엘리먼트 스스로 자신을 직접 DOM 트리에서 영구 제거
+    - **장점**: 부모 노드를 굳이 거칠 필요가 없어 불필요한 역방향 참조가 사라지고 코드 가독성 극대화
+  * **구식 삭제 API (`removeChild()`)**: 반드시 부모 노드 객체를 참조하여 지정된 자식을 제거하는 레거시 메서드
+    - **용도**: 레거시 환경(IE 계열 등 구형 브라우저)에 대한 철저한 하위 호환성이 요구될 때 적용
+
+---
+layout: default
+---
+
+## 부모 노드 탐색 없는 현대적 요소 삭제
+
+```javascript
+// 1. 현대적 삭제 API: 자기 자신을 트리에서 직접 제거
+const ad = document.querySelector('.banner-ad');
+if (ad) ad.remove();
+
+// 2. 레거시 호환 API: 부모 엘리먼트를 거쳐서 자식 요소 제거
+const list = document.querySelector('#item-list');
+const item = document.querySelector('#item-first');
+list.removeChild(item);
 ```
