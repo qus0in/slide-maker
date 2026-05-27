@@ -11,11 +11,41 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Document Object Model
+title: Event
 layout: cover
+mermaid:
+  theme: base
+  themeVariables:
+    background: '#02343F'
+    primaryColor: '#0d2026'
+    primaryTextColor: '#F0EDCC'
+    primaryBorderColor: '#F0EDCC'
+    secondaryColor: '#123943'
+    tertiaryColor: '#02343F'
+    lineColor: '#F0EDCC'
+    textColor: '#F0EDCC'
+    mainBkg: '#0d2026'
+    nodeBorder: '#F0EDCC'
+    clusterBkg: '#0d2026'
+    clusterBorder: '#BDBA9B'
+    edgeLabelBackground: '#02343F'
+    actorBkg: '#0d2026'
+    actorBorder: '#F0EDCC'
+    actorTextColor: '#F0EDCC'
+    actorLineColor: '#BDBA9B'
+    signalColor: '#F0EDCC'
+    signalTextColor: '#F0EDCC'
+    labelBoxBkgColor: '#02343F'
+    labelBoxBorderColor: '#BDBA9B'
+    labelTextColor: '#F0EDCC'
+    noteBkgColor: '#123943'
+    noteBorderColor: '#BDBA9B'
+    noteTextColor: '#F0EDCC'
+    activationBkgColor: '#123943'
+    activationBorderColor: '#F0EDCC'
 ---
 
-# Document Object Model
+# Event
 
 ---
 layout: default
@@ -23,10 +53,10 @@ layout: default
 
 ## 학습 체크리스트 (1/2)
 
-- [ ] HTML 문서가 브라우저에 의해 객체 트리 구조인 DOM으로 파싱되는 원리 이해
-- [ ] DOM 트리 내에서 노드(Node)와 엘리먼트(Element)의 상속 관계 및 기능 차이 구분
-- [ ] querySelector 및 querySelectorAll을 활용해 CSS 선택자 기반으로 요소를 탐색하는 방법 숙지
-- [ ] createElement, textContent, append/prepend 등을 사용해 안전한 DOM 동적 생성 기법 구현
+- [ ] 브라우저 이벤트와 이벤트 구동 구조 이해
+- [ ] 인라인 속성 방식의 한계 파악
+- [ ] DOM 프로퍼티 이벤트 핸들러의 덮어쓰기 문제 이해
+- [ ] `addEventListener`로 다중 리스너 등록
 
 ---
 layout: default
@@ -34,275 +64,422 @@ layout: default
 
 ## 학습 체크리스트 (2/2)
 
-- [ ] classList API, setAttribute, dataset 등을 이용해 안전하게 요소를 변경하는 최신 기법 활용
-- [ ] 부모 노드를 거치지 않고 대상 엘리먼트를 직접 제거하는 element.remove() 방식 적용
-- [ ] innerHTML 사용 시 발생할 수 있는 XSS 보안 취약성 인지 및 textContent 대체 수단 활용
+- [ ] `click`, `DOMContentLoaded`의 역할 구분
+- [ ] `submit` 이벤트와 `preventDefault()` 적용
+- [ ] `input`, `change`의 발생 시점 구분
+- [ ] `focus`, `blur`로 입력 상태 감지
 
 ---
 layout: default
 ---
 
-## DOM이란?
+## Event란?
 
-> **문서 객체 모델 (Document Object Model)**
+> **이벤트 (Event)**
 >
-> 브라우저가 HTML 문서를 파싱하여 생성하는 객체 트리 구조의 프로그래밍 인터페이스
+> 브라우저 안에서 사용자 행동이나 시스템 상태 변화가 발생했음을 알려 주는 신호
 
-- **동적 제어 허용**: JavaScript를 사용해 웹 페이지의 구조, 스타일, 내용을 동적으로 탐색 및 제어 가능
-- **DOM 트리 구조**: HTML의 계층적 구조를 객체 트리 노드로 정밀하게 매핑하여 메모리에 탑재
-- **기본 시작점**: 최상위 `document` 객체를 출발지로 삼아 하위 요소로 계층이 파고드는 구조
-
----
-layout: default
----
-
-## Node vs Element 상속 관계
-
-> **노드 (Node)**
->
-> DOM 트리를 구성하는 가장 기본적인 추상 구성 단위이자 상위 인터페이스
-
-- **상속 아키텍처**: 모든 DOM 객체는 기본 `Node` 인터페이스를 부모로 상속받아 파생됨
-- **노드의 종류**: 요소(Element), 텍스트(Text), 주석(Comment), 문서(Document) 등 트리 구성원 전체 포함
-- **엘리먼트의 정의**: `Node`를 상속받은 하위 클래스이며, 오직 실제 HTML 마크업 태그(요소)만을 지칭
-- **전용 조작 기능**: 엘리먼트는 어트리뷰트, 클래스명, 스타일 등을 변경할 수 있는 풍부한 제어 도구 제공
+- **사용자 행동**: 클릭, 키 입력, 마우스 이동, 폼 전송
+- **시스템 변화**: HTML 파싱 완료, 리소스 로딩, 네트워크 상태 변화
+- **핵심 관점**: JavaScript가 계속 실행되는 것이 아니라, 사건이 생겼을 때 반응함
 
 ---
 layout: default
 ---
 
-## DOM 탐색 querySelector
+## 이벤트 구동 구조
 
-> **쿼리 셀렉터 (querySelector)**
->
-> CSS 선택자 문법을 활용하여 DOM 트리 내에서 원하는 단일 또는 다중 요소를 탐색하는 현대 표준 API
-
-- **단일 요소 선택 (`querySelector`)**: CSS 선택자와 매칭되는 최초의 단일 엘리먼트 객체 반환 (없으면 `null`)
-- **다중 요소 선택 (`querySelectorAll`)**: 매칭되는 모든 요소를 담은 정적 노드 리스트(`NodeList`) 반환
-- **예측 가능성**: 상태 변화가 실시간 반영되어 오작동을 초래하던 구식 `HTMLCollection`을 완전히 대체
-
+```mermaid
 ---
-layout: default
+config:
+  themeVariables:
+    lineColor: "#F0EDCC"
+    arrowheadColor: "#F0EDCC"
+    edgeLabelBackground: "#02343F"
+  flowchart:
+    padding: 8
+    nodeSpacing: 52
+    rankSpacing: 48
 ---
+flowchart LR
+  Wait["브라우저 대기"] --> Event["이벤트 발생"]
+  Event --> Handler["핸들러 실행"]
+  Handler --> Update["화면 또는 데이터 변경"]
 
-## querySelector 다중 요소 제어
-
-- **설명**: `querySelectorAll`이 반환하는 `NodeList`를 효과적으로 활용하고 다루는 방법입니다.
-- **주요 활용 규칙**:
-  * **자체 반복문 지원**: `NodeList`는 배열이 아니지만, 자체 `forEach` 메서드를 직접 실행하여 순회 가능
-  * **진짜 배열 형변환**: 고차 함수(`filter`, `map` 등)를 활용하려면 `Array.from()`을 통한 변환 필수
-  * **성능 및 안전성**: 정적 스냅샷 형태의 목록을 보장하므로 예측하기 쉬운 안전한 제어 실현
-
----
-layout: default
----
-
-## CSS 선택자 기반 단일 및 다중 요소 탐색
-
-```javascript
-// 1. CSS 선택자로 단일 요소 선택
-const activeItem = document.querySelector('.list-item.active');
-
-// 2. 다중 요소 선택 후 순회 처리
-const cards = document.querySelectorAll('.card');
-cards.forEach(card => card.style.borderColor = 'blue');
-
-// 3. 고차 함수 활용을 위해 NodeList를 진짜 배열로 형변환
-const activeCards = Array.from(cards)
-  .filter(card => card.classList.contains('active'));
+  class Wait,Event,Handler,Update step
+  classDef step fill:#0d2026,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
+  linkStyle default stroke:#F0EDCC,stroke-width:4px
 ```
 
 ---
 layout: default
 ---
 
-## 노드 탐색 vs 엘리먼트 탐색
+## 이벤트 핸들러의 역할
 
-- **설명**: DOM 트리 내에서 부모, 자식, 형제 방향으로 인접 요소를 탐색할 때의 두 가지 경로입니다.
-- **경로 비교**:
-  * **엘리먼트 탐색 (강력 권장)**: 줄바꿈, 공백 등 보이지 않는 텍스트 노드를 제외하고 실제 태그 단위로 탐색
-    - API: `parentElement`, `children`, `firstElementChild`, `nextElementSibling` 등
-  * **노드 탐색 (주의)**: 공백이나 주석 노드를 탐색 범위에 포함하여 예기치 못한 탐색 실패 가능
-    - API: `parentNode`, `childNodes`, `firstChild`, `nextSibling` 등
-
----
-layout: default
----
-
-## DOM 동적 생성 및 현대적 삽입
-
-> **요소 동적 생성 (createElement)**
+> **이벤트 핸들러 (Event Handler)**
 >
-> 브라우저 메모리상에 명시한 태그명을 가진 빈 엘리먼트 객체를 즉시 생성하여 대기시키는 API
+> 특정 이벤트가 발생했을 때 브라우저가 호출하도록 미리 연결해 둔 함수
 
-- **현대적 삽입 API (`append` / `prepend`)**: 여러 개의 노드 객체와 일반 문자열을 동시에 한 번에 삽입 가능
-- **레거시 방식 (`appendChild`) 대비 장점**:
-  * `appendChild`는 문자열 삽입이 불가능하며, 오직 단 하나의 노드 객체만 인자로 전달 가능
-  * `append`는 요소 자식 목록 맨 뒤에, `prepend`는 요소 자식 목록 맨 앞에 정밀 배치
+- **연결 대상**: 버튼, 입력창, 문서, window 같은 객체
+- **실행 시점**: 이벤트가 실제로 발생한 순간
+- **전달 정보**: 발생 대상과 입력값은 `event` 객체로 확인
 
 ---
 layout: default
 ---
 
-## 메모리상 요소 생성 및 다중 자식/문자열 삽입
+## 레거시 방식의 위치
 
-```javascript
-// 1. 동적 요소 생성 및 속성 정의
-const newDiv = document.createElement('div');
-newDiv.textContent = '동적 생성 div';
-newDiv.classList.add('box', 'dynamic');
+- **인라인 속성**: HTML 태그 안에 JavaScript를 직접 작성
+- **DOM 프로퍼티**: DOM 객체의 `onclick` 같은 속성에 함수 대입
+- **학습 목적**: 오래된 코드를 읽기 위해 특성만 이해
+- **실무 방향**: 새 코드는 `addEventListener`를 기본으로 사용
 
-// 2. 현대적 삽입 API 활용 (노드와 문자열을 동시에 한 번에 추가)
-const container = document.querySelector('.container');
-container.append(newDiv, "텍스트 내용 바로 추가");
+---
+layout: default
+---
+
+## 인라인 이벤트 핸들러
+
+```html
+<button onclick="alert('클릭됨')">
+  클릭
+</button>
 ```
 
 ---
 layout: default
 ---
 
-## 정밀 위치 삽입 insertAdjacentElement
+## 인라인 방식의 한계
 
-> **정밀 위치 삽입 (insertAdjacentElement)**
+- **관심사 혼합**: HTML 구조와 JavaScript 동작이 한 줄에 섞임
+- **수정 어려움**: 화면 마크업을 보다가 실행 로직까지 함께 추적해야 함
+- **재사용성 저하**: 같은 동작을 여러 요소에 깔끔하게 적용하기 어려움
+- **유지보수 방향**: 구조는 HTML, 동작은 JavaScript로 분리
+
+---
+layout: default
+---
+
+## DOM 프로퍼티 방식
+
+```javascript
+const button = document.querySelector('.save-btn');
+
+button.onclick = () => {
+  console.log('저장 버튼 클릭');
+};
+```
+
+---
+layout: default
+---
+
+## DOM 프로퍼티 방식의 한계
+
+- **단일 슬롯**: `onclick`에는 함수 하나만 보관됨
+- **덮어쓰기 발생**: 새 함수를 대입하면 이전 함수는 사라짐
+- **협업 위험**: 다른 코드가 같은 프로퍼티를 덮어쓸 수 있음
+- **확장 어려움**: 독립 기능을 안전하게 누적하기 어렵다
+
+---
+layout: default
+---
+
+## onclick 덮어쓰기
+
+```javascript
+const button = document.querySelector('.legacy-btn');
+
+button.onclick = () => {
+  console.log('A 실행');
+};
+
+button.onclick = () => {
+  console.log('B 실행');
+};
+```
+
+---
+layout: default
+---
+
+## addEventListener란?
+
+> **이벤트 리스너 등록 (addEventListener)**
 >
-> 지정한 타겟 엘리먼트를 기준으로 정밀하게 구분된 네 가지 상대 위치에 새 요소를 삽입하는 API
+> 특정 객체에서 특정 이벤트가 발생했을 때 실행할 함수를 등록하는 현대 표준 API
 
-- **`'beforebegin'`**: 타겟 요소 바로 앞 (형제 노드로 추가)
-- **`'afterbegin'`**: 타겟 요소 내부의 첫 번째 자식으로 추가
-- **`'beforeend'`**: 타겟 요소 내부의 마지막 자식으로 추가
-- **`'afterend'`**: 타겟 요소 바로 뒤 (형제 노드로 추가)
+- **첫 번째 인자**: 이벤트 이름 문자열
+- **두 번째 인자**: 이벤트 발생 시 실행할 함수
+- **핵심 장점**: 같은 이벤트에 여러 리스너를 누적 가능
 
 ---
 layout: default
 ---
 
-## 지정된 정밀 위치 기준 동적 요소 삽입
+## addEventListener 기본 문법
 
 ```javascript
-const target = document.querySelector('.target');
-const alertSpan = document.createElement('span');
-alertSpan.textContent = '[공지] ';
+const button = document.querySelector('.save-btn');
 
-// target 엘리먼트 바로 앞(beforebegin) 위치에 형제 노드로 삽입
-target.insertAdjacentElement('beforebegin', alertSpan);
+button.addEventListener('click', () => {
+  console.log('저장 버튼 클릭');
+});
 ```
 
 ---
 layout: default
 ---
 
-## 안전한 텍스트 및 HTML 수정
+## 다중 리스너 등록
 
-- **설명**: 웹 보안 표준을 위반하지 않으면서 엘리먼트 내부의 콘텐츠를 변경하는 기술입니다.
-- **수정 API 비교**:
-  * **`textContent` (강력 권장)**: 주입된 문자열을 단순 글자로만 취급하며 HTML 해석을 원천 차단
-    - **보안성**: 악성 스크립트 코드가 실행되지 않고 이스케이프되므로 XSS 공격에 완벽 대비
-  * **`innerHTML` (주의 요망)**: 주입된 문자열을 HTML 마크업으로 파싱하여 주입
-    - **취약성**: 검증되지 않은 외부 사용자의 임의 입력을 그대로 전달할 시 스크립트 실행 취약점 초래
+```javascript
+const button = document.querySelector('.save-btn');
+
+button.addEventListener('click', () => {
+  console.log('저장 요청');
+});
+
+button.addEventListener('click', () => {
+  console.log('분석 로그 기록');
+});
+```
 
 ---
 layout: default
 ---
 
-## 크로스 사이트 스크립팅(XSS) 원리
+## event 객체
 
-> **크로스 사이트 스크립팅 (Cross-Site Scripting)**
+> **이벤트 객체 (Event Object)**
 >
-> 웹 브라우저 상에서 신뢰할 수 없는 악성 스크립트를 동적으로 주입 및 실행시켜 세션을 탈취하거나 민감 정보를 가로채는 보안 취약점
+> 이벤트가 발생했을 때 브라우저가 핸들러에 전달하는 상세 정보 객체
 
-- **DOM 기반 XSS**: 사용자의 폼 입력, URL 해시(`location.hash`) 등에 삽입된 악성 코드가 원인
-- **보안 새니타이징 누락**: 악성 문자열이 JS 필터링을 거치지 않고 `innerHTML` 등의 취약한 API에 직접 기입됨
-- **메모리 강제 구동**: 브라우저가 이 위험한 텍스트를 실제 스크립트로 판단하여 메모리 상에서 실행
-
----
-layout: default
----
-
-## XSS 위협 상황과 방어 대책
-
-- **위협 상황**:
-  * **세션/쿠키 하이재킹**: `document.cookie`에 은밀히 접근하여 로그인 토큰을 공격자 서버로 유출
-  * **피싱 UI 생성**: 가짜 로그인 화면을 동적으로 노출시켜 사용자의 자격 증명(ID/PW) 무단 수집
-  * **강제 리다이렉트**: `location.href` 조작을 통해 악성코드 설치나 스팸 사이트로 연결
-- **방어 대책 (Best Practices)**:
-  * **textContent 필수 사용**: HTML 태그를 해석할 필요가 없는 단순 문자열은 무조건 textContent로 기입
-  * **DOMPurify 도입**: 불가피한 HTML 코드 주입 시, 악성 코드 및 이벤트 핸들러를 검증하는 라이브러리 가동
-  * **CSP 규정 수립**: 웹 헤더에 콘텐츠 보안 정책을 설정하여 승인되지 않은 인라인 스크립트 작동 완전 규제
+- **발생 대상**: `event.target`
+- **기본 동작 제어**: `event.preventDefault()`
+- **입력값 확인**: 입력 요소에서는 `event.target.value`
 
 ---
 layout: default
 ---
 
-## textContent 기반 안전한 텍스트 주입
+## 클릭 대상 확인
 
 ```javascript
-const desc = document.querySelector('.desc');
+const button = document.querySelector('.save-btn');
 
-// 1. 안전한 텍스트 주입 (strong 태그가 해석되지 않고 문자로 단순 노출)
-desc.textContent = '<strong>안전 확인</strong>'; 
-
-// 2. 마크업 삽입 (오직 신뢰하는 내부 정적 코드에 한해서만 제한적 활용)
-desc.innerHTML = '<em>안전한 내부 로컬 마크업</em>';
+button.addEventListener('click', (event) => {
+  console.log(event.target);
+});
 ```
 
 ---
 layout: default
 ---
 
-## 클래스 목록 및 사용자 정의 데이터 제어
+## click 이벤트
 
-- **설명**: 최신 표준 명세에 부합하는 안전한 엘리먼트 속성 및 데이터 조작 기술입니다.
-- **제어 API 구성**:
-  * **클래스 조작 (`classList`)**: add, remove, toggle, contains를 통해 안전하고 직관적인 조작 구현
-  * **데이터셋 조작 (`dataset`)**: HTML5 `data-` 속성을 활용해 JS의 CamelCase 속성 형태로 데이터 공유
-  * **인라인 스타일 (`style`)**: CSS 속성명을 JS 식별자 규격인 CamelCase로 자동 변환하여 직접 제어
+- **발생 시점**: 요소를 마우스로 클릭하거나 터치로 선택할 때
+- **주요 대상**: 버튼, 링크, 메뉴, 카드형 UI
+- **대표 용도**: 저장, 삭제, 열기, 선택 같은 명령 실행
+- **주의점**: 입력 변화 감지는 `click`보다 `input`, `change`가 적합
 
 ---
 layout: default
 ---
 
-## 클래스 목록 조작 및 사용자 속성/스타일 제어
+## DOMContentLoaded 이벤트
+
+- **발생 시점**: HTML 파싱이 끝나 DOM 트리가 준비된 순간
+- **대기하지 않음**: 이미지나 스타일시트 전체 로딩까지 기다리지 않음
+- **사용 목적**: 외부 스크립트에서 DOM 요소를 안전하게 찾기
+- **비교 기준**: DOM 탐색 준비는 `DOMContentLoaded`, 전체 리소스 완료는 `load`
+
+---
+layout: default
+---
+
+## DOM 준비 후 버튼 연결
 
 ```javascript
-const el = document.querySelector('.box');
+document.addEventListener('DOMContentLoaded', () => {
+  const button = document.querySelector('#submit-btn');
 
-// 1. classList API를 이용한 클래스 제어
-el.classList.add('active');
-el.classList.toggle('visible');
-
-// 2. data- 속성을 dataset API로 조작 (data-user-role에 대응)
-el.dataset.userRole = 'manager'; 
-
-// 3. 인라인 스타일을 CamelCase 규칙으로 변환 적용
-el.style.backgroundColor = '#eaeaea';
+  button.addEventListener('click', () => {
+    console.log('클릭 이벤트 접수');
+  });
+});
 ```
 
 ---
 layout: default
 ---
 
-## DOM 삭제 API의 현대화
+## removeEventListener의 조건
 
-- **설명**: 필요 없어진 요소를 메모리와 화면에서 안전하게 수거하고 파괴하는 방법입니다.
-- **두 API 비교**:
-  * **현대적 삭제 API (`remove()`)**: 대상 엘리먼트 스스로 자신을 직접 DOM 트리에서 영구 제거
-    - **장점**: 부모 노드를 굳이 거칠 필요가 없어 불필요한 역방향 참조가 사라지고 코드 가독성 극대화
-  * **구식 삭제 API (`removeChild()`)**: 반드시 부모 노드 객체를 참조하여 지정된 자식을 제거하는 레거시 메서드
-    - **용도**: 레거시 환경(IE 계열 등 구형 브라우저)에 대한 철저한 하위 호환성이 요구될 때 적용
+- **용도**: 더 이상 필요 없는 리스너를 제거
+- **핵심 조건**: 등록할 때 쓴 함수 참조가 필요
+- **익명 함수 한계**: 같은 모양으로 다시 써도 같은 함수가 아님
+- **사용 상황**: 일회성 UI, 모달 정리, 컴포넌트 제거
 
 ---
 layout: default
 ---
 
-## 부모 노드 탐색 없는 현대적 요소 삭제
+## 리스너 제거를 위한 함수 분리
 
 ```javascript
-// 1. 현대적 삭제 API: 자기 자신을 트리에서 직접 제거
-const ad = document.querySelector('.banner-ad');
-if (ad) ad.remove();
+const button = document.querySelector('.close-btn');
 
-// 2. 레거시 호환 API: 부모 엘리먼트를 거쳐서 자식 요소 제거
-const list = document.querySelector('#item-list');
-const item = document.querySelector('#item-first');
-list.removeChild(item);
+function handleClose() {
+  console.log('닫기 처리');
+}
+
+button.addEventListener('click', handleClose);
+button.removeEventListener('click', handleClose);
 ```
+
+---
+layout: default
+---
+
+## form submit 이벤트
+
+> **폼 전송 이벤트 (submit)**
+>
+> 사용자가 폼을 제출하려고 할 때 `<form>` 요소에서 발생하는 이벤트
+
+- **발생 조건**: 제출 버튼 클릭 또는 입력창에서 Enter
+- **기본 동작**: `action` 주소로 전송하고 페이지를 새로고침
+- **현대 앱 제어**: JavaScript 처리 전에는 기본 동작을 막는 경우가 많음
+
+---
+layout: default
+---
+
+## 폼 기본 새로고침 차단
+
+```javascript
+const form = document.querySelector('#user-form');
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  console.log('새로고침 없이 처리');
+});
+```
+
+---
+layout: default
+---
+
+## input 이벤트
+
+- **발생 시점**: 글자가 입력되거나 삭제될 때마다 즉시 발생
+- **주요 대상**: 텍스트 입력창, 검색창, textarea
+- **대표 용도**: 실시간 검색, 글자 수 표시, 즉시 유효성 검사
+- **값 확인**: 현재 입력값은 `event.target.value`
+
+---
+layout: default
+---
+
+## 실시간 입력값 읽기
+
+```javascript
+const searchInput = document.querySelector('#search');
+
+searchInput.addEventListener('input', (event) => {
+  const keyword = event.target.value;
+
+  console.log('검색어:', keyword);
+});
+```
+
+---
+layout: default
+---
+
+## change 이벤트
+
+- **발생 시점**: 값 변경이 확정되었을 때
+- **텍스트 입력**: 값을 바꾼 뒤 포커스를 잃으면 발생
+- **선택 요소**: select, checkbox, radio는 선택 변경 시 적합
+- **비교 기준**: 타이핑 즉시는 `input`, 확정된 변경은 `change`
+
+---
+layout: default
+---
+
+## 선택값 변경 감지
+
+```javascript
+const roleSelect = document.querySelector('#role-select');
+
+roleSelect.addEventListener('change', (event) => {
+  const selectedRole = event.target.value;
+
+  console.log('선택된 권한:', selectedRole);
+});
+```
+
+---
+layout: default
+---
+
+## focus와 blur
+
+- **`focus`**: 입력 요소에 커서가 들어왔을 때 발생
+- **`blur`**: 입력 요소가 포커스를 잃었을 때 발생
+- **focus 활용**: 입력 가이드, 강조 스타일, 보조 메시지 표시
+- **blur 활용**: 입력 완료 후 이메일 형식이나 비밀번호 조건 검사
+
+---
+layout: default
+---
+
+## 포커스 진입 안내
+
+```javascript
+const emailInput = document.querySelector('#email');
+
+emailInput.addEventListener('focus', () => {
+  console.log('이메일 형식으로 입력해 주세요.');
+});
+```
+
+---
+layout: default
+---
+
+## 포커스 이탈 검증
+
+```javascript
+const emailInput = document.querySelector('#email');
+
+emailInput.addEventListener('blur', (event) => {
+  const email = event.target.value;
+
+  if (!email.includes('@')) {
+    console.warn('이메일 형식이 아닙니다.');
+  }
+});
+```
+
+---
+layout: default
+---
+
+## 입력 이벤트 선택 기준
+
+| 상황 | 적합한 이벤트 |
+|:----:|---------------|
+| 버튼 클릭으로 명령 실행 | `click` |
+| DOM 준비 후 요소 탐색 | `DOMContentLoaded` |
+| 폼 제출을 JS로 처리 | `submit` |
+| 타이핑 중 즉시 반응 | `input` |
+| 선택 완료 후 반응 | `change` |
+| 입력 시작·종료 감지 | `focus`, `blur` |
