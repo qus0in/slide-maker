@@ -2,6 +2,7 @@
 theme: default
 background: '#02343F'
 class: text-center
+layout: cover
 highlighter: shiki
 shikiConfig:
   themes:
@@ -11,8 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Event
-layout: cover
+title: Gen AI 활용 웹앱 개발
 mermaid:
   theme: base
   themeVariables:
@@ -45,49 +45,270 @@ mermaid:
     activationBorderColor: '#F0EDCC'
 ---
 
-# Event
+# Gen AI 활용 웹앱 개발
 
 ---
 layout: default
 ---
 
-## 학습 체크리스트 (1/2)
+# 학습 체크리스트 (1/2)
 
-- [ ] 브라우저 이벤트와 이벤트 구동 구조 이해
-- [ ] 인라인 속성 방식의 한계 파악
-- [ ] DOM 프로퍼티 이벤트 핸들러의 덮어쓰기 문제 이해
-- [ ] `addEventListener`로 다중 리스너 등록
-
----
-layout: default
----
-
-## 학습 체크리스트 (2/2)
-
-- [ ] `click`, `DOMContentLoaded`의 역할 구분
-- [ ] `submit` 이벤트와 `preventDefault()` 적용
-- [ ] `input`, `change`의 발생 시점 구분
-- [ ] `focus`, `blur`로 입력 상태 감지
+- [ ] 생성형 AI 활용의 세 가지 맥락 구분
+- [ ] Provider, API Key, Token의 역할 이해
+- [ ] 무료 API Rate Limit와 대표 에러 코드 이해
+- [ ] 프런트엔드 API Key 노출 위험 이해
 
 ---
 layout: default
 ---
 
-## Event란?
+# 학습 체크리스트 (2/2)
 
-> **이벤트 (Event)**
+- [ ] 서버 Wrapping 구조 이해
+- [ ] Express 서버의 API 중계 역할 이해
+- [ ] Render 기반 Node 서버 배포 흐름 이해
+- [ ] CORS, SOP, Origin 관계 구분
+
+---
+layout: default
+---
+
+# 생성형 AI 활용의 세 가지 맥락
+
+- 프로젝트 운영과 학습 보조
+- 에이전트 도구 기반 코드 작업
+- API 기반 앱 기능 통합
+- 오늘의 초점: API 기반 기능 통합
+
+---
+layout: default
+---
+
+# 프로젝트 운영과 학습 보조
+
+- 프로젝트 아이디어 정리
+- 일정 분해와 학습 로드맵 작성
+- README, API 문서, 발표 자료, 에셋 제작
+- 결과물 성격: 개발 과정의 보조 산출물
+
+---
+layout: default
+---
+
+# 에이전트 도구 기반 코드 작업
+
+- 코드 작성 보조
+- 리팩터링 방향 제안
+- 리뷰와 버그 위험 탐지
+- 테스트 케이스 초안 작성
+
+---
+layout: default
+---
+
+# 앱 기능 통합
+
+- 사용자 입력 기반 Provider API 호출
+- 대표 기능: 챗봇, 첨삭, 설명 생성, 요약
+- 사용량 기준: 실제 사용자 행동
+- 설계 대상: 비용, 한도, API Key 보안
+
+---
+layout: default
+---
+
+# Provider가 필요한 이유
+
+> **프로바이더 (Provider)**
 >
-> 브라우저 안에서 사용자 행동이나 시스템 상태 변화가 발생했음을 알려 주는 신호
+> AI 모델을 직접 운영하지 않고 API 형태로 사용할 수 있게 제공하는 서비스 사업자
 
-- **사용자 행동**: 클릭, 키 입력, 마우스 이동, 폼 전송
-- **시스템 변화**: HTML 파싱 완료, 리소스 로딩, 네트워크 상태 변화
-- **핵심 관점**: JavaScript가 계속 실행되는 것이 아니라, 사건이 생겼을 때 반응함
+- 로컬 모델 서빙의 높은 운영 난이도
+- GPU, 메모리, 배포 운영 지식 필요
+- 웹앱 실습에 적합한 Provider API 방식
+- 대표 Provider: OpenAI, Anthropic, Google, Groq
 
 ---
 layout: default
 ---
 
-## 이벤트 구동 구조
+# API Key의 역할
+
+> **API Key (API Key)**
+>
+> API 호출 권한과 사용량 식별을 위한 인증 문자열
+
+- 비밀번호처럼 관리해야 하는 민감정보
+- Provider 계정 식별 기준
+- 사용량 초과, 오남용, 과금 연결 기준
+
+---
+layout: default
+---
+
+# Token의 의미
+
+> **토큰 (Token)**
+>
+> AI 모델이 입력과 출력을 처리하기 위해 문장을 작게 나눈 텍스트 단위
+
+- 비용 기준: 요청 횟수와 Token 수
+- Token 증가 요인: 긴 프롬프트, 긴 답변
+- 최적화 방향: 입력 길이 축소
+- 기대 효과: 비용 절감, 응답 시간 단축
+
+---
+layout: default
+---
+
+# 무료 API의 적합한 쓰임
+
+- 적합한 목적: 포트폴리오, 기술 검증, 수업 실습
+- 운영 한계: 한도, 속도, 모델 변경 위험
+- 변동 요소: 계정, 프로젝트, 모델, 시점
+- 실습 전 확인: Provider 콘솔의 현재 한도
+
+---
+layout: default
+---
+
+# Rate Limit 읽기
+
+> **Rate Limit (Rate Limit)**
+>
+> 정해진 시간 안에 허용되는 API 호출 횟수 또는 사용량
+
+- RPM: 1분당 요청 수
+- RPD: 하루 요청 수
+- 한도 초과 결과: `429 Too Many Requests`
+- 링크: [Gemini API Rate Limits](https://ai.google.dev/gemini-api/docs/rate-limits?hl=ko)
+
+---
+layout: default
+---
+
+# 대표 HTTP 에러 코드
+
+- `400 Bad Request`: 잘못된 요청 형식 또는 입력값
+- `401 Unauthorized`: API Key 누락 또는 인증 실패
+- `403 Forbidden`: 인증 후 권한 부족
+- `429 Too Many Requests`: Rate Limit 또는 사용량 한도 초과
+- `500`, `503`: Provider 서버 내부 오류 또는 일시적 사용 불가
+
+---
+layout: default
+---
+
+# Google AI Studio
+
+- 역할: Gemini API 실험과 API Key 발급 진입점
+- 활용 순서: 프롬프트 검증 후 웹앱 연결
+- API Key 발급 위치: AI Studio API Keys 화면
+- 모델별 한도 확인 위치: Rate Limit 화면
+
+---
+layout: default
+---
+
+# Google AI Studio 링크
+
+- 새 채팅
+- 링크: [Google AI Studio 새 채팅](https://aistudio.google.com/prompts/new_chat)
+- API Key 발급
+- 링크: [Google AI Studio API Keys](https://aistudio.google.com/api-keys)
+- Rate Limit 확인
+- 링크: [Google AI Studio Rate Limit](https://aistudio.google.com/rate-limit?timeRange=last-hour)
+
+---
+layout: default
+---
+
+# Gemini 모델 계열
+
+- 성격: Google의 주력 폐쇄형 모델 계열
+- 라인업: Pro, Flash, Flash-Lite (Flash Lite 3.1 외엔 테스트 어려움)
+- 강점: 멀티모달, 긴 컨텍스트, 범용 웹앱 기능
+- 주의: 호출 정도의 테스트 가능한 한도
+- 링크: [Gemini API 문서](https://ai.google.dev/gemini-api/docs)
+
+---
+layout: default
+---
+
+# Gemma 모델 계열
+
+- 성격: Google의 오픈 모델 계열
+- 적합 목적: 로컬 실행, 튜닝, 실험, 경량 모델 비교
+- 주의: API 제공 여부와 한도 변동 가능성
+- 실습 전 확인: 지원 모델과 Rate Limit
+- 링크: [AI Studio Rate Limit](https://aistudio.google.com/rate-limit?timeRange=last-hour)
+
+---
+layout: default
+---
+
+# Groq
+
+- 성격: 빠른 추론 중심 AI API Provider
+- 강점: OSS / Open-weight 모델 활용
+- 실습 장점: 모델 교체와 응답 속도 비교
+- 확인 대상: 모델별 가격과 Rate Limit
+
+---
+layout: default
+---
+
+# Groq 링크
+
+- 공식 사이트
+- 링크: [Groq](https://groq.com/)
+- 가격 정보
+- 링크: [Groq Pricing](https://groq.com/pricing)
+- 사용량 한도
+- 링크: [Groq Rate Limits](https://console.groq.com/docs/rate-limits)
+
+---
+layout: default
+---
+
+# 대표적 Groq 제공 모델 (이후 변동 가능)
+
+- `gpt-oss-20b`: 빠른 응답, 간단한 생성·요약
+- `gpt-oss-120b`: 복잡한 추론, 긴 답변 생성
+- `qwen/qwen3-32b`: 다국어, 코딩, 문서 생성
+- `llama-4-scout-17b-16e-instruct`: 챗봇, 요약, 질의응답
+
+---
+layout: default
+---
+
+# 프런트엔드 Key 노출 위험
+
+- 공개 대상: 브라우저로 내려간 JavaScript 파일
+- 확인 가능 위치: DevTools Network 탭
+- 장기 노출 위치: GitHub commit history
+- 결과: 사용량 소진, 과금, 계정 제한
+
+---
+layout: default
+---
+
+# 서버 Wrapping
+
+> **Wrapping (Wrapping)**
+>
+> 외부 Provider API를 우리 서버 API로 한 번 감싸서 호출하는 구조
+
+- 클라이언트 호출 대상: `/api/chat`
+- 서버 역할: `.env`의 API Key로 Provider API 대리 호출
+- 클라이언트 전달 값: Provider 응답 결과
+- 핵심 효과: 브라우저 API Key 노출 방지
+
+---
+layout: default
+---
+
+# Wrapping 흐름
 
 ```mermaid
 ---
@@ -102,12 +323,17 @@ config:
     rankSpacing: 48
 ---
 flowchart LR
-  Wait["브라우저 대기"] --> Event["이벤트 발생"]
-  Event --> Handler["핸들러 실행"]
-  Handler --> Update["화면 또는 데이터 변경"]
+  A["브라우저"] --> B["Express 서버"]
+  B --> C["Provider API"]
+  C --> B
+  B --> A
 
-  class Wait,Event,Handler,Update step
-  classDef step fill:#0d2026,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
+  class A client
+  class B server
+  class C provider
+  classDef client fill:#0d2026,stroke:#F0EDCC,color:#F0EDCC,stroke-width:2px
+  classDef server fill:#F0EDCC,stroke:#F0EDCC,color:#02343F,stroke-width:2px
+  classDef provider fill:#0d2026,stroke:#BDBA9B,color:#F0EDCC,stroke-width:2px
   linkStyle default stroke:#F0EDCC,stroke-width:4px
 ```
 
@@ -115,371 +341,137 @@ flowchart LR
 layout: default
 ---
 
-## 이벤트 핸들러의 역할
+# Wrapping 구현 선택지
 
-> **이벤트 핸들러 (Event Handler)**
+- 서버리스 함수: Supabase Edge Functions, AWS Lambda, Cloudflare Workers
+- 경량 서버: Render, Koyeb, Railway
+- 클라우드 인스턴스: GCP, Oracle 등
+- 이번 실습 초점: Express 서버와 Render 배포
+
+---
+layout: default
+---
+
+# Express의 역할
+
+> **Express (Express)**
 >
-> 특정 이벤트가 발생했을 때 브라우저가 호출하도록 미리 연결해 둔 함수
+> Node.js에서 HTTP 요청과 응답을 쉽게 처리하도록 돕는 경량 서버 프레임워크
 
-- **연결 대상**: 버튼, 입력창, 문서, window 같은 객체
-- **실행 시점**: 이벤트가 실제로 발생한 순간
-- **전달 정보**: 발생 대상과 입력값은 `event` 객체로 확인
-
----
-layout: default
----
-
-## 레거시 방식의 위치
-
-- **인라인 속성**: HTML 태그 안에 JavaScript를 직접 작성
-- **DOM 프로퍼티**: DOM 객체의 `onclick` 같은 속성에 함수 대입
-- **학습 목적**: 오래된 코드를 읽기 위해 특성만 이해
-- **실무 방향**: 새 코드는 `addEventListener`를 기본으로 사용
+- 요청 처리: `GET`, `POST` 라우트
+- Provider 중계: API Key 포함 요청 재전달
+- 활용 형태: 클라이언트와 외부 API 사이의 Proxy 서버
 
 ---
 layout: default
 ---
 
-## 인라인 이벤트 핸들러
+# 서버 패키지 구성
 
-```html
-<button onclick="alert('클릭됨')">
-  클릭
-</button>
-```
-
----
-layout: default
----
-
-## 인라인 방식의 한계
-
-- **관심사 혼합**: HTML 구조와 JavaScript 동작이 한 줄에 섞임
-- **수정 어려움**: 화면 마크업을 보다가 실행 로직까지 함께 추적해야 함
-- **재사용성 저하**: 같은 동작을 여러 요소에 깔끔하게 적용하기 어려움
-- **유지보수 방향**: 구조는 HTML, 동작은 JavaScript로 분리
+- `express`: API 라우트 구성
+- `cors`: 허용 Origin 제어
+- `dotenv`: `.env` 민감정보 로드
+- `nodemon`: 개발 중 서버 자동 재시작
 
 ---
 layout: default
 ---
 
-## DOM 프로퍼티 방식
+# SDK를 붙이는 위치
 
-```javascript
-const button = document.querySelector('.save-btn');
-
-button.onclick = () => {
-  console.log('저장 버튼 클릭');
-};
-```
+- 실행 위치: 브라우저가 아닌 서버 코드
+- 호출 지점: Express 라우트 내부
+- SDK 장점: API 주소, 인증 Header, 응답 파싱 단순화
+- 링크: [@google/genai](https://www.npmjs.com/package/@google/genai)
+- 링크: [groq-sdk](https://www.npmjs.com/package/groq-sdk)
 
 ---
 layout: default
 ---
 
-## DOM 프로퍼티 방식의 한계
+# Postman으로 먼저 테스트
 
-- **단일 슬롯**: `onclick`에는 함수 하나만 보관됨
-- **덮어쓰기 발생**: 새 함수를 대입하면 이전 함수는 사라짐
-- **협업 위험**: 다른 코드가 같은 프로퍼티를 덮어쓸 수 있음
-- **확장 어려움**: 독립 기능을 안전하게 누적하기 어렵다
-
----
-layout: default
----
-
-## onclick 덮어쓰기
-
-```javascript
-const button = document.querySelector('.legacy-btn');
-
-button.onclick = () => {
-  console.log('A 실행');
-};
-
-button.onclick = () => {
-  console.log('B 실행');
-};
-```
+- 목적: 프런트엔드 연결 전 서버 API 단독 검증
+- 요청 대상: `POST /api/chat`
+- 요청 Body: 테스트 메시지
+- 확인 항목: 인증, Rate Limit, Provider 응답 오류
+- 링크: [Postman](https://www.postman.com/)
 
 ---
 layout: default
 ---
 
-## addEventListener란?
+# Origin
 
-> **이벤트 리스너 등록 (addEventListener)**
+> **Origin (Origin)**
 >
-> 특정 객체에서 특정 이벤트가 발생했을 때 실행할 함수를 등록하는 현대 표준 API
+> 브라우저가 출처를 구분할 때 사용하는 프로토콜, 도메인, 포트의 조합
 
-- **첫 번째 인자**: 이벤트 이름 문자열
-- **두 번째 인자**: 이벤트 발생 시 실행할 함수
-- **핵심 장점**: 같은 이벤트에 여러 리스너를 누적 가능
-
----
-layout: default
----
-
-## addEventListener 기본 문법
-
-```javascript
-const button = document.querySelector('.save-btn');
-
-button.addEventListener('click', () => {
-  console.log('저장 버튼 클릭');
-});
-```
+- 비교 대상 1: `http://localhost:5173`
+- 비교 대상 2: `http://localhost:3000`
+- 차이 기준: 포트가 다른 서로 다른 Origin
+- 배포 상황: GitHub Pages와 Render API 서버
 
 ---
 layout: default
 ---
 
-## 다중 리스너 등록
+# SOP
 
-```javascript
-const button = document.querySelector('.save-btn');
-
-button.addEventListener('click', () => {
-  console.log('저장 요청');
-});
-
-button.addEventListener('click', () => {
-  console.log('분석 로그 기록');
-});
-```
-
----
-layout: default
----
-
-## event 객체
-
-> **이벤트 객체 (Event Object)**
+> **동일 출처 정책 (Same-Origin Policy)**
 >
-> 이벤트가 발생했을 때 브라우저가 핸들러에 전달하는 상세 정보 객체
+> 브라우저가 다른 Origin의 리소스 접근을 기본적으로 제한하는 보안 정책
 
-- **발생 대상**: `event.target`
-- **기본 동작 제어**: `event.preventDefault()`
-- **입력값 확인**: 입력 요소에서는 `event.target.value`
-
----
-layout: default
----
-
-## 클릭 대상 확인
-
-```javascript
-const button = document.querySelector('.save-btn');
-
-button.addEventListener('click', (event) => {
-  console.log(event.target);
-});
-```
+- 목적: 악성 페이지의 외부 데이터 접근 차단
+- 주요 적용 위치: 브라우저 기반 요청
+- 문제 상황: 프런트엔드와 API 서버의 Origin 불일치
 
 ---
 layout: default
 ---
 
-## click 이벤트
+# CORS
 
-- **발생 시점**: 요소를 마우스로 클릭하거나 터치로 선택할 때
-- **주요 대상**: 버튼, 링크, 메뉴, 카드형 UI
-- **대표 용도**: 저장, 삭제, 열기, 선택 같은 명령 실행
-- **주의점**: 입력 변화 감지는 `click`보다 `input`, `change`가 적합
-
----
-layout: default
----
-
-## DOMContentLoaded 이벤트
-
-- **발생 시점**: HTML 파싱이 끝나 DOM 트리가 준비된 순간
-- **대기하지 않음**: 이미지나 스타일시트 전체 로딩까지 기다리지 않음
-- **사용 목적**: 외부 스크립트에서 DOM 요소를 안전하게 찾기
-- **비교 기준**: DOM 탐색 준비는 `DOMContentLoaded`, 전체 리소스 완료는 `load`
-
----
-layout: default
----
-
-## DOM 준비 후 버튼 연결
-
-```javascript
-document.addEventListener('DOMContentLoaded', () => {
-  const button = document.querySelector('#submit-btn');
-
-  button.addEventListener('click', () => {
-    console.log('클릭 이벤트 접수');
-  });
-});
-```
-
----
-layout: default
----
-
-## removeEventListener의 조건
-
-- **용도**: 더 이상 필요 없는 리스너를 제거
-- **핵심 조건**: 등록할 때 쓴 함수 참조가 필요
-- **익명 함수 한계**: 같은 모양으로 다시 써도 같은 함수가 아님
-- **사용 상황**: 일회성 UI, 모달 정리, 컴포넌트 제거
-
----
-layout: default
----
-
-## 리스너 제거를 위한 함수 분리
-
-```javascript
-const button = document.querySelector('.close-btn');
-
-function handleClose() {
-  console.log('닫기 처리');
-}
-
-button.addEventListener('click', handleClose);
-button.removeEventListener('click', handleClose);
-```
-
----
-layout: default
----
-
-## form submit 이벤트
-
-> **폼 전송 이벤트 (submit)**
+> **교차 출처 리소스 공유 (CORS)**
 >
-> 사용자가 폼을 제출하려고 할 때 `<form>` 요소에서 발생하는 이벤트
+> 서버가 허용한 Origin에 한해 브라우저의 교차 출처 요청을 허용하는 정책
 
-- **발생 조건**: 제출 버튼 클릭 또는 입력창에서 Enter
-- **기본 동작**: `action` 주소로 전송하고 페이지를 새로고침
-- **현대 앱 제어**: JavaScript 처리 전에는 기본 동작을 막는 경우가 많음
-
----
-layout: default
----
-
-## 폼 기본 새로고침 차단
-
-```javascript
-const form = document.querySelector('#user-form');
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  console.log('새로고침 없이 처리');
-});
-```
+- 역할: 브라우저 제한에 대한 서버 측 허용 선언
+- 위험 설정: 모든 Origin 허용
+- 운영 방식: 허용 Origin Whitelist 관리
 
 ---
 layout: default
 ---
 
-## input 이벤트
+# Render 배포 흐름
 
-- **발생 시점**: 글자가 입력되거나 삭제될 때마다 즉시 발생
-- **주요 대상**: 텍스트 입력창, 검색창, textarea
-- **대표 용도**: 실시간 검색, 글자 수 표시, 즉시 유효성 검사
-- **값 확인**: 현재 입력값은 `event.target.value`
-
----
-layout: default
----
-
-## 실시간 입력값 읽기
-
-```javascript
-const searchInput = document.querySelector('#search');
-
-searchInput.addEventListener('input', (event) => {
-  const keyword = event.target.value;
-
-  console.log('검색어:', keyword);
-});
-```
+- 지원 환경: Node, Python, Docker 기반 Web Service
+- 연결 방식: GitHub 저장소 연결
+- 설정 항목: Build Command, Start Command
+- API Key 위치: Render Environment Variables
+- 링크: [Render Docs](https://render.com/docs)
 
 ---
 layout: default
 ---
 
-## change 이벤트
+# Render Free Plan 주의점
 
-- **발생 시점**: 값 변경이 확정되었을 때
-- **텍스트 입력**: 값을 바꾼 뒤 포커스를 잃으면 발생
-- **선택 요소**: select, checkbox, radio는 선택 변경 시 적합
-- **비교 기준**: 타이핑 즉시는 `input`, 확정된 변경은 `change`
-
----
-layout: default
----
-
-## 선택값 변경 감지
-
-```javascript
-const roleSelect = document.querySelector('#role-select');
-
-roleSelect.addEventListener('change', (event) => {
-  const selectedRole = event.target.value;
-
-  console.log('선택된 권한:', selectedRole);
-});
-```
+- 적합 목적: 실습, 포트폴리오 검증
+- 부적합 목적: 안정적 프로덕션 운영
+- Spin Down: 15분 무트래픽 후 인스턴스 중지
+- 확인 위치: Dashboard의 사용량 화면
+- 링크: [Render Free Plan](https://render.com/docs/free)
 
 ---
 layout: default
 ---
 
-## focus와 blur
+# Region 선택
 
-- **`focus`**: 입력 요소에 커서가 들어왔을 때 발생
-- **`blur`**: 입력 요소가 포커스를 잃었을 때 발생
-- **focus 활용**: 입력 가이드, 강조 스타일, 보조 메시지 표시
-- **blur 활용**: 입력 완료 후 이메일 형식이나 비밀번호 조건 검사
-
----
-layout: default
----
-
-## 포커스 진입 안내
-
-```javascript
-const emailInput = document.querySelector('#email');
-
-emailInput.addEventListener('focus', () => {
-  console.log('이메일 형식으로 입력해 주세요.');
-});
-```
-
----
-layout: default
----
-
-## 포커스 이탈 검증
-
-```javascript
-const emailInput = document.querySelector('#email');
-
-emailInput.addEventListener('blur', (event) => {
-  const email = event.target.value;
-
-  if (!email.includes('@')) {
-    console.warn('이메일 형식이 아닙니다.');
-  }
-});
-```
-
----
-layout: default
----
-
-## 입력 이벤트 선택 기준
-
-| 상황 | 적합한 이벤트 |
-|:----:|---------------|
-| 버튼 클릭으로 명령 실행 | `click` |
-| DOM 준비 후 요소 탐색 | `DOMContentLoaded` |
-| 폼 제출을 JS로 처리 | `submit` |
-| 타이핑 중 즉시 반응 | `input` |
-| 선택 완료 후 반응 | `change` |
-| 입력 시작·종료 감지 | `focus`, `blur` |
+- 서울 리전: 미제공
+- 우선 검토: Singapore 또는 Oregon
+- 변경 사유: Provider API 리전별 동작 차이
+- 확인 대상: 사용 가능한 Render 리전 목록
+- 링크: [Render Regions](https://render.com/docs/regions)
