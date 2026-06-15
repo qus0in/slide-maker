@@ -203,6 +203,13 @@ sequenceDiagram
 ```
 ````
 
+## 6.3 Mermaid Flowchart 라벨 스타일 지정 (Label Styling)
+- Flowchart 내에서 화살표 위 텍스트 라벨(Edge Label)의 글자색과 패딩 시인성을 최적화할 때, 전역 CSS 오버라이드가 Scope 격리 등으로 정상 적용되지 않는 경우가 존재한다.
+- 이 경우, 라벨 텍스트 자체에 인라인 HTML span 서식을 직접 선언하여 가독성을 확보한다.
+- **선두 패딩 배치 규칙 (Gotcha)**: Mermaid 자체 HTML Label 파서 및 Sanitizer의 내부 구현 한계로 인해, `style` 속성의 맨 앞에 `padding`을 먼저 선언하고 뒤에 `color`를 배치해야만 두 스타일이 모두 유실 없이 렌더러에 도달한다.
+  - **Preferred:** `-->|"<span style='padding:8px;color:#F0EDCC;'>입력 조립</span>"|`
+  - **Avoid:** `-->|"<span style='color:#F0EDCC; padding:8px;'>입력 조립</span>"|` (뒤에 위치한 padding 속성이 정규식 오버라이드 및 세미콜론 파싱 과정에서 유실될 수 있음)
+
 ---
 
 # 7. 출력 및 에이전트 실행 지침 (Rendering & Agent Behavior)
