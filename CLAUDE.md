@@ -12,4 +12,11 @@ Slidev를 활용하여 프로그래밍 교안 슬라이드를 편집할 때는 �
 
 - **Slidev 교안 슬라이드 제작 지침 스킬**: [slide-lecture SKILL](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/SKILL.md)
 
-해당 스킬 문서 내의 교육 설계 원칙, 정보 밀도, 텍스트 포팅, 코드 제한, 시각 테마, Mermaid 다이어그램 표준, 그리고 PDF 정적 렌더링 지침을 엄격히 적용한다.
+세부 규칙 모듈은 다음과 같으며, 에이전트(AI)는 작업 성격에 맞추어 해당 원자화된 스킬을 호출하여 준수한다:
+- **교육 기획 및 설계 원칙**: [lecture-design](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/lecture-design.md)
+- **슬라이드 구조 및 정보 밀도**: [slide-structure](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/slide-structure.md)
+- **코드 격리 및 분량 제약**: [code-isolation](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/code-isolation.md)
+- **체크리스트 & 텍스트 포맷팅**: [text-formatting](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/text-formatting.md)
+- **시각 테마 & CSS 오버라이드**: [style-overrides](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/style-overrides.md)
+- **Mermaid 다이어그램 표준**: [mermaid-standards](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/mermaid-standards.md)
+- **PDF 출력 & 실행 정책**: [rendering-policy](file:///Users/morgan/Development/slide-maker/.agents/skills/slide-lecture/references/rendering-policy.md)
