@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: 자바 백엔드 개발 환경 구축
+title: 흐름제어와 컬렉션
 mermaid:
   theme: base
   themeVariables:
@@ -45,168 +45,64 @@ mermaid:
     activationBorderColor: '#F2AA4C'
 ---
 
-# 자바 백엔드 개발 환경 구축
+# 흐름제어와 컬렉션
 
 ---
 layout: default
 ---
 
-# 학습 체크리스트
+# 학습 체크리스트 (1/2)
 
-- [ ] IntelliJ IDEA의 경쟁력과 에디션별 차이 이해
-- [ ] OpenJDK 배포판 특징 분석 및 Java 17+ 기준 수립
-- [ ] 개발 생산성을 높이는 필수 단축키와 IDE 초기 세팅 숙달
-- [ ] 코딩 편의성을 극대화하는 에디터 옵션 및 추천 플러그인 구성
-
----
-layout: default
----
-
-# 통합 개발 환경 (IDE) 이해
-
-> **통합 개발 환경 (Integrated Development Environment)**
->
-> 코드 작성, 빌드, 디버깅, 배포 등 소프트웨어 개발에 필요한 모든 도구를 하나로 결합한 소프트웨어 애플리케이션
-
-- **단일 작업 공간**: 편집기, 컴파일러, 디버거를 유기적으로 연동하여 관리
-- **개발 흐름 단축**: 개별 도구 호출에 소요되는 설정과 시간 최소화
-- **정적 분석 제공**: 작성 중인 코드의 잠재적 컴파일 오류를 실시간 탐지
+- [ ] Java 조건식의 엄격한 Boolean 평가 원리 및 Truthy/Falsy 에러 이해
+- [ ] switch 표현식의 화살표 연산자(`->`) 활용 및 값 반환 특징 습득
+- [ ] 반복 제어문 내 break와 continue의 흐름 제어 차이 명확히 구분
+- [ ] 일반 for문 선언 시 루프 변수의 명시적 타입 지정 규칙 숙지
+- [ ] 다차원 반복 제어를 위한 중첩 for문의 실행 순서 및 제어 흐름 분석
 
 ---
 layout: default
 ---
 
-# IDE 삼파전 비교
+# 학습 체크리스트 (2/2)
 
-| 비교 항목                 | VSCode                      | Eclipse (STS)                 | IntelliJ IDEA                     |
-| :------------------------ | :-------------------------- | :---------------------------- | :-------------------------------- |
-| **Java 전용 여부**        | 범용 (확장 플러그인 필요)   | 전용 (Java/Spring 중심)       | 전용 (JVM 생태계 최적화)          |
-| **초기 설정 편의성**      | 플러그인 개별 세팅 필요     | 비교적 복잡한 설정 필요       | JDK 자동 감지 등 즉시 시작 가능   |
-| **정적 분석 및 자동완성** | 보통                        | 보통 (상대적 스마트함 부족)   | 압도적 (지능형 분석 및 리팩토링)  |
-| **대규모 프로젝트 성능**  | 무거워지거나 빌드 지연 발생 | 성능 저하 및 잦은 프리징 현상 | 캐싱 및 성능 최적화로 안정적 작동 |
-
----
-layout: default
----
-
-# IntelliJ IDEA의 핵심 가치
-
-- **자체 런타임 구성**: JDK 자동 감지 및 즉시 다운로드 기능 제공
-- **수동 연동 불필요**: Tomcat 등 외부 웹 WAS 연동 없이 IDE 내 독립 실행 지원
-- **스마트 자동완성**: 컨텍스트를 분석하여 가장 적절한 코드 완성 후보 제안
-- **안전한 일괄 리팩토링**: 레퍼런스 깨짐 없이 안전한 클래스/메서드 이름 변경 지원
-- **실무 글로벌 표준**: 대부분의 현대 자바 백엔드 기업에서 표준 도구로 채택
+- [ ] 자바 배열의 두 가지 핵심적 물리적 제약사항(단일 타입, 고정 크기) 이해
+- [ ] 배열의 선언, 공간 할당, 리터럴 초기화 및 크기 조회(`.length`) 활용법 습득
+- [ ] 향상된 for문(for-each)의 읽기 전용(Read-only) 특성 파악 및 순회 적용
+- [ ] 컬렉션 프레임워크와 제네릭(Generic) 타입 제한의 기초 메커니즘 이해
+- [ ] ArrayList, HashMap, HashSet 자료구조별 데이터 삽입 및 삭제 메서드 조작법 숙지
 
 ---
 layout: default
 ---
 
-# IntelliJ 에디션 비교
+# 흐름제어 개요
 
-- **Community 에디션 (무료)**
-  - 오픈소스 버전으로 Java, Kotlin 개발의 기본 기능 충실히 지원
-  - 빌드 도구(Gradle, Maven) 및 Git 연동 기능 제공
-  - Spring Boot, JPA, 내장 데이터베이스 도구 등 기업형 프레임워크 지원 배제
-- **Ultimate 에디션 (유료)**
-  - Spring Boot 및 JPA 개발 완벽 지원 및 코드 자동 완성 고도화
-  - Database Tools 내장으로 외부 DB 클라이언트 설치 없이 테이블 관리
-  - 대학생의 경우 학교 이메일 인증으로 학생 라이선스 무료 발급 가능
+- **공통점**: 조건문과 반복문의 기본 골격 및 흐름제어 논리는 JavaScript와 매우 유사함
+- **차이점**: 타입 검사가 고도로 엄격한 정적 타입 언어 특성상, 제어 변수의 선언 규격이나 조건 평가 기준에서 강한 문법적 제약이 발생함
+- **교육 목표**: 본 단원에서는 JS 경험을 바탕으로, 오직 자바에만 존재하는 고유 제약사항과 모던 자바 문법 트렌드(Switch Expressions 등)에 집중함
 
 ---
 layout: default
 ---
 
-# 자바 개발 키트 (JDK) 개요
+# if문 조건식 내부의 Boolean 제약
 
-> **자바 개발 키트 (Java Development Kit)**
->
-> 자바 프로그램을 개발하고 실행하기 위해 필요한 컴파일러(javac), 런타임 환경(JRE), 디버거 등을 모아놓은 소프트웨어 패키지
-
-- **스펙과 구현체**: Java SE 스펙에 따라 구현된 다양한 배포판이 존재
-- **오픈소스 기반**: 기본적으로 OpenJDK라는 오픈소스 프로젝트를 기준으로 발전
-- **배포판 선택 기준**: 라이선스 정책, 클라우드 환경 및 안정성을 고려하여 선택
+- **Truthy/Falsy 불인정**: 자바는 JavaScript와 달리 조건문 내부에서 숫자가 `0`이거나 객체가 `null`이라고 해서 거짓(`false`)으로 자동 해석하지 않음
+- **타입 일치 강제**: `if`문의 소괄호 내부에는 오직 실행 결과가 최종적으로 `boolean` 타입(`true` 또는 `false`)인 연산식만 들어갈 수 있음
+- **문법 차단**: `if (1)` 또는 `if (obj)` 등은 엄격하게 컴파일 차단되며, 비교 연산자나 논리 연산자를 사용한 명확한 식을 작성해야 함
 
 ---
 layout: default
 ---
 
-# OpenJDK 배포판 종류와 특징
-
-- **Oracle JDK**
-  - 오라클 공식 배포판이나 상업적 목적 사용 시 과금 정책 세부 검토 필요
-- **Eclipse Temurin (Adoptium)**
-  - 오픈소스 재단 주도 배포판으로 높은 안정성과 강력한 호환성 덕에 표준으로 추천
-- **Amazon Corretto**
-  - AWS 환경에 최적화되고 검증을 완료하여 AWS 클라우드 배포 시 최고의 궁합 자랑
-- **Azul Zulu**
-  - 임베디드, 가상화, 클라우드 등 다양한 컴퓨팅 아키텍처를 폭넓게 지원하는 안정적 배포판
-
----
-layout: default
----
-
-# Spring Boot 3.0과 JDK 버전 기준
-
-- **최소 요구 버전**: Spring Boot 3.0 이상 버전부터는 최소 **Java 17 이상** 필수 요구
-- **상위 버전 트렌드**: 자바의 LTS(Long Term Support) 로드맵에 맞추어 Java 17/21 전환 가속
-- **신규 기능 도입**: Java 17+의 레코드(Record), 텍스트 블록(Text Blocks) 등 모던 스펙 활용 가능
-- **백엔드 권장 사항**: 레거시(Java 8/11) 유지보수가 아닌 신규 개발 시 Java 17+을 기준 버전으로 권장
-
----
-layout: default
----
-
-# 개발 환경 검증 흐름도
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#F2AA4C"
-    arrowheadColor: "#F2AA4C"
-    edgeLabelBackground: "#101820"
-  flowchart:
-    padding: 8
-    nodeSpacing: 52
-    rankSpacing: 48
----
-flowchart TD
-  A["프로젝트 생성 및 JDK 감지"] --> B["진입점 메서드 작성 (main)"]
-  B --> C["콘솔 출력 코드 작성 (sout)"]
-  C --> D["애플리케이션 실행"]
-  D --> E{"정상 출력 검증"}
-  E -->|"<span style='padding:8px;color:#F2AA4C;'>(예)</span>"| F["환경 구성 완료"]
-  E -->|"<span style='padding:8px;color:#F2AA4C;'>(아니오)</span>"| G["설정 및 JDK 재확인"]
-
-  class A,B,C,D,F,G step
-  class E start
-  classDef start fill:#F2AA4C,stroke:#F2AA4C,color:#101820,stroke-width:2px
-  classDef step fill:#18232F,stroke:#F2AA4C,color:#E0E6ED,stroke-width:2px
-  linkStyle default stroke:#F2AA4C,stroke-width:4px
-```
-
----
-layout: default
----
-
-# 자바 애플리케이션 진입점 설계
-
-- **진입점(Entry Point)**: JVM이 프로그램을 시작할 때 호출하는 `main` 메서드
-- **시작 제어**: `public static void main(String[] args)` 선언으로 시작 흐름 정의
-- **IntelliJ 단축어(Live Template)**:
-  - `main` 입력 후 탭 또는 엔터로 진입점 자동 생성
-  - `sout` 입력 후 탭 또는 엔터로 콘솔 출력문(`System.out.println()`) 생성
-
----
-layout: default
----
-
-# 표준 출력 테스트 클래스 정의
+## 조건문 내 명확한 Boolean 식 평가
 
 ```java
-public class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+public static void main(String[] args) {
+    int count = 0;
+    // if (count) -> 컴파일 에러 유발
+    if (count == 0) {
+        System.out.println("값이 0입니다.");
     }
 }
 ```
@@ -215,131 +111,275 @@ public class HelloWorld {
 layout: default
 ---
 
-# 생산성을 높이는 핵심 단축키
+# switch문과 Fall-through 현상
 
-| 기능          | Mac         | Windows / Linux      | 설명                                        |
-| :------------ | :---------- | :------------------- | :------------------------------------------ |
-| **전체 검색** | `Double ⇧`  | `Double Shift`       | 파일, 클래스, 메서드, 설정까지 통합 검색    |
-| **액션 검색** | `⌘ + ⇧ + A` | `Ctrl + Shift + A`   | 원하는 메뉴나 설정 명령어를 타이핑하여 실행 |
-| **코드 완성** | `⌃ + Space` | `Ctrl + Space`       | 기본 코드 자동 완성 후보 표시               |
-| **빠른 실행** | `⌃ + ⇧ + R` | `Ctrl + Shift + F10` | 현재 활성화된 진입점 클래스 파일 실행       |
-
----
-layout: default
-class: text-sm-slide
----
-
-# 코드 편집 및 최적화 단축키
-
-| 기능               | Mac         | Windows / Linux  | 설명                                                  |
-| :----------------- | :---------- | :--------------- | :---------------------------------------------------- |
-| **빠른 수정**      | `⌥ + Enter` | `Alt + Enter`    | 컴파일 에러 해결 및 자동 import 추천                  |
-| **코드 포맷 정렬** | `⌘ + ⌥ + L` | `Ctrl + Alt + L` | 지정된 코드 스타일 규칙에 맞춰 일괄 개행/공백 포맷팅  |
-| **임포트 최적화**  | `⌃ + ⌥ + O` | `Ctrl + Alt + O` | 사용하지 않는 import 패키지 제거 및 정렬              |
-| **이름 일괄 변경** | `⇧ + F6`    | `Shift + F6`     | 변수, 클래스 등 모든 레퍼런스를 추적해 이름 일괄 수정 |
-| **최근 파일 보기** | `⌘ + E`     | `Ctrl + E`       | 최근 열었던 파일 목록을 조회하여 빠른 탭 이동         |
+- **전통적 switch문**: 특정 값의 일치 여부에 따라 분기 처리를 수행하는 다중 조건문
+- **Fall-through**: `case` 블록 마다 제어 흐름을 끊어주는 `break` 명령어를 명시적으로 달아주지 않으면, 하단에 기재된 다른 `case` 블록의 코드까지 멈추지 않고 연이어 밀고 실행되는 현상
+- **오동작 방지**: 의도한 경우가 아니라면 반드시 각 case의 동작 끝에 `break;`를 삽입하여 분기 흐름을 제어해야 함
 
 ---
 layout: default
 ---
 
-# 내장 터미널 및 GitHub 연동 설정
+# switch 표현식 (Switch Expressions)
 
-- **Windows 터미널 Git Bash 연동**
-  - 기본 터미널 `cmd.exe` 대신 `Git Bash`를 연동해 리눅스 명령어 환경 활용
-  - 설정 경로: *Settings → Tools → Terminal → Shell path*
-  - 경로 변경: `C:\Program Files\Git\bin\bash.exe`로 경로 지정
-- **IDE 내 GitHub 계정 연동**
-  - 원격 저장소 클론, 커밋, 푸시 및 Pull Request 관리 가능
-  - 설정 경로: *Settings → Version Control → GitHub → Add Account*
+- **문법 혁신**: 전통적인 switch문의 불편을 개선하여 화살표 연산자(`->`)를 도입한 새로운 switch 블록 형식
+- **자동 break 동작**: 화살표 연산자(`->`)를 사용하면 동작을 마친 뒤 하단 case로 흘러내리는 Fall-through 현상이 발생하지 않고 즉시 블록 탈출
+- **식(Expression) 평가**: 블록 전체가 최종적으로 **하나의 값**으로 계산되며, 이를 변수에 바로 대입하거나 반환값으로 재활용 가능
+- **쉼표 다중 나열**: 여러 case 조건을 쉼표(`,`)로 구분하여 나란히 나열할 수 있어 소스 코드 가독성이 우수함
 
 ---
 layout: default
 ---
 
-# JVM 힙 메모리 최적화 설정
+## switch 표현식을 이용한 성적 평가
 
-- **설정 목적**: 대규모 빌드 및 에디터 로딩 시 발생하는 메모리 병목과 프리징 차단
-- **수행 방법**: *Help → Change Memory Settings* 실행 후 힙 공간 재조정 (저장 후 재시작)
-
-| PC RAM 용량      | 힙 메모리 추천 범위 | 대상 환경                                      |
-| :--------------- | :------------------ | :--------------------------------------------- |
-| **8 GB**         | `1024 MB ~ 2048 MB` | 가벼운 개인 프로젝트용                         |
-| **16 GB (권장)** | `2048 MB ~ 4096 MB` | Spring Boot 및 데이터베이스 병렬 작업 표준     |
-| **32 GB 이상**   | `4096 MB ~ 8192 MB` | 대형 모노레포 및 마이크로서비스(MSA) 로컬 환경 |
-
----
-layout: default
----
-
-# 에디터 편의 및 가독성 설정 (1/2)
-
-- **Soft Wrap (자동 줄바꿈)**
-  - 가로 스크롤 없이 에디터 폭에 맞춰 코드 자동 개행
-  - 설정 경로: *Settings → Editor → General → 'Soft-wrap these files' 체크*
-- **Auto Import (실시간 자동 임포트)**
-  - 수동 패키지 import 번거로움을 생략하고 삭제 시 실시간 정제
-  - 설정 경로: *Settings → Editor → General → Auto Import*
-  - 상세 설정: `Add unambiguous imports on the fly`, `Optimize imports on the fly` 둘 다 체크
+```java
+public static void main(String[] args) {
+    String grade = "A";
+    String result = switch (grade) {
+        case "A", "B" -> "우수";
+        case "C"      -> "보통";
+        default       -> "재수강";
+    };
+    System.out.println(result);
+}
+```
 
 ---
 layout: default
 ---
 
-# 에디터 편의 및 가독성 설정 (2/2)
+# while문과 break / continue 제어자
 
-- **줄 번호 표시 (Show line numbers)**
-  - 디버깅 시 에러 트레이스 추적 및 코드 리뷰 효율성 향상
-  - 설정 경로: *Settings → Editor → General → Appearance → 'Show line numbers' 체크*
-- **공백 문자 표시 (Show whitespaces)**
-  - 탭과 스페이스 간의 불일치 현상을 직관적으로 감지하여 서식 오류 예방
-  - 설정 경로: *Settings → Editor → General → Appearance → 'Show whitespaces' 체크*
-- **마우스 휠 줌 (Change font size with ⌘/Ctrl+Wheel)**
-  - 맥 트랙패드 줌 및 윈도우 마우스 휠 동작을 통해 실시간 폰트 크기 동적 조절
-  - 설정 경로: *Settings → Editor → General → 'Change font size with ⌘+Mouse Wheel' [Mac] / 'Ctrl+Mouse Wheel' [Win] 체크*
+- **while문**: 조건식의 결과가 참(`true`)인 동안 중괄호 블록 내의 실행문을 반복해서 구동
+- **break 제어자**: 반복 루프 내에서 특정 조건을 만족할 때 루프 자체를 즉각 파괴하고 반복 영역을 완전히 이탈
+- **continue 제어자**: 루프 블록 내의 남은 실행 코드를 생략하고, 다음 회차의 반복 수행 여부를 판별하기 위해 즉시 조건 검사식으로 점프
 
 ---
 layout: default
 ---
 
-# 코드 스타일 및 Actions on Save 설정
+## while 루프 내 break 및 continue 제어
 
-- **코드 스타일 규칙 적용**
-  - 설정 경로: *Settings → Editor → Code Style → Java (또는 각 주 사용 언어)*
-  - 상세 설정: `Tab size`는 `4` 유지 (웹 언어는 `2` 권장), `Use tab character` 체크 해제
-- **Actions on Save (저장 시 자동 포맷팅)**
-  - 저장 시점에 코드 줄맞춤과 임포트 정리를 자동화하여 커밋 전 불필요한 공백 변경 방지
-  - 설정 경로: *Settings → Tools → Actions on Save*
-  - 상세 설정: `Reformat code` 및 `Optimize imports` 둘 다 체크
-
----
-layout: default
----
-
-# 폰트 크기 및 UI 폰트 최적화
-
-- **에디터 폰트 (Editor Font)**
-  - 가독성 높은 코딩 전용 폰트 적용
-  - 설정 경로: *Settings → Editor → Font*
-  - 추천 설정: Font `JetBrains Mono` 지정, 크기 `14 ~ 16`, 줄 간격(Line height) `1.2 ~ 1.4`
-- **UI 폰트 (UI Font)**
-  - 장시간 작업 시 발생할 수 있는 시각 피로도를 경감하기 위해 조정
-  - 설정 경로: *Settings → Appearance & Behavior → Appearance*
-  - 추천 설정: `Use custom font` 체크 후 크기를 `13 ~ 14`로 조정 (기본 12 대비 시인성 우수)
+```java
+public static void main(String[] args) {
+    int i = 0;
+    while (i < 5) {
+        i++;
+        if (i == 3) continue;
+        System.out.println(i);
+        if (i == 4) break;
+    }
+}
+```
 
 ---
 layout: default
 ---
 
-# 개발 효율을 높이는 플러그인
+# for문과 루프 변수 타입 명시
 
-- **AI 코딩 도구**
-  - **JetBrains AI Assistant**: 공식 클라우드 기반 코드 자동완성 및 리팩토링 제안
-  - **Gemini Code Assist**: 구글의 AI 코딩 비서로 다양한 자바 연동 및 코드 자동 생성
-- **에디터 유틸리티**
-  - **Atom Material Icons**: 기본 아이콘을 세련되고 구분이 명확한 머티리얼 아이콘으로 변경
-  - **Rainbow Brackets**: 중첩 괄호쌍 마다 고유 색상을 매핑해 괄호 짝을 쉽게 식별
-  - **Translation**: 에디터 내부에서 주석 및 영어 에러 메시지를 한글로 즉시 번역
-  - **CodeGlance Pro**: 에디터 우측 미니맵을 통해 전체 파일의 특정 위치로 고속 이동
+- **for문**: 횟수를 카운팅하거나 일정 규칙에 맞추어 인덱스를 증감시키며 반복 영역을 통제하는 구문
+- **루프 제어 변수**: JavaScript의 `let` 선언과 달리, 자바의 for문 초기화 식에서는 루프 인덱스 변수의 타입을 반드시 명시적으로 표기해야 함 (예: `int i = 0`)
+- **변수 유효 영역**: for문 초기화 식에서 선언된 변수는 오직 해당 for문 블록 내부에서만 존재하며, 루프 종료 시 메모리에서 완전히 소각됨
 
+---
+layout: default
+---
 
+# 중첩 for문의 정의와 다중 루프
+
+- **중첩 루프**: `for`문 내부에 또 다른 `for`문을 설계하여 구동시키는 다차원 반복 제어 기법
+- **동작 흐름**: 바깥쪽 `for`문이 1회 전개될 때, 안쪽에 설계된 `for`문은 지정된 전체 횟수만큼 온전히 회전을 마쳐야 바깥쪽 루프의 다음 회차로 진행함
+- **주의점**: 루프 차원이 늘어날 때마다 계산 복잡도가 급격히 상승하므로, 성능 병목 현상이 발생하지 않는지 고려하여 작성해야 함
+
+---
+layout: default
+---
+
+## 구구단 2단을 이용한 중첩 for문 제어
+
+```java
+public static void main(String[] args) {
+    for (int dan = 2; dan <= 2; dan++) {
+        for (int i = 1; i <= 3; i++) {
+            System.out.println(dan + "*" + i + "=" + (dan * i));
+        }
+    }
+}
+```
+
+---
+layout: default
+---
+
+# 자바 배열의 두 가지 물리적 제약
+
+- **JS 배열과의 차이**: 자바스크립트 배열은 타입이 유연하고 크기가 동적으로 늘어나지만, 자바 배열은 기계적인 한계를 엄격히 유지함
+- **1. 단일 타입 보존**: 배열을 선언할 때 지정한 고유의 데이터 타입 요소만 저장할 수 있으며, 이종 타입 혼합 보관은 절대 불가
+- **2. 고정 크기 제한**: 배열은 런타임에 인스턴스를 생성하는 순간 물리적으로 방의 크기(길이)가 확정되며, 이후 요소를 추가 또는 삭제하더라도 크기가 유동적으로 늘어나거나 줄어들지 않음
+
+---
+layout: default
+---
+
+# 배열의 선언, 할당, 리터럴 초기화
+
+- **배열 선언**: 보관하려는 타입명 뒤에 대괄호 `[]`를 선언하여 배열 참조 변수 정의 (예: `int[] numbers;`)
+- **공간 할당**: `new` 키워드와 함께 보관할 칸수를 명시하여 메모리 할당 (예: `numbers = new int[5];`)
+- **리터럴 초기화**: 할당과 동시에 구체적인 데이터 목록을 중괄호 `{}` 안에 명시하여 한 번에 채워 넣음 (예: `int[] numbers = {10, 20, 30};`)
+
+---
+layout: default
+---
+
+# 인덱스 범위 초과 및 .length 속성
+
+- **인덱스 접근**: 배열의 첫 번째 칸은 항상 `0`번 인덱스부터 시작하며 대괄호를 통해 접근 (예: `numbers[0]`)
+- **인덱스 범위 예외**: 할당된 크기를 초과하여 존재하지 않는 인덱스 공간에 접근할 경우, 런타임에 심각한 `ArrayIndexOutOfBoundsException` 예외가 발생
+- **배열의 크기 조회**: 배열 참조 변수 뒤에 `.length` 속성을 참조하면, 해당 배열이 가진 물리적 고정 크기값을 바로 확인 가능 (예: `numbers.length`)
+
+---
+layout: default
+---
+
+## 1차원 정수 배열 선언 및 인덱스 제어
+
+```java
+public static void main(String[] args) {
+    int[] numbers = {10, 20, 30};
+    numbers[0] = 100;
+    for (int i = 0; i < numbers.length; i++) {
+        System.out.println(numbers[i]);
+    }
+}
+```
+
+---
+layout: default
+---
+
+# 향상된 for문 (for-each)의 특성
+
+- **for-each 구문**: 배열이나 컬렉션의 요소를 처음부터 끝까지 인덱스 변수 제어 없이 순차적으로 꺼내어 주는 편리한 제어문
+- **가독성 향상**: 복잡한 인덱스 루프 변수 계산이나 배열 길이 조회가 불필요해져 단순 조회 목적의 루프 코드가 간결해짐
+- **읽기 전용 (Read-only)**: 루프 내에서 꺼내어 선언된 변수는 배열 속 실제 요소의 복사본이므로, 해당 변수 값을 변경해도 원본 배열 내부 요소의 값은 전혀 바뀌지 않음
+
+---
+layout: default
+---
+
+## for-each 루프를 활용한 배열 순회
+
+```java
+public static void main(String[] args) {
+    int[] scores = {90, 80, 100};
+    for (int score : scores) {
+        System.out.println(score);
+    }
+}
+```
+
+---
+layout: default
+---
+
+# 컬렉션 프레임워크 개요
+
+- **도입 목적**: 크기가 고정된 일반 배열의 한계를 극복하고, 동적으로 변하는 객체 무리를 유연하게 관리하기 위한 자바 표준 프레임워크
+- **주요 인터페이스 계열**:
+  - `List`: 순서가 유지되고 중복 저장을 허용하는 선형 자료구조
+  - `Map`: 키(Key)와 값(Value)의 쌍으로 묶어 데이터를 매핑하는 자료구조
+  - `Set`: 순서를 보장하지 않으며, 중복 요소를 절대 보관할 수 없는 고유 집합
+
+---
+layout: default
+---
+
+# 제네릭 (Generic) 타입 안전 장치
+
+- **정의**: 컬렉션 클래스나 변수를 선언할 때, 꺾쇠괄호 `< >` 내부에 명시하여 다룰 수 있는 데이터 타입을 컴파일 시점에 한정시키는 문법
+- **도입 취지**: 컴파일러가 컬렉션 내부로 들어가는 데이터의 타입을 엄격히 통제하여, 이종의 잘못된 타입이 섞임으로써 발생할 수 있는 런타임 형변환 예외를 사전 방어
+- **선언 예시**: `ArrayList<String> list = new ArrayList<>();` (String 데이터만 보관 가능)
+
+---
+layout: default
+---
+
+# List 계열과 ArrayList
+
+- **ArrayList**: 내부적으로 일반 배열을 품고 있지만, 데이터 추가/삭제 발생 시 스스로 빈방 크기를 알아서 확장하고 줄이는 고성능 **동적 배열**
+- **순서와 중복**: 입력한 데이터의 인덱스 순서가 영구 유지되며, 데이터의 중복 저장을 아무런 제약 없이 허용
+- **조회 효율**: 내부적으로 배열 기반이므로 인덱스를 통한 임의 요소 탐색 속도가 우수함
+
+---
+layout: default
+---
+
+## ArrayList 추가, 제거 및 크기 조회
+
+```java
+import java.util.ArrayList;
+public static void main(String[] args) {
+    ArrayList<String> list = new ArrayList<>();
+    list.add("Java");
+    list.add("Spring");
+    list.remove(0);
+    System.out.println(list.size()); // 1
+}
+```
+
+---
+layout: default
+---
+
+# Map 계열과 HashMap
+
+- **HashMap**: 키(Key)와 값(Value)이 매칭되는 쌍으로 요소를 묶어 힙 영역에 관리하는 구조 (JS의 객체 리터럴과 유사)
+- **키의 고유성**: 식별자 역할을 수행하는 **키(Key)는 절대 중복될 수 없으며**, 대입 대상인 값(Value)은 중복 저장이 가능
+- **순서 비보장**: 저장소 내부에 요소들이 해시 함수를 통해 배치되므로, 데이터를 입력한 순서가 그대로 지켜지지 않음
+
+---
+layout: default
+---
+
+## HashMap 값 매핑 및 특정 키 조회
+
+```java
+import java.util.HashMap;
+public static void main(String[] args) {
+    HashMap<String, Integer> map = new HashMap<>();
+    map.put("Java", 100);
+    map.put("Spring", 90);
+    System.out.println(map.get("Java")); // 100
+    System.out.println(map.size()); // 2
+}
+```
+
+---
+layout: default
+---
+
+# Set 계열과 HashSet
+
+- **HashSet**: 데이터의 저장 순서를 보장하지 않으며, **중복 데이터의 저장을 기계적으로 완전히 차단**하는 독자적 집합 자료구조
+- **중복 검출**: 데이터 삽입 시 내부적으로 `hashCode()`와 `equals()` 연산을 수행하여 이미 같은 값이 있다면 삽입을 거절
+- **고속 판별**: 컬렉션 내에 특정 원소가 들어있는지 포함 관계를 판별하는 탐색 연산 속도가 극도로 빠름
+
+---
+layout: default
+---
+
+## HashSet을 이용한 중복 없는 요소 제어
+
+```java
+import java.util.HashSet;
+public static void main(String[] args) {
+    HashSet<String> set = new HashSet<>();
+    set.add("Java");
+    set.add("Java"); // 중복 삽입 (무시됨)
+    System.out.println(set.contains("Java")); // true
+    System.out.println(set.size()); // 1
+}
+```
