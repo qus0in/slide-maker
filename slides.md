@@ -238,7 +238,7 @@ flowchart LR
   end
 
   Service --> Intf
-  CardPay -->|"<span style='padding:4px 8px;color:#F2AA4C;background-color:#18232F;border:1px solid rgba(242,170,76,0.45);border-radius:4px;'>DIP 의존성 역전</span>"| Intf
+  CardPay -->|"<span style='padding:4px 8px;color:#101820 !important;background-color:#F2AA4C !important;border:1px solid #F2AA4C !important;border-radius:4px;font-weight:bold;'>DIP 의존성 역전</span>"| Intf
   
   classDef core fill:#F2AA4C,stroke:#F2AA4C,color:#101820;
   classDef detail fill:#243342,stroke:#94A3B8,color:#E2E8F0;

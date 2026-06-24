@@ -681,17 +681,17 @@ td {
 .slidev-layout .mermaid .messageText,
 .slidev-layout .mermaid .loopText,
 .slidev-layout .mermaid .labelText {
-  background-color: #101820 !important;
-  color: var(--slide-fg) !important;
-  fill: var(--slide-fg) !important;
+  background-color: #101820;
+  color: var(--slide-fg);
+  fill: var(--slide-fg);
   font-weight: 700 !important;
 }
 
 .slidev-layout .mermaid .edgeLabel rect,
 .slidev-layout .mermaid .labelBkg,
 .slidev-layout .mermaid .labelBox {
-  fill: #101820 !important;
-  stroke: rgba(242, 170, 76, 0.35) !important;
+  fill: #101820;
+  stroke: rgba(242, 170, 76, 0.35);
   rx: 4px !important;
   ry: 4px !important;
 }
