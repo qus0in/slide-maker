@@ -376,6 +376,16 @@ layout: default
 layout: default
 ---
 
+# enum : JS/TS 진영과의 매핑 비교
+
+- **JS/TS의 한계**: JavaScript는 표준 enum이 없고, TypeScript의 `enum`은 트리 셰이킹 (Tree-shaking) 시 사용되지 않는 코드도 번들에 잔존하는 한계 발생
+- **TS의 대안**: 실무에서는 이를 피하기 위해 `const Role = { ADMIN: 'ADMIN' } as const` 형태의 객체 상수를 선언해 활용함
+- **Java의 우위**: 단순 문자열 상수를 넘어 필드와 비즈니스 메서드를 클래스처럼 완전하게 탑재한 독립형 인스턴스 객체로 동작하여 구조적 우위 확보
+
+---
+layout: default
+---
+
 ## Record 선언 예제 (Code First)
 
 ```java
@@ -393,6 +403,16 @@ layout: default
 - **개념**: 데이터를 전송하고 보관하기 위한 목적으로 설계된 JDK 15/17+ 정식 스펙의 불변 (Immutable) 데이터 모델
 - **상태의 불변성**: 선언된 모든 필드는 묵시적으로 `private final` 처리되어 한 번 대입된 값을 바꿀 수 없음
 - **보일러플레이트 제거**: Lombok 같은 서드파티 라이브러리 의존 없이 클래스 선언 한 줄로 필수 메서드(Getter, 생성자 등) 자동 탑재
+
+---
+layout: default
+---
+
+# Record : JS/TS 진영과의 매핑 비교
+
+- **JS/TS의 방식**: 객체의 불변성을 유지하기 위해 `Object.freeze()`를 호출하거나, TypeScript에서 `readonly` 지시어를 타입 속성에 수동 부여
+- **Lombok 대비**: 자바 레코드는 롬복 (`@Value`, `@Getter` 등)이 제공하던 보일러플레이트 제거 역할을 JDK 표준 명세 수준으로 안전하게 대체
+- **Java의 장점**: 언어 레벨에서 생성자, Getter, `equals`, `hashCode`, `toString`을 네이티브하게 보장하며 데이터 클래스의 격을 확립
 
 ---
 layout: default
@@ -423,6 +443,16 @@ layout: default
 layout: default
 ---
 
+# HttpClient : JS/TS 진영과의 매핑 비교
+
+- **JS/TS의 방식**: 브라우저 표준 `fetch` API 혹은 Node.js/브라우저 통합용 외부 라이브러리인 `axios`를 주로 활용
+- **Java의 발전**: 과거 Apache HttpClient 등 무거운 서드파티 라이브러리 종속성에서 벗어나 언어 내장 표준 API로 통일
+- **구조적 차이**: JS는 Promise 기반의 `async/await` 흐름을 사용하며, Java 11의 `HttpClient` 역시 비동기 리액티브 스트림 기반 `sendAsync` 지원
+
+---
+layout: default
+---
+
 ## Text Block 사용 예제 (Code First)
 
 ```java
@@ -443,3 +473,13 @@ layout: default
 - **개념**: 세 개의 쌍따옴표 (`"""`)를 여닫는 구분자로 삼아 다중 행 문자열을 소스코드 내에 직관적으로 적재하는 문법 도구
 - **이스케이프 소거**: JSON, SQL, HTML 등의 포맷 문자열을 작성할 때 빈번히 사용되던 역슬래시 이스케이프 (`\"`, `\n`)를 완전히 제거
 - **들여쓰기 자동 정렬**: 닫는 세 개의 쌍따옴표 정렬 위치를 바탕으로 소스코드 가독성을 해치지 않으면서 공백 깊이를 자동으로 계산하여 출력
+
+---
+layout: default
+---
+
+# Text Block : JS/TS 진영과의 매핑 비교
+
+- **JS/TS의 템플릿 리터럴**: 백틱 (\` \`)을 사용하는 JavaScript의 **템플릿 리터럴** (Template Literal) 기능과 매우 유사한 포맷 방식
+- **공통점**: 이스케이프 문자나 문자열 접합 연산자(`+`) 없이 개행 및 구조화된 JSON, SQL, HTML 문자열을 소스코드 내에 날것 그대로 배치 가능
+- **차이점**: JS 템플릿 리터럴은 `${variable}`을 통한 변수 바인딩을 기본 지원하나, Java Text Block은 `formatted()` 등의 별도 메서드 호출을 요구함
