@@ -41,7 +41,7 @@ layout: default
 
 - [ ] **SOLID 5대 설계 원칙**의 세부 개념과 코드 수준의 리팩토링 기법 숙지
 - [ ] **싱글톤 패턴**의 구현 및 결함, 그리고 스프링 컨테이너를 통한 극복 방안 이해
-- [ ] **JDK LTS 버전별** 핵심 발전 로드맵과 런타임 최적화 스펙 파악
+- [ ] **JDK LTS 버전별** 핵심 릴리즈 로드맵과 런타임 최적화 스펙 파악
 - [ ] 본 과정의 실습 환경 기준인 **JDK 17** 수준의 핵심 API (enum, Record, HttpClient, 텍스트 블록) 실무 활용력 확보
 
 ---
@@ -257,7 +257,7 @@ class: text-center
 layout: default
 ---
 
-## 싱글톤 패턴 기본 구현 (Code First)
+## private 생성자와 static 인스턴스 반환
 
 ```java
 public class CacheManager {
@@ -315,7 +315,7 @@ layout: cover
 class: text-center
 ---
 
-# JDK LTS 발전 로드맵
+# JDK LTS 로드맵
 
 ---
 layout: default
@@ -370,7 +370,7 @@ class: text-center
 layout: default
 ---
 
-## enum 선언 및 구현 (Code First)
+## 필드와 생성자를 지닌 enum 선언
 
 ```java
 public enum Role {
@@ -405,7 +405,7 @@ layout: default
 layout: default
 ---
 
-## Record 선언 예제 (Code First)
+## DTO 설계를 위한 record 선언
 
 ```java
 public record UserDto(Long id, String name) {
@@ -437,7 +437,7 @@ layout: default
 layout: default
 ---
 
-## HttpClient 통신 예제 (Code First)
+## HttpClient를 활용한 GET 요청 전송
 
 ```java
 HttpClient client = HttpClient.newHttpClient();
@@ -472,7 +472,7 @@ layout: default
 layout: default
 ---
 
-## Text Block 사용 예제 (Code First)
+## 텍스트 블록을 활용한 JSON 포맷팅
 
 ```java
 String json = """
