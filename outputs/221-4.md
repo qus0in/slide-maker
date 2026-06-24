@@ -429,9 +429,9 @@ layout: default
 
 # Record : JS/TS 진영과의 매핑 비교
 
-- **JS/TS의 방식**: 객체의 불변성을 유지하기 위해 `Object.freeze()`를 호출하거나, TypeScript에서 `readonly` 지시어를 타입 속성에 수동 부여
-- **Lombok 대비**: 자바 레코드는 롬복 (`@Value`, `@Getter` 등)이 제공하던 보일러플레이트 제거 역할을 JDK 표준 명세 수준으로 안전하게 대체
-- **Java의 장점**: 언어 레벨에서 생성자, Getter, `equals`, `hashCode`, `toString`을 네이티브하게 보장하며 데이터 클래스의 격을 확립
+- **TS interface 및 React Props 유사성**: TypeScript에서 DTO나 데이터 스키마를 선언하는 `interface` 형식 및 React 컴포넌트 간 읽기 전용으로 전달되는 **Props 구조**와 개념적으로 직결됨. 시스템 내부에서 데이터를 안전하게 교환하는 Immutable 객체라는 가치 공유
+- **JS/TS의 불변성 구현**: JS/TS 진영에서는 런타임 불변성 유지를 위해 `Object.freeze()`를 명시 호출하거나, 컴파일 수준에서 TypeScript의 `readonly` 지시어를 객체 속성에 개별 지정해야 함
+- **Java의 네이티브 강점**: Lombok 라이브러리(`@Value`, `@Getter`) 없이도 언어 명세 수준에서 필드 캡슐화, 생성자, Getter, `equals`, `hashCode`, `toString` 메서드를 안전한 불변 스펙으로 완벽히 자동 보장
 
 ---
 layout: default
