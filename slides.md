@@ -41,7 +41,7 @@ layout: default
 
 - [ ] **SOLID 5대 설계 원칙**의 세부 개념과 코드 수준의 리팩토링 기법 숙지
 - [ ] **싱글톤 패턴**의 구현 및 결함, 그리고 스프링 컨테이너를 통한 극복 방안 이해
-- [ ] **JDK LTS 버전별** 핵심 진화 로드맵과 런타임 최적화 스펙 파악
+- [ ] **JDK LTS 버전별** 핵심 발전 로드맵과 런타임 최적화 스펙 파악
 - [ ] 본 과정의 실습 환경 기준인 **JDK 17** 수준의 핵심 API (enum, Record, HttpClient, 텍스트 블록) 실무 활용력 확보
 
 ---
@@ -53,25 +53,32 @@ class: text-center
 
 ---
 layout: default
+class: text-sm-slide
 ---
 
 # SOLID 설계 원칙 개요
 
-| 약어 | 설계 원칙 (Full Name) | 핵심 키워드 | 목적 |
+<div class="text-sm mt-2">
+
+| 약어 | 설계 원칙 | 핵심 키워드 | 목적 |
 | :--- | :--- | :--- | :--- |
-| **SRP** | 단일 책임 원칙 <br> (Single Responsibility Principle) | 변경의 이유, 단일 책임 | 응집도 향상, 변경 전파 제어 |
-| **OCP** | 개방-폐쇄 원칙 <br> (Open-Closed Principle) | 확장에 개방, 수정에 폐쇄 | 코드 수정 없는 기능 확장 |
-| **LSP** | 리스코프 치환 원칙 <br> (Liskov Substitution Principle) | 상위 타입 대체 가능성 | 올바른 상속 계층과 다형성 보장 |
-| **ISP** | 인터페이스 분리 원칙 <br> (Interface Segregation Principle) | 클라이언트별 인터페이스 세분화 | 불필요한 의존성 연결 제거 |
-| **DIP** | 의존역전 원칙 <br> (Dependency Inversion Principle) | 추상화 의존, 구현체 의존 금지 | 느슨한 결합도 구현 |
+| **SRP** | 단일 책임 원칙 | 변경의 이유, 단일 책임 | 응집도 향상, 변경 전파 제어 |
+| **OCP** | 개방-폐쇄 원칙 | 확장에 개방, 수정에 폐쇄 | 코드 수정 없는 기능 확장 |
+| **LSP** | 리스코프 치환 원칙 | 상위 타입 대체 가능성 | 올바른 상속 계층과 다형성 보장 |
+| **ISP** | 인터페이스 분리 원칙 | 클라이언트별 인터페이스 세분화 | 불필요한 의존성 연결 제거 |
+| **DIP** | 의존역전 원칙 | 추상화 의존, 구현체 의존 금지 | 느슨한 결합도 구현 |
+
+</div>
 
 ---
 layout: default
 ---
 
-# SRP : 단일 책임 원칙 (Single Responsibility Principle)
+# 단일 책임 원칙
 
-- **정의**: 하나의 클래스는 단 하나의 변경 이유 (책임)만을 가져야 함
+> **단일 책임 원칙 (Single Responsibility Principle - SRP)**
+>
+> 하나의 클래스는 단 하나의 변경 이유(책임)만을 가져야 함
 - **원인과 결과**: 클래스가 다중 책임을 지닐 경우, 특정 책임의 요구사항 변경이 무관한 다른 기능의 오작동 및 컴파일 에러를 유발
 - **해결 방안**: 책임을 기준으로 클래스를 분할하여 변경 전파 범위를 최소화하고 높은 응집도를 확보
 - **현실적 비유**: 다용도 아웃도어 칼보다 회칼, 빵 칼처럼 전문화된 도구들이 각각 관리 및 고장 시 유지관리가 훨씬 쉬운 것과 같음
@@ -80,7 +87,7 @@ layout: default
 layout: default
 ---
 
-## SRP 위반 구조 (다중 책임)
+## 위반 구조 (다중 책임)
 
 ```java
 public class UserProcessor {
@@ -94,7 +101,7 @@ public class UserProcessor {
 layout: default
 ---
 
-## SRP 준수 구조 (책임 분리)
+## 준수 구조 (책임 분리)
 
 ```java
 public class UserRepository {
@@ -110,9 +117,11 @@ public class EmailService {
 layout: default
 ---
 
-# OCP : 개방-폐쇄 원칙 (Open-Closed Principle)
+# 개방-폐쇄 원칙
 
-- **정의**: 소프트웨어 엔티티 (클래스, 모듈 등)는 확장에는 열려 있어야 하고, 변경에는 닫혀 있어야 함
+> **개방-폐쇄 원칙 (Open-Closed Principle - OCP)**
+>
+> 소프트웨어 엔티티(클래스, 모듈 등)는 확장에는 열려 있어야 하고, 변경에는 닫혀 있어야 함
 - **원인과 결과**: 요구사항이 추가될 때마다 기존 호출부나 구현부 코드를 수정해야 한다면 시스템의 취약성이 급격히 증가함
 - **해결 방안**: 다형성과 인터페이스를 기반으로 추상적 사양을 선언하고, 실제 확장은 이를 구현한 신규 클래스로 수행
 - **현실적 비유**: 벽면 콘센트 배선 (기존 코드)을 뜯지 않고 다양한 플러그 (새 확장 기능)를 꽂아 다양한 전기기기를 동작시키는 것과 같음
@@ -121,7 +130,7 @@ layout: default
 layout: default
 ---
 
-## OCP 준수 설계 (인터페이스 확장)
+## 준수 설계 (인터페이스 확장)
 
 ```java
 public interface Payment {
@@ -138,9 +147,11 @@ public class CardPayment implements Payment {
 layout: default
 ---
 
-# LSP : 리스코프 치환 원칙 (Liskov Substitution Principle)
+# 리스코프 치환 원칙
 
-- **정의**: 하위 타입의 객체는 프로그램의 논리적 계약을 깨뜨리지 않고 언제나 상위 타입의 객체와 상호 대체 가능해야 함
+> **리스코프 치환 원칙 (Liskov Substitution Principle - LSP)**
+>
+> 하위 타입의 객체는 프로그램의 논리적 계약을 깨뜨리지 않고 언제나 상위 타입의 객체와 상호 대체 가능해야 함
 - **상속의 규칙**: 자식 클래스는 부모 클래스의 명세와 행위 규격 (사전 조건, 사후 조건)을 왜곡하지 않아야 다형성이 안전하게 작동함
 - **위반 사례**: 부모가 "양수만 반환"하기로 약속한 메서드인데, 자식 클래스에서 "음수를 반환"하도록 무단 재정의하여 계약을 깨뜨리는 상황
 - **현실적 비유**: 규격화된 A4 용지 서랍에 정확히 맞아 들어가는 A4 전용 용지 대신, 규격을 어기고 가로 폭이 더 넓은 불규칙한 종이를 넣어 오작동을 내는 것과 같음
@@ -149,9 +160,11 @@ layout: default
 layout: default
 ---
 
-# ISP : 인터페이스 분리 원칙 (Interface Segregation Principle)
+# 인터페이스 분리 원칙
 
-- **정의**: 클라이언트는 자신이 사용하지 않는 메서드에 의존하도록 강제되지 않아야 함
+> **인터페이스 분리 원칙 (Interface Segregation Principle - ISP)**
+>
+> 클라이언트는 자신이 사용하지 않는 메서드에 의존하도록 강제되지 않아야 함
 - **원인과 결과**: 하나의 거대한 다목적 인터페이스는 이를 구현하는 하위 구체 클래스들에게 의미 없는 빈 메서드 구현을 강제함
 - **해결 방안**: 기능적 응집도를 지닌 소형 인터페이스들로 잘게 분할하고, 구체 클래스가 필요한 인터페이스들만 다중 구현하도록 유도
 - **현실적 비유**: 팩스 기능이 없는 소형 프린터가 '인쇄/스캔/팩스/복사' 기능이 모두 합쳐진 통합 인터페이스 때문에 억지로 빈 팩스 메서드를 들고 있어야 하는 낭비를 막는 것
@@ -160,7 +173,7 @@ layout: default
 layout: default
 ---
 
-## ISP 위반 구조 (거대 인터페이스)
+## 위반 구조 (거대 인터페이스)
 
 ```java
 public interface MultiPrinter {
@@ -173,7 +186,7 @@ public interface MultiPrinter {
 layout: default
 ---
 
-## ISP 준수 구조 (인터페이스 분할)
+## 준수 구조 (인터페이스 분할)
 
 ```java
 public interface Printer { void print(); }
@@ -188,9 +201,11 @@ public class BasicPrinter implements Printer {
 layout: default
 ---
 
-# DIP : 의존역전 원칙 (Dependency Inversion Principle)
+# 의존역전 원칙
 
-- **정의**: 고수준 모듈은 저수준 모듈의 구체 구현에 의존해서는 안 되며, 양쪽 모두 추상화 (인터페이스)에 의존해야 함
+> **의존역전 원칙 (Dependency Inversion Principle - DIP)**
+>
+> 고수준 모듈은 저수준 모듈의 구체 구현에 의존해서는 안 되며, 양쪽 모두 추상화(인터페이스)에 의존해야 함
 - **원인과 결과**: 상위 정책 클래스가 하부의 구체 클래스를 직접 의존 (`new`)하면, 하부 기술 변경 시 상위 코드가 통째로 수정되어야 함
 - **해결 방안**: 중간에 인터페이스를 두어 의존성을 역전시킴으로써 모듈 간의 결합도를 느슨하게 통제
 - **현실적 비유**: 자동차 차축 설계가 특정 제조사 타이어 규격에 종속되지 않고, 중간에 '표준 휠 규격 (인터페이스)'을 두고 바퀴를 교체하는 것과 같음
@@ -199,7 +214,7 @@ layout: default
 layout: default
 ---
 
-# DIP 의존성 흐름 시각화
+# 의존성 흐름 시각화
 
 ```mermaid
 ---
@@ -208,6 +223,10 @@ config:
     lineColor: "#F2AA4C"
     arrowheadColor: "#F2AA4C"
     edgeLabelBackground: "#101820"
+  flowchart:
+    padding: 12
+    nodeSpacing: 50
+    rankSpacing: 50
 ---
 flowchart LR
   subgraph HighLevel ["고수준 정책 영역 (Domain)"]
@@ -221,8 +240,8 @@ flowchart LR
   Service --> Intf
   CardPay -->|DIP 의존성 역전| Intf
   
-  classDef core fill:#18232F,stroke:#F2AA4C,color:#E0E6ED,stroke-width:2px;
-  classDef detail fill:#101820,stroke:#8A9Aad,color:#8A9Aad,stroke-dasharray: 5 5;
+  classDef core fill:#F2AA4C,stroke:#F2AA4C,color:#101820;
+  classDef detail fill:#243342,stroke:#94A3B8,color:#E2E8F0;
   class Service,Intf core;
   class CardPay detail;
 ```
@@ -302,7 +321,7 @@ class: text-center
 layout: default
 ---
 
-# JDK LTS 핵심 진화 요약
+# JDK LTS 주요 변경 사양 요약
 
 | 버전 | 출시 형태 | 주요 패러다임 변화 및 도입 핵심 기능 |
 | :--- | :--- | :--- |
@@ -316,7 +335,7 @@ layout: default
 layout: default
 ---
 
-# JDK 8 & 11 진화 요약
+# JDK 8 & 11 주요 변경 사양
 
 - **JDK 8 (함수형 전면 도입)**:
   - 람다식 및 스트림 API를 통해 선언형/함수형 프로그래밍 스타일을 언어 차원에서 완성
@@ -329,7 +348,7 @@ layout: default
 layout: default
 ---
 
-# JDK 17 & 21 진화 요약
+# JDK 17 & 21 주요 변경 사양
 
 - **JDK 17 (본 과정 실습 기준 버전)**:
   - 가독성을 획기적으로 개선한 `Text Block` 탑재
