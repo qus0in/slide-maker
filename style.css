@@ -630,8 +630,8 @@ td {
 .slidev-layout .mermaid .node ellipse,
 .slidev-layout .mermaid .node polygon,
 .slidev-layout .mermaid .node path {
-  fill: #18232F;
-  stroke: rgba(242, 170, 76, 0.82);
+  fill: #18232F !important;
+  stroke: rgba(242, 170, 76, 0.82) !important;
   stroke-width: 2.2px !important;
   rx: 6px !important;
   ry: 6px !important;
@@ -640,9 +640,9 @@ td {
 .slidev-layout .mermaid .cluster rect,
 .slidev-layout .mermaid .cluster polygon,
 .slidev-layout .mermaid .cluster path {
-  fill: rgba(242, 170, 76, 0.06) !important;
-  stroke: rgba(242, 170, 76, 0.6) !important;
-  stroke-width: 2px !important;
+  fill: rgba(24, 35, 47, 0.42) !important;
+  stroke: rgba(242, 170, 76, 0.45) !important;
+  stroke-width: 1.6px !important;
 }
 
 .slidev-layout .mermaid .nodeLabel,
@@ -845,32 +845,3 @@ html:has(#export-container) div[border~="main"] {
   padding: 0.35rem 0.6rem !important;
 }
 
-/* 9. Mermaid 다이어그램 커스텀 고대비 노드 클래스 */
-.slidev-layout .mermaid .node.core rect,
-.slidev-layout .mermaid .node.core circle,
-.slidev-layout .mermaid .node.core polygon,
-.slidev-layout .mermaid .node.core path {
-  fill: #F2AA4C !important;
-  stroke: #F2AA4C !important;
-}
-.slidev-layout .mermaid .node.core .nodeLabel,
-.slidev-layout .mermaid .node.core text,
-.slidev-layout .mermaid .node.core tspan {
-  fill: #101820 !important;
-  color: #101820 !important;
-}
-
-.slidev-layout .mermaid .node.detail rect,
-.slidev-layout .mermaid .node.detail circle,
-.slidev-layout .mermaid .node.detail polygon,
-.slidev-layout .mermaid .node.detail path {
-  fill: #243342 !important;
-  stroke: #94A3B8 !important;
-  stroke-dasharray: 4 4 !important;
-}
-.slidev-layout .mermaid .node.detail .nodeLabel,
-.slidev-layout .mermaid .node.detail text,
-.slidev-layout .mermaid .node.detail tspan {
-  fill: #E2E8F0 !important;
-  color: #E2E8F0 !important;
-}
