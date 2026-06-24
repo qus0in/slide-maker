@@ -42,7 +42,7 @@ layout: default
 - [ ] **SOLID 5대 설계 원칙**의 세부 개념과 코드 수준의 리팩토링 기법 숙지
 - [ ] **싱글톤 패턴**의 구현 및 결함, 그리고 스프링 컨테이너를 통한 극복 방안 이해
 - [ ] **JDK LTS 버전별** 핵심 진화 로드맵과 런타임 최적화 스펙 파악
-- [ ] **실무 필수 Java API** (enum, Record, HttpClient, 텍스트 블록) 실전 활용력 확보
+- [ ] 본 과정의 실습 환경 기준인 **JDK 17** 수준의 핵심 API (enum, Record, HttpClient, 텍스트 블록) 실무 활용력 확보
 
 ---
 layout: cover
@@ -308,7 +308,7 @@ layout: default
 | :--- | :--- | :--- |
 | **JDK 8** | LTS | 람다식(Lambda), 스트림 API(Stream), 디폴트 메서드 |
 | **JDK 11** | LTS | HTTP/2 지원 HttpClient 표준화, 로컬 변수 타입 추론 `var` |
-| **JDK 17** | LTS | Text Block 정식 도입, 불변 데이터 객체 Record 정식 도입 |
+| **JDK 17** | LTS (실습 기준) | Text Block 정식 도입, 불변 데이터 객체 Record 정식 도입 |
 | **JDK 21** | LTS | Virtual Thread 경량 동시성 모델, Record 패턴 매칭 |
 | **JDK 25** | LTS | 메모리 제어 고성능 모델, 차세대 비동기 프로그래밍 모델 예정 |
 
@@ -331,7 +331,7 @@ layout: default
 
 # JDK 17 & 21 진화 요약
 
-- **JDK 17 (모던 자바의 기준)**:
+- **JDK 17 (본 과정 실습 기준 버전)**:
   - 가독성을 획기적으로 개선한 `Text Block` 탑재
   - Lombok 없이 불변 DTO를 설계할 수 있는 `Record` 클래스 정식 도입
 - **JDK 21 (경량 동시성 혁신)**:
@@ -345,7 +345,7 @@ layout: cover
 class: text-center
 ---
 
-# 실무 핵심 Java 문법 및 API
+# 실무 핵심 Java 문법 및 API (JDK 17 기준)
 
 ---
 layout: default
