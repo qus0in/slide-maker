@@ -154,6 +154,22 @@ layout: default
 layout: default
 ---
 
+# 메서드 참조의 축약 표현
+
+```java
+// 1. 정적 메서드 참조 (Static Method Reference)
+Function<String, Integer> f1 = s -> Integer.parseInt(s);
+Function<String, Integer> f2 = Integer::parseInt;
+
+// 2. 인스턴스 메서드 참조 (Instance Method Reference)
+Consumer<String> c1 = s -> System.out.println(s);
+Consumer<String> c2 = System.out::println;
+```
+
+---
+layout: default
+---
+
 # Comparator 체이닝을 통한 정렬 최적화
 
 - **우아한 다차원 정렬**: 자바 디폴트 메서드를 결합해 번잡한 익명 구현 객체 없이 복합 정렬 구조를 기술함
