@@ -49,19 +49,27 @@ layout: default
 
 # 학습 체크리스트
 
-<div class="mission-card">
-
 - [ ] 함수형 프로그래밍 패러다임의 역사와 개념 이해
 - [ ] 자바 람다(Lambda)와 함수형 인터페이스 활용
 - [ ] 스트림(Stream) API의 동작 메커니즘과 JS와의 차이점
 - [ ] 스트림 체이닝의 지연 연산 및 성능 최적화 구조 분석
 - [ ] 병렬 스트림(Parallel Stream)의 동작 원리와 부작용 인지
 
-</div>
-
 <br>
 
 [[222_Java 심화]]
+
+<style>
+ul {
+  background: rgba(240, 237, 204, 0.03);
+  border: 1px solid rgba(240, 237, 204, 0.1);
+  padding: 20px 20px 20px 35px;
+  border-radius: 8px;
+}
+li {
+  margin-bottom: 10px;
+}
+</style>
 
 ---
 layout: default
