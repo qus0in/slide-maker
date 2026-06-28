@@ -243,12 +243,13 @@ layout: default
 layout: default
 ---
 
-# Java 4대 표준 함수형 인터페이스
+# Java 핵심 표준 함수형 인터페이스
 
 - **Consumer\<T>**: 인자 T를 전달받아 이를 소비하고 반환하지 않음 (`void accept(T t)`)
 - **Supplier\<T>**: 인자를 받지 않고 필요한 결과값 T를 동적으로 생성해 제공함 (`T get()`)
 - **Function\<T, R>**: 인자 T를 받아 비즈니스 로직을 거쳐 R 타입 객체로 변환해 매핑함 (`R apply(T t)`)
 - **Predicate\<T>**: 인자 T를 평가해 정합성 여부를 판단하고 참/거짓 논리값을 반환함 (`boolean test(T t)`)
+- **BinaryOperator\<T>**: 동일한 타입의 두 인자 T를 받아 연산 후 다시 같은 타입 T로 반환함 (`T apply(T t1, T t2)`)
 
 ---
 layout: default
