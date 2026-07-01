@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Java Functional Programming
+title: 쿠키와 세션
 mermaid:
   theme: base
   themeVariables:
@@ -29,19 +29,23 @@ mermaid:
     clusterBkg: '#18232F'
     clusterBorder: '#F2AA4C'
     edgeLabelBackground: '#101820'
-tags:
-  - D30
-  - Java
-  - 함수형프로그래밍
-  - FunctionalProgramming
-  - Lambda
-  - Stream
-  - Optional
-  - Comparator
-  - ParallelStream
+    actorBkg: '#18232F'
+    actorBorder: '#F2AA4C'
+    actorTextColor: '#E0E6ED'
+    actorLineColor: '#F2AA4C'
+    signalColor: '#F2AA4C'
+    signalTextColor: '#E0E6ED'
+    labelBoxBkgColor: '#101820'
+    labelBoxBorderColor: '#F2AA4C'
+    labelTextColor: '#E0E6ED'
+    noteBkgColor: '#18232F'
+    noteBorderColor: '#F2AA4C'
+    noteTextColor: '#E0E6ED'
+    activationBkgColor: '#F2AA4C'
+    activationBorderColor: '#F2AA4C'
 ---
 
-# 함수형 프로그래밍
+# 쿠키와 세션
 
 ---
 layout: default
@@ -49,352 +53,312 @@ layout: default
 
 # 학습 체크리스트
 
-- [ ] 함수형 프로그래밍 패러다임의 역사와 개념 이해
-- [ ] 자바 람다(Lambda)와 함수형 인터페이스 활용
-- [ ] 스트림(Stream) API의 동작 메커니즘과 JS와의 차이점
-- [ ] 스트림 체이닝의 지연 연산 및 성능 최적화 구조 분석
-- [ ] 병렬 스트림(Parallel Stream)의 동작 원리와 부작용 인지
-
-<br>
-
-[[222_Java 심화]]
-
-<style>
-ul {
-  background: rgba(240, 237, 204, 0.03);
-  border: 1px solid rgba(240, 237, 204, 0.1);
-  padding: 20px 20px 20px 35px;
-  border-radius: 8px;
-}
-li {
-  margin-bottom: 10px;
-}
-</style>
+- [ ] HTTP 무상태성 보완을 위한 쿠키와 세션의 존재 이유 이해
+- [ ] XSS, 스니핑, CSRF에 대응하는 쿠키 3대 보안 속성 작동 원리 습득
+- [ ] JSESSIONID 발급과 검증을 통한 세션 식별 라이프사이클 분석
+- [ ] 인메모리, 데이터베이스, Redis 세션 저장소의 아키텍처별 특징 비교
 
 ---
 layout: default
 ---
 
-# 함수형 프로그래밍 패러다임
+# HTTP 프로토콜의 특성
 
-> **함수형 프로그래밍**(Functional Programming)
+> **무상태성 (Stateless)**
 >
-> 프로그래밍을 수학적 함수의 계산으로 취급하고 상태 변경과 가변 데이터를 피하려는 선언형 프로그래밍 패러다임
+> 서버가 클라이언트의 상태 정보를 보존하지 않으며, 각 요청을 독립적인 거래로 취급하는 특성
 
-- **선언형 패러다임 지향**: 어떻게 할 것인가(How)보다 **무엇을 할 것인가**(What)를 기술함
-- **가변 상태를 회피하는 이유**:
-  - **스레드 안전성**: 여러 스레드가 동시에 접근하더라도 경쟁 상태(Race Condition)를 원천 차단함
-  - **부작용 제거**: 연산 과정이 외부 변수의 값을 침범하지 않아 코드의 오작동과 결함을 줄임
-  - **참조 투명성**: 동일 입력에 대해 항상 동일 결과를 반환하여 동작 신뢰성과 테스트 가독성을 극대화함
-
----
-layout: default
----
-
-# 함수형 프로그래밍의 역사적 계보 (1/2)
-
-- **리스프**(Lisp)
-  - 1958년 존 매카시가 개발한 실질적인 함수형 프로그래밍의 시조
-  - 코드와 데이터를 동일한 리스트 구조로 표현하는 동형성을 가짐
-  - 일급 함수(First-class function)와 가비지 컬렉션(GC) 개념을 최초로 대중화함
-- **하스켈**(Haskell)
-  - 부작용(Side Effect)을 철저히 배제하는 **순수 함수형 언어**(Pure Functional)의 표준
-  - 동일 입력에 대해 항상 동일 출력을 보장하는 **참조 투명성**을 유지함
-  - 지연 평가(Lazy Evaluation)와 정적 타입 기반 모나드(Monad)로 부작용을 관리함
-
----
-layout: default
----
-
-# 함수형 프로그래밍의 역사적 계보 (2/2)
-
-- **스칼라**(Scala)
-  - JVM 환경에서 객체지향(OOP)과 함수형(FP)의 이상적인 결합을 이룬 하이브리드 언어
-  - 자바 코드와의 완벽한 **상호운용성**(Interop)을 유지하면서 선진적 함수형 구조를 제공함
-  - 패턴 매칭, 불변 데이터 구조(case class), 표현력 높은 타입 시스템 도입
-  - 자바가 JDK 8 이후 현대적 다중 패러다임 언어로 진화하는 데 영감을 제공함
-
----
-layout: default
----
-
-# Java의 함수형 패러다임 도입 배경
-
-- **멀티코어와 데이터의 팽창**: 대규모 데이터 처리 및 멀티코어 환경에서의 효과적인 병렬 처리가 절실해짐
-- **패러다임의 융합**: 기존의 탄탄한 객체지향(OOP) 구조 위에 함수형(FP) API를 자연스럽게 이식함 (JDK 8+)
-- **부작용의 억제**: 외부 상태 변경을 피하는 **순수 함수**와 **불변성**(Immutability)을 통해 동시성 환경에서의 스레드 안전성을 확보함
-
----
-layout: default
----
-
-# 함수형 인터페이스
-
-> **함수형 인터페이스**(Functional Interface)
+> **비연결성 (Connectionless)**
 >
-> 단 하나의 추상 메서드(Single Abstract Method, SAM)만을 정의하여 람다식의 타겟 타입이 되는 인터페이스
+> 클라이언트의 요청에 대한 응답을 마친 직후, 즉시 물리적인 네트워크 연결을 끊어버리는 특성
 
-- **컴파일 시점 검증**: `@FunctionalInterface` 어노테이션을 부착하여 단일 메서드 규칙 위반을 방지함
-- **다양한 표준 규격**: 표준화된 동작 흐름을 지원하기 위해 `java.util.function`에 핵심 규격들을 내장함
+- **상태 유지의 한계**: 페이지를 이동할 때마다 사용자의 이전 로그인 여부나 선택 상태를 알 수 없음
+- **해결 방안**: 상태 비보존을 극복하기 위해 클라이언트 측(쿠키) 및 서버 측(세션) 상태 관리 기법이 등장함
 
 ---
 layout: default
 ---
 
-# 람다식과 메서드 참조
+# 쿠키의 기본 개념
 
-> **람다식**(Lambda Expression)
+> **쿠키 (Cookie)**
 >
-> 메서드를 하나의 간결한 식으로 표현하여 행위 자체를 값으로 취급하고 전달할 수 있게 하는 익명 함수
+> HTTP의 무상태성을 보완하기 위해 클라이언트 브라우저 측에 저장되는 키-값 쌍의 작은 텍스트 데이터
 
-- **변수 캡처링 제약**: 람다 내부에서 외부 지역 변수를 읽을 때 해당 변수는 `final` 또는 `effectively final` 상태여야 함
-- **메서드 참조**(Method Reference): 람다가 단순히 기존 메서드를 위임 호출하는 형태라면 `클래스명::메서드명`으로 간소화함
+- **전송 메커니즘**:
+  - **응답 헤더 주입**: 서버가 HTTP 응답의 `Set-Cookie` 헤더를 통해 쿠키를 주입함
+  - **자동 요청 동봉**: 브라우저는 저장된 쿠키를 이후 동일 도메인의 모든 HTTP 요청 헤더(`Cookie`)에 실어 자동 전송함
+- **클라이언트 측 상태 관리**: 사용자의 환경 설정, 오늘 하루 보지 않기 팝업 기록, 가벼운 장바구니 정보 등을 브라우저가 직접 저장하고 관리함
 
 ---
 layout: default
 ---
 
-# 메서드 참조의 축약 표현
+# 쿠키의 분류와 생명주기
+
+- **쿠키의 수명 결정**: `Max-Age` 또는 `Expires` 속성을 어떻게 지정하느냐에 따라 생명주기가 통제됨
+
+| 쿠키 유형 | 유효 수명 (Lifetime) | 영속성 및 삭제 여부 |
+| :--- | :--- | :--- |
+| **세션 쿠키 (Session Cookie)** | 만료 기간을 명시하지 않음 | 브라우저 종료 시 즉각 소멸함 |
+| **지속성 쿠키 (Persistent Cookie)** | 특정 유효 기간을 지정함 | 브라우저를 닫아도 수명만큼 기기에 하드웨어 보존됨 |
+
+- **임의 소멸**: 서버가 특정 쿠키를 지우고 싶다면, `Max-Age` 속성을 `0`으로 지정한 쿠키를 다시 응답하면 즉각 삭제 처리됨
+
+---
+layout: default
+---
+
+# 쿠키 보안 핵심 속성: HttpOnly
+
+- **쿠키의 보안 위협 (XSS 공격)**:
+  - 공격자가 악성 자바스크립트를 삽입하여 타 사용자의 브라우저에서 실행되도록 유도함
+  - 실행된 스크립트가 `document.cookie`에 접근해 인증 토큰을 읽고 외부 해커 서버로 전송(유출)함
+- **HttpOnly 속성의 방어 원리**:
+  - 브라우저 환경에서 자바스크립트를 이용한 쿠키 접근을 원천 차단함
+  - 악성 스크립트가 실행되더라도 쿠키 데이터를 읽을 수 없어 토큰 유출을 완벽히 예방함
+
+---
+layout: default
+---
+
+# 쿠키 보안 핵심 속성: Secure & SameSite
+
+- **Secure 속성 (네트워크 스니핑 방어)**:
+  - **네트워크 스니핑**: 해커가 공용 Wi-Fi 등 동일 네트워크 망에서 전송되는 비암호화(HTTP) 패킷을 가로채어 쿠키 평문 데이터를 탈취하는 도청 공격
+  - **방어 메커니즘**: SSL/TLS가 적용된 HTTPS 암호화 접속 상태에서만 쿠키가 브라우저 외부로 송출되도록 강제하여, 통신 도청으로 인한 쿠키 노출을 원천 방지함
+- **SameSite 속성 (CSRF 공격 방어)**:
+  - **CSRF 공격**: 로그인된 사용자가 악성 메일/링크를 클릭해 위조 요청을 보내면, 브라우저가 사용자의 인증 쿠키를 자동 동봉하여 악의적 동작을 자동 수행시키는 취약점
+  - **방어 메커니즘**: 교차 출처(Cross-Site) 요청 시 쿠키 전송 여부의 엄격성(`Strict`, `Lax`, `None`)을 지정하여, 제3자 사이트에서의 쿠키 자동 동봉을 원천 차단함
+
+---
+layout: default
+---
+
+# 쿠키 제어 API 명세
+
+- **생성자**:
+  - `new Cookie(String name, String value)`: 특정 키와 값으로 쿠키 객체를 로컬 선언함
+- **속성 설정 및 제어**:
+  - `cookie.setHttpOnly(boolean isHttpOnly)`: 브라우저 JS 접근 권한 차단 설정
+  - `cookie.setSecure(boolean isSecure)`: HTTPS 채널 전송 한정 여부 부여
+  - `cookie.setMaxAge(int seconds)`: 초 단위 유효 수명 지정 (`0`은 삭제, 음수는 세션 쿠키)
+- **전송 및 조회**:
+  - `response.addCookie(Cookie cookie)`: 응답 헤더에 빌드된 쿠키 객체를 담아 전송
+  - `request.getCookies()`: 클라이언트 요청으로 들어온 전체 쿠키 배열(`Cookie[]`) 반환
+
+---
+layout: default
+---
+
+# 쿠키 발행 및 보안 속성 적용
 
 ```java
-// 1. 정적 메서드 참조 (Static Method Reference)
-Function<String, Integer> f1 = s -> Integer.parseInt(s);
-Function<String, Integer> f2 = Integer::parseInt;
+// 보안 옵션을 부여한 쿠키 생성
+Cookie cookie = new Cookie("userToken", "XYZ123");
+cookie.setHttpOnly(true);   // XSS 방어
+cookie.setSecure(true);     // HTTPS 전송 강제
+cookie.setMaxAge(60 * 60);  // 1시간 유지
 
-// 2. 인스턴스 메서드 참조 (Instance Method Reference)
-Consumer<String> c1 = s -> System.out.println(s);
-Consumer<String> c2 = System.out::println;
+// 응답 객체에 탑재하여 전송
+response.addCookie(cookie);
 ```
 
 ---
 layout: default
 ---
 
-# Comparator 체이닝을 통한 정렬 최적화
+# 세션의 기본 개념
 
-- **우아한 다차원 정렬**: 자바 디폴트 메서드를 결합해 번잡한 익명 구현 객체 없이 복합 정렬 구조를 기술함
-- **가독성 향상**: `Comparator.comparing` 및 `thenComparing`을 연결해 체계적인 정렬 기준의 계층을 나타냄
-- **타입 추론**: 도메인 객체의 Getter 메서드 참조를 통해 정렬 키 타입을 안전하게 자동 추론함
-
----
-layout: default
----
-
-# 정렬 대상 도메인 클래스 설계
-
-```java
-class User {
-    private final String name;
-    private final int age;
-
-    public User(String name, int age) { this.name = name; this.age = age; }
-    public String getName() { return name; }
-    public int getAge() { return age; }
-    public String toString() { return name + "(" + age + ")"; }
-}
-```
-
----
-layout: default
----
-
-# Comparator 다차원 정렬 수행
-
-```java
-List<User> users = new ArrayList<>(List.of(
-    new User("Kim", 25), new User("Lee", 30), new User("Kim", 20)
-));
-
-// 이름순으로 1차 정렬한 뒤, 이름이 같으면 나이 오름차순으로 2차 정렬
-users.sort(
-    Comparator.comparing(User::getName)
-              .thenComparingInt(User::getAge)
-);
-System.out.println(users); // [Kim(20), Kim(25), Lee(30)]
-```
-
----
-layout: default
----
-
-# 스트림 데이터 파이프라인의 이해
-
-- **자재 창고와 가공 컨베이어 벨트**
-  - 컬렉션(Collection)이 자재들이 쌓여 있는 원자재 창고라면, 스트림(Stream)은 이 자재들을 하나씩 컨베이어 벨트에 흘려보내는 흐름선임
-- **지연된 스위치**
-  - 중간 가공 장치(filter, map)를 설치하더라도 포장 완료 단계(최종 연산) 스위치를 작동시키지 않으면 벨트는 일절 흐르지 않음
-- **수요 기반의 개별 흐름**
-  - 포장 박스에 원자재가 인입되는 요청 시점에 비로소 요소가 파이프라인에 주입되어 최적화된 처리를 수행함
-
----
-layout: default
----
-
-# Java Stream과 JavaScript 고차함수
-
-- **공통 분모**: 원본 데이터를 훼손하지 않으면서 순수 함수 연산들을 엮어 가독성 높은 비즈니스 로직을 구축함
-- **JS의 즉시 연산**(Eager Evaluation)
-  - 배열 메서드(`map`, `filter`)를 호출할 때마다 매 단계마다 임시 가공 배열을 즉각 새로이 생성해 냄
-- **Java의 지연 연산**(Lazy Evaluation)
-  - 최종 연산이 격발되기 전까지는 실제로 요소를 꺼내지 않고 선언된 파이프라인 명세서만 결합하여 들고 있음
-- **진입 방식**: JS는 배열 객체에서 즉각 체이닝이 가능하나, 자바는 컬렉션을 `.stream()`을 거쳐 전용 객체로 치환해야 함
-
----
-layout: default
----
-
-# Java 핵심 표준 함수형 인터페이스
-
-- **Consumer\<T>**: 인자 T를 전달받아 이를 소비하고 반환하지 않음 (`void accept(T t)`)
-- **Supplier\<T>**: 인자를 받지 않고 필요한 결과값 T를 동적으로 생성해 제공함 (`T get()`)
-- **Function\<T, R>**: 인자 T를 받아 비즈니스 로직을 거쳐 R 타입 객체로 변환해 매핑함 (`R apply(T t)`)
-- **Predicate\<T>**: 인자 T를 평가해 정합성 여부를 판단하고 참/거짓 논리값을 반환함 (`boolean test(T t)`)
-- **BinaryOperator\<T>**: 동일한 타입의 두 인자 T를 받아 연산 후 다시 같은 타입 T로 반환함 (`T apply(T t1, T t2)`)
-
----
-layout: default
----
-
-# 언어별 데이터 가공 연산 대조
-
-| Java Stream 메서드 | JavaScript Array 메서드 | 설명 | 연산 종류 |
-| :--- | :--- | :--- | :--- |
-| `filter(Predicate)` | `filter(Callback)` | 조건에 맞는 요소만 추출 | 중간 연산 |
-| `map(Function)` | `map(Callback)` | 요소를 다른 값이나 타입으로 변환 | 중간 연산 |
-| `reduce(BinaryOperator)` | `reduce(Callback)` | 누적 연산을 통해 최종 단일 값 도출 | 최종 연산 |
-| `forEach(Consumer)` | `forEach(Callback)` | 각 요소를 순회하며 소비적인 행위 수행 | 최종 연산 |
-
----
-layout: default
----
-
-# JavaScript의 즉시 데이터 매핑
-
-```javascript
-// 호출 직후 filter와 map에 해당하는 임시 가공 배열이 순차적으로 메모리에 매번 올라감
-const result = [1, 2, 3, 4, 5]
-  .filter(n => n % 2 !== 0)
-  .map(n => n * 2);
-
-console.log(result); // [2, 6, 10]
-```
-
----
-layout: default
----
-
-# Java Stream의 지연 데이터 파이프라인
-
-```java
-// collect() 최종 연산이 트리거되는 시점에 맞추어 연산 처리가 본격적으로 수행됨
-List<Integer> list = List.of(1, 2, 3, 4, 5);
-List<Integer> result = list.stream()
-    .filter(n -> n % 2 != 0)
-    .map(n -> n * 2)
-    .collect(Collectors.toList());
-
-System.out.println(result); // [2, 6, 10]
-```
-
----
-layout: default
----
-
-# 중간 연산과 최종 연산의 특징
-
-- **중간 연산 (Intermediate)**
-  - 가공된 새로운 스트림 객체를 반환하므로 체이닝 방식으로 무한히 덧붙여 선언할 수 있음
-  - 실제로 연산을 구동하지 않고 파이프라인 경로 설계 정보만 연쇄 보존함 (`filter`, `map` 등)
-- **최종 연산 (Terminal)**
-  - 가공 명세에 따라 요소를 실질적으로 소모해 최종 데이터 타입 형태로 변환하며 파이프라인을 완전히 종료함
-  - 한 번 최종 연산이 완료된 스트림은 재생성하여 다시 사용할 수 없음 (`collect`, `reduce` 등)
-
----
-layout: default
----
-
-# 스트림 파이프라인의 최적화 기법
-
-- **루프 퓨전**(Loop Fusion)
-  - 각각의 연산을 돌기 위해 매번 루프를 순차적으로 도는 게 아님
-  - 하나의 요소가 중간 연산 A, B를 연속해서 거치고 최종 연산에 직행한 뒤 다음 요소가 출발하는 수직적 통합 구조임
-- **쇼트 서킷**(Short-circuit)
-  - 스트림 파이프라인 중간에 조기 단락 조건을 충족하면, 뒷열의 요소들이 남아있더라도 불필요한 연산을 완전히 생략하고 즉시 종료함 (`limit`, `findFirst`)
-
----
-layout: default
----
-
-# 수직 평가와 쇼트 서킷의 가동 과정
-
-```java
-List<String> names = List.of("Kim", "Park", "Lee", "Choi");
-names.stream()
-    .filter(n -> { System.out.println("F: " + n); return n.length() >= 4; })
-    .map(n -> { System.out.println("M: " + n); return n.toUpperCase(); })
-    .limit(1) // 하나의 데이터가 매핑 완료되면 Lee, Choi는 필터조차 타지 않음
-    .forEach(System.out::println);
-```
-
----
-layout: default
----
-
-# 병렬 스트림의 개념과 구동
-
-> **병렬 스트림**(Parallel Stream)
+> **세션 (Session)**
 >
-> ForkJoinPool을 백엔드로 활용해 대용량 데이터소스를 조각으로 분할하고 멀티 코어 환경에서 병렬로 연산을 대행하는 스트림
+> 클라이언트의 상태 정보를 브라우저가 아닌 서버 측의 안전한 보관소에서 일괄 저장하고 관리하는 기술
 
-- **간편한 선언**: 일반 스트림 선언 뒤에 `.parallel()`을 덧붙이거나 컬렉션에서 `parallelStream()`을 즉시 받아 사용함
-- **분할 정복**: 공통의 데이터 청크를 하위 단위로 쪼갠 뒤 작업 스레드가 각자 연산해 모으는 방식으로 최적화를 꾀함
-
----
-layout: default
----
-
-# 병렬 스트림 사용 시 성능적 한계와 오버헤드
-
-- **구조적 분할의 난이도**: 데이터소스가 `ArrayList`처럼 주소 균등 배분이 가능하면 빠르나, 스캔해야 하는 `LinkedList`인 경우 쪼개는 오버헤드가 더 큼
-- **작업 분할 및 통합 비용**: 스레드 간 일감을 쪼개고(Split) 다 끝나면 다시 복원 취합(Merge)하는 일련의 과정에 추가 비용이 들어감
-- **컨텍스트 스위칭**: 연산 강도가 극도로 얕은 데이터라면 오히려 스레드 간 전환 비용이 순차 싱글 스레드 처리보다 느려지게 만듦
+- **서버 중심 통제**:
+  - 민감한 개인 정보나 중요한 로그인 인증 데이터를 서버 내부의 안전한 힙 영역에 유지함
+  - 클라이언트 기기나 네트워크상에 중요 데이터가 절대 노출되지 않도록 은닉함
+- **유연한 데이터 수집**:
+  - 서블릿 생태계에서는 `HttpSession` 인터페이스를 제공함
+  - 단순 텍스트뿐만 아니라 자바 객체(Object) 전체를 메모리에 가둔 채 연계하여 활용함
 
 ---
 layout: default
 ---
 
-# 병렬 스트림 사용 시 주의해야 할 2대 치명적 위협
+# 세션 ID 식별 메커니즘
 
-- **공유 가변 상태의 오염**: 전달하는 람다식 내부에 외부 공유 변수(Mutable State)를 조작하는 행위가 있다면 경쟁 상태에 빠져 데이터가 망가짐
-- **공통 스레드 풀의 마비와 오염 (CommonPool Block)**
-  - 병렬 스트림은 CPU 코어 수에 비례하는 고정 크기의 전역 스레드 풀(`ForkJoinPool.commonPool()`)을 공유함
-  - 파이프라인 내부에서 블로킹 I/O(네트워크 요청, DB 조회 등)를 타면 스레드가 대기 상태로 고갈되어 풀 자체가 차단됨
-  - 이로 인해 동일 스레드 풀을 사용하는 애플리케이션 내의 모든 병렬 작업이 전면 지연되는 연쇄 장애로 번짐
+- **JSESSIONID 협업 구조**:
+  - 세션 데이터는 서버에 저장되지만, "이 세션이 누구의 것인가"를 식별하기 위해 쿠키 기술을 매개체로 차용함
+- **세션 ID 발급**:
+  - 브라우저가 최초 접속 시 서버는 고유한 **JSESSIONID** (세션 ID)를 발행하고 이를 쿠키에 실어 전송함
+- **요청 식별**:
+  - 브라우저는 재요청할 때마다 해당 `JSESSIONID`를 요청 헤더에 자동으로 실어 보냄
+  - 서버는 요청에 포함된 세션 ID로 메모리 맵(Map)을 조회하여 해당 클라이언트 세션 객체를 정확히 매칭함
 
 ---
 layout: default
 ---
 
-# 비안전 공유 컬렉션 쓰기 시 경쟁 상태
+# 세션 식별 라이프사이클
 
-```java
-List<Long> result = new ArrayList<>();
-LongStream.rangeClosed(1, 100_000)
-    .parallel()
-    .forEach(result::add); // ArrayList는 멀티스레드 정합성을 보장하지 않음!
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#F2AA4C"
+    actorBkg: "#18232F"
+    actorBorder: "#F2AA4C"
+    actorTextColor: "#E0E6ED"
+    signalColor: "#F2AA4C"
+    signalTextColor: "#E0E6ED"
+    activationBkgColor: "#18232F"
+    activationBorderColor: "#F2AA4C"
+  sequence:
+    actorMargin: 36
+    messageMargin: 24
+    mirrorActors: false
+---
+sequenceDiagram
+  autonumber
+  actor Client as 브라우저
+  participant Server as 서블릿 컨테이너 (Tomcat)
+  participant Session as 세션 저장소
 
-System.out.println("예상 개수: 100000");
-System.out.println("실제 저장된 개수: " + result.size()); 
-// 스레드 경합으로 인해 누락이 유발되어 100,000보다 현저히 적은 수치가 나옴
+  Client->>Server: 첫 접속 (식별값 없음)
+  Server->>Session: 신규 세션 객체 메모리 생성
+  Session-->>Server: Session ID 발급 (JSESSIONID)
+  Server-->>Client: 응답 헤더에 Set-Cookie: JSESSIONID 실어 전송
+  Note over Client,Server: [이후 요청 시 발급받은 쿠키 동봉]
+  Client->>Server: 요청 헤더에 Cookie: JSESSIONID 포함 전송
+  Server->>Session: 수신한 식별자로 기존 세션 매칭
+  Session-->>Server: 동일 사용자 식별 완료
 ```
 
 ---
 layout: default
 ---
 
-# 핵심 정리: 함수형 프로그래밍과 스트림
+# 세션 저장소의 아키텍처 비교
 
-- **함수형 패러다임 지향**: 불변성과 순수 함수를 활용해 스레드 안전성을 보장하고 부작용(Side Effect)을 원천 통제함
-- **스트림 파이프라인 최적화**: 최종 연산 전까지 가공 명세만 수립하며, 루프 퓨전과 쇼트 서킷을 통해 효율을 극대화함
-- **병렬 스트림의 제약**: 공통 스레드 풀(`commonPool`) 오염 위험성 때문에 블로킹 I/O 작업을 절대 결합해서는 안 됨
-- **올바른 도입 판단**: 분할하기 쉬운 ArrayList 구조이거나, 개별 요소당 연산 강도가 높아 병렬화 비용을 상쇄할 때 선택함
+| 저장 방식 | 저장 메커니즘 | 장점 및 단점 |
+| :--- | :--- | :--- |
+| **JVM 인메모리** | 서블릿 컨테이너 JVM 힙에 저장 | 단순하고 빠르나, 다중 서버 간 불일치가 발생하고 서버 리부팅 시 소멸함 |
+| **JDBC Session** | 관계형 DB(MySQL 등) 테이블에 기록 | 다중 WAS 간 공유가 쉽고 안전하나, 매 요청마다 DB 조회 오버헤드가 발생함 |
+| **Shared Redis** | 외부 고속 분산 캐시 시스템에 통합 | 고속 세션 공유가 보장되는 분산 시스템 환경의 실무 표준 (De facto standard) |
+
+---
+layout: default
+---
+
+# 세션 상태 관리 및 생명주기
+
+- **세션 리소스 회수 기법**:
+  - 서버 메모리는 유한하므로 미사용 세션을 자동으로 만료시켜 자원을 회수해야 함
+- **세션 타임아웃 (Timeout)**:
+  - 사용자의 마지막 요청으로부터 일정 유효 시간(기본 30분) 동안 활동이 없으면 세션을 소멸시킴
+- **동작 원리**:
+  - 클라이언트 요청이 들어올 때마다 해당 세션 객체의 마지막 액세스 시각(`LastAccessedTime`)을 갱신함
+  - 설정된 대기 주기를 초과하도록 유입이 단절되면, WAS 백그라운드 스레드가 세션을 파괴함
+
+---
+layout: default
+---
+
+# 세션 제어 API 명세
+
+- **세션 획득**:
+  - `request.getSession(true)`: 현재 연동된 세션을 조회하되, 없을 경우 신규 생성하여 반환함
+  - `request.getSession(false)`: 기존 연동된 세션만 조회하며, 없을 경우 `null`을 반환함
+- **데이터 보관 및 처리**:
+  - `session.setAttribute(String name, Object value)`: 세션 스코프에 임의 객체 등록
+  - `session.getAttribute(String name)`: 저장된 보관 키로 객체 리턴 (다운캐스팅 필요)
+  - `session.removeAttribute(String name)`: 저장된 특정 바인딩 객체 제거
+- **세션 무효화**:
+  - `session.invalidate()`: 현재 세션을 즉시 완전 소멸시키고 바인딩 데이터를 해제함
+
+---
+layout: default
+---
+
+# 세션 속성 바인딩 및 무효화
+
+```java
+// 세션 획득 및 로그인 데이터 바인딩
+HttpSession session = request.getSession(true);
+session.setAttribute("loginUser", loginMember);
+
+// 로그아웃 수행 시 바인딩 파괴 및 세션 소멸
+session.removeAttribute("loginUser");
+session.invalidate();
+```
+
+---
+layout: default
+---
+
+# 인증과 인가 개요
+
+> **인증 (Authentication)**
+>
+> 사용자가 주장하는 신원이 실제로 부합하는지 신뢰 가능한 정보(아이디/비밀번호 등)로 식별하여 검증하는 과정
+
+> **인가 (Authorization)**
+>
+> 신원이 검증된 사용자에게 시스템 내부의 특정 리소스에 접근하거나 비즈니스 기능을 수행할 수 있도록 권한을 부여하는 과정
+
+- **개념의 차이**:
+  - **인증**: "이 사용자가 우리 시스템 회원(`userA`)이 맞는가?"에 대한 답
+  - **인가**: "이 사용자(`userA`)가 관리자 전용 웹 메뉴(`/admin`)에 진입할 수 있는가?"에 대한 판단
+
+---
+layout: default
+---
+
+# 서블릿 기반 인증 제어 흐름
+
+- **로그인 인증 처리**:
+  - 사용자 유입 시 입력 암호를 DB 암호화 해시와 검증 대조함
+  - 검증 성공 시 `request.getSession(true)`을 호출해 전용 세션을 확보함
+  - 식별 멤버 정보나 권한 등급을 `"loginUser"` 키로 세션 맵에 동적으로 등록함
+- **로그아웃 인증 무효화**:
+  - 로그아웃 비즈니스 API가 호출되면 `session.invalidate()`를 수행함
+  - 서버 측의 모든 로그인 정보 보관 맵을 완전 파괴하여 재인증을 유도함
+
+---
+layout: default
+---
+
+# 서블릿 필터를 활용한 공통 인가 제어
+
+- **컨트롤러 중복 코드의 한계**:
+  - 보호되는 모든 페이지의 비즈니스 컨트롤러마다 매번 로그인 세션 체크 코드를 중복 기입하는 것은 매우 비효율적임
+- **공통 필터를 통한 요청 가로채기 (향후 학습)**:
+  - 공통 영역인 **서블릿 필터 (Servlet Filter)**를 이용해 특정 보호 경로(예: `/admin/*`)로의 모든 요청을 사전 차단 및 가로챌 수 있음
+  - 필터가 세션의 권한을 가로채 검증한 후, 인증되지 않은 사용자는 로그인 화면(`/login`) 등으로의 제어권 전환(Redirect)을 일괄 대행함
+
+---
+layout: default
+---
+
+# 향후 확장 학습: Spring Security와 JWT
+
+- **Spring Security 연계**:
+  - 서블릿 필터(`Filter`) 기반 보안 메커니즘을 정형화하고 고도화한 프레임워크가 바로 Spring Security임
+  - 앞서 습득한 필터 기반의 가로채기 메커니즘이 Spring Security의 핵심 동작 토대가 됨
+- **JWT (JSON Web Token)의 안전한 관리**:
+  - 발급된 토큰(특히 수명이 긴 Refresh Token)을 로컬 스토리지에 보관하면 XSS 공격에 취약함
+  - 이를 보완하기 위해 **보안 옵션(`HttpOnly`, `Secure`)이 활성화된 쿠키**에 토큰을 저장하여 토큰 탈취를 원천 방어함
+
+---
+layout: default
+---
+
+# 핵심 요약: 쿠키와 세션
+
+- **쿠키 (Cookie)**:
+  - 브라우저에 저장되는 텍스트로, 보안 위협 극복을 위해 `HttpOnly`, `Secure`, `SameSite` 지정 필수
+- **세션 (Session)**:
+  - 서버 측 안전 보관소로, `JSESSIONID` 식별 키 쿠키와 협업해 클라이언트를 식별함
+  - 분산 대규모 WAS 아키텍처 환경에서는 **Shared Redis** 저장소가 실무적 De facto 표준임
+- **인증 및 인가**:
+  - 세션 멤버 상태 저장을 통해 인증을, **서블릿 필터** (Filter)를 활용해 공통 인가 처리를 제어함
