@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Spring Core
+title: Spring Web MVC
 mermaid:
   theme: base
   themeVariables:
@@ -45,259 +45,126 @@ mermaid:
     activationBorderColor: '#F2AA4C'
 ---
 
-# Spring Core
+# Spring Web MVC
 
 ---
 layout: default
 ---
 
-# 학습 체크리스트
+# 학습 체크리스트 (1/2)
 
-- [ ] Spring Framework의 탄생 배경과 스프링 부트 버전별 차이점 이해
-- [ ] Spring의 3대 개념인 IoC, DI, AOP의 역할 및 차이점 숙지
-- [ ] Spring Bean의 생명주기와 싱글톤/프로토타입 스코프 혼용 시 주의점 분석
-- [ ] SOLID 설계 원칙(DIP/OCP) 및 클린 아키텍처 실현 도구로서의 DI 이해
-- [ ] 빈 등록 방식(수동 vs 자동)과 생성자 주입의 필요성 및 Lombok 활용 패턴 학습
+- [ ] Spring Web MVC의 핵심 역할과 MVC 디자인 패턴 구조 이해
+- [ ] 컴포넌트 애너테이션(@Controller, @RestController)의 데이터 반환 메커니즘 파악
+- [ ] 요청 처리 애너테이션(@RequestMapping, @RequestParam, @RequestBody)의 바인딩 동작 숙지
+- [ ] 뷰 리졸버(ViewResolver)의 논리 경로 변환 및 정적 리소스 우회 설정 학습
 
 ---
 layout: default
 ---
 
-# EJB의 한계와 Spring의 탄생
+# 학습 체크리스트 (2/2)
 
-> **EJB (Enterprise JavaBeans)**
+- [ ] 프론트 컨트롤러 패턴과 DispatcherServlet의 요청 처리 라이프사이클 분석
+- [ ] WebApplicationInitializer 구현을 통한 Tomcat 구동 시 스프링 컨텍스트 연동 이해
+- [ ] 계층형 스프링 컨테이너(Root WAC, Servlet WAC)의 구조와 의존 관계 파악
+- [ ] 웹 애플리케이션 전용 빈 스코프(Request & Session)의 특징 및 역할 숙지
+
+---
+layout: default
+---
+
+# Spring Web MVC 개요
+
+> **스프링 웹 MVC (Spring Web MVC)**
 >
-> 과거 Java 진영의 표준 기술이었으나, 높은 복잡성과 프레임워크 기술의 침투적 오염으로 POJO 개발을 저해했던 중량 기술
+> 서블릿 API를 기반으로 동작하며, MVC 디자인 패턴을 통해 웹 애플리케이션을 구조화하는 스프링 프레임워크의 웹 모듈
 
-- **과도한 기술적 복잡도**: EJB 컨테이너 구동을 위해 고가의 무거운 WAS 장비가 강제됨
-- **프레임워크 비종속성**: 프레임워크 기술에 코드가 침투적으로 오염되어 비즈니스 로직 격리 불가능
-- **POJO 지향 경량화**: 로드 존슨 등이 단순하고 투명한 자바 객체 중심의 POJO 개발을 표방하며 Spring 창시
-
----
-layout: default
----
-
-# Spring Framework의 초기 발전사
-
-- **2002년 (시작점)**: 로드 존슨이 저서 *Expert One-on-One J2EE Design and Development*를 출간하며 EJB 대안 코드 제시
-- **2003년 (1.0)**: 오픈소스 프레임워크로 공식 등록 및 XML 설정 기반의 핵심 컨테이너 기능 제공
-- **2006년 (2.0)**: XML 스키마 도입으로 설정 편의성 증대 및 커스텀 XML 네임스페이스 지원
-- **2009년 (3.0)**: 자바 어노테이션 기반 설정(`@Configuration`, `@Bean`) 도입 및 SpEL 공식 지원
+- **서블릿 기반 엔진**: 내부적으로 Java 서블릿 기술을 표준으로 삼아 웹 요청 처리
+- **유기적 아키텍처**: 비즈니스 로직과 화면 영역을 물리적으로 격리하여 독립적 개발 가능
+- **풍부한 생태계**: 필터, 인터셉터, 예외 처리기 등 다양한 웹 기술 모듈 제공
 
 ---
 layout: default
 ---
 
-# Spring Framework의 현대적 진화
+# MVC 패턴의 핵심 구성요소
 
-- **2013년 (4.0)**: Java 8 스펙을 전면 지원하고 조건부 빈 등록(`@Conditional`) 제공
-- **2014년 (Boot 1.0)**: 설정의 복잡도를 혁신적으로 낮춘 스프링 부트(Spring Boot) 출시
-- **2017년 (5.0)**: WebFlux를 통한 리액티브 프로그래밍 표준 제시 및 Reactive Stack 공식 탑재
-- **2022년 (6.0 / Boot 3.0)**: Java 17 최소 요구 스펙 지정 및 Jakarta EE 9/10 전면 도입
-- **2025년 (7.0 / Boot 4.0)**: Jakarta EE 11 채택, Java 25 공식 지원 및 JSpecify 기반 Null Safety 도입
-
----
-layout: default
----
-
-# Spring Boot 및 Framework 버전 대응
-
-| Spring Boot 버전 | 대응 Spring Framework 버전 | 최소 요구 JDK 버전 | 주요 핵심 변화 및 특징 |
-| :--- | :--- | :--- | :--- |
-| **Boot 1.x** | Spring 4.x | JDK 6 또는 7 (1.5 이후 7) | 내장 Tomcat 최초 지원 및 자바 설정 파일 대중화 |
-| **Boot 2.x** | Spring 5.x | JDK 8 | 함수형 인터페이스/람다 표준화 및 WebFlux 도입 |
-| **Boot 3.x** | Spring 6.x | **JDK 17** (21 권장) | **Jakarta EE 9/10 전면 전환** 및 가상 스레드 지원 |
-| **Boot 4.x** | Spring 7.x | **JDK 17** (25 권장) | **Jakarta EE 11 전면 전환**, JSpecify 도입, 내장 Resilience 제공 |
+- **Model (모델)**: 비즈니스 도메인 데이터와 로직을 포함하며, 뷰로 보낼 데이터를 유지
+- **View (뷰)**: 모델 데이터를 수신하여 클라이언트 브라우저에 표시할 최종 화면을 생성
+- **Controller (컨트롤러)**: 사용자의 HTTP 요청을 수신하여 분석하고 서비스 호출 및 결과 매핑
+- **역할의 분리**: 데이터 관리, 화면 표현, 흐름 제어의 단계를 분리하여 유지보수성 향상
 
 ---
 layout: default
 ---
 
-# Spring 7 및 Boot 4 핵심 특징
+# 컨트롤러 컴포넌트 계열 비교
 
-- **Jakarta EE 11 규격 채택**: Servlet 6.1 및 JPA 3.2 등 최신 엔터프라이즈 표준 규격 탑재
-- **JSpecify Null Safety**: 프레임워크 전반에 JSpecify 애너테이션 도입으로 컴파일 시점 null 안전성 확보
-- **내장형 회복탄력성 (Resilience)**: 외부 라이브러리 없이 자체적 `@Retryable` 등의 패턴 연동
-- **AOT 및 Native Image 최적화**: GraalVM 빌드 고속화 및 Spring Data AOT 리포지토리 도입
-
----
-layout: default
----
-
-# Spring 3대 핵심 개념 (IoC, DI, AOP)
-
-- **IoC (제어의 역전)**: 객체의 생성, 구성, 수명주기 등 제어 주도권이 컨테이너로 이동
-- **DI (의존성 주입)**: 객체 간의 연관 관계를 스스로 맺지 않고 외부 컨테이너가 런타임에 주입
-- **AOP (관점 지향 프로그래밍)**: 로깅, 트랜잭션 등 공통 관심사를 핵심 비즈니스 로직과 분리
-
----
-layout: default
----
-
-# 제어의 역전(IoC) 제어 흐름 비교
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#F2AA4C"
-    arrowheadColor: "#F2AA4C"
-    edgeLabelBackground: "#101820"
-  flowchart:
-    padding: 8
-    nodeSpacing: 40
-    rankSpacing: 40
----
-flowchart TD
-  subgraph "일반 제어 흐름 (개발자 주도)"
-    App1["애플리케이션"] -->|"<span style='padding:8px;color:#F2AA4C;'>직접 제어</span>"| Obj1["객체 생성 및 의존성 해결"]
-  end
-  subgraph "제어의 역전 (IoC 컨테이너 주도)"
-    Container["IoC 컨테이너"] -->|"<span style='padding:8px;color:#F2AA4C;'>생성 및 주입</span>"| Obj2["객체 생성 및 관리"]
-    App2["애플리케이션"] -.->|"<span style='padding:8px;color:#F2AA4C;'>주입 받아 사용</span>"| Obj2
-  end
-
-  class App1,Obj1,Container,Obj2,App2 step
-  classDef step fill:#18232F,stroke:#F2AA4C,color:#E0E6ED,stroke-width:2px
-  linkStyle default stroke:#F2AA4C,stroke-width:4px
-```
-
----
-layout: default
----
-
-# 제어 주도권의 위임
-
-> **밀키트 배송 서비스**
->
-> 요리사(개발자)가 식재료를 직접 장보고 고르는 대신, 이미 용량에 맞게 완포장 배송된 재료를 받아 조리(비즈니스 실행)에만 집중하는 방식
-
-- **기존 방식**: 개발자가 코드 내부에서 `new` 키워드로 필요한 인스턴스를 직접 인스턴스화
-- **역전된 방식**: 프레임워크가 객체의 생성 및 라이프사이클을 통제하고 개발자는 로직 수행만 전담
-
----
-layout: default
----
-
-# Spring Container와 Bean
-
-> **스프링 컨테이너 (Spring Container)**
->
-> 개발자를 대신해 자바 객체(Bean)의 생명주기를 직접 제어하고, 객체 간의 연관 관계를 매핑·조립하는 실행 엔진
-
-- **ApplicationContext**: 컨테이너 역할을 하며, 지정된 설정 정보(Java Config)를 바탕으로 동작
-- **스프링 빈 (Spring Bean)**: 스프링 컨테이너가 스스로 인스턴스화하고 관리하여 조립 완료된 자바 객체
-
----
-layout: default
----
-
-# Bean Scope - 싱글톤 vs 프로토타입
-
-| 비교 항목 | 싱글톤 (Singleton) 스코프 | 프로토타입 (Prototype) 스코프 |
+| 구분 항목 | @Controller | @RestController |
 | :--- | :--- | :--- |
-| **생성 시점** | 컨테이너 초기 기동 시 (Eager) | 빈 요청 시마다 동적 생성 (Lazy) |
-| **인스턴스 수** | 스프링 컨테이너 내 단 1개 공유 | 요청할 때마다 항상 새로운 인스턴스 |
-| **소멸 콜백** | 컨테이너 종료 시 `@PreDestroy` 수행 | 관리 안 함 (리소스 해제 책임은 호출자) |
-| **주의 사항** | **무상태(Stateless)** 설계 필수 | 생성 이후 스프링이 소멸을 관리하지 않음 |
+| **기본 반환 타입** | 논리적 뷰 이름 (String) | 데이터 객체 (DTO, Collection 등) |
+| **렌더링 방식** | 뷰 리졸버가 매핑된 템플릿(HTML/JSP) 반환 | HTTP 응답 바디에 직접 데이터 작성 |
+| **자동 적용 기능** | 일반 웹 MVC 전용 컴포넌트 스캔 대상 | `@Controller`와 `@ResponseBody`가 결합됨 |
+| **주요 사용처** | 전통적인 JSP / Thymeleaf 웹 페이지 | REST API 개발 및 JSON 데이터 응답 |
 
 ---
 layout: default
 ---
 
-# 의존성 주입(DI)의 기본 원리
+# HTTP 메시지 컨버터
 
-> **의존성 주입 (Dependency Injection)**
+> **HTTP 메시지 컨버터 (HttpMessageConverter)**
 >
-> 객체가 스스로 필요한 협력 대상을 찾거나 생성하지 않고, 컨테이너가 런타임에 의존 관계를 외부에서 직접 결합해 주는 디자인 패턴
+> HTTP 요청 바디나 응답 바디의 데이터를 자바 객체 또는 특정 텍스트 포맷으로 자동 변환해 주는 변환 엔진
 
-- **추상화 의존**: 컴파일 시점에는 구현체가 아닌 인터페이스에만 결합하도록 설계
-- **동적 바인딩**: 애플리케이션 실행 시점(Runtime)에 스프링 컨테이너가 실제 구현체 인스턴스를 주입
-
----
-layout: default
----
-
-# 외부와의 협력 결합 구조
-
-> **스마트폰과 충전 단자**
->
-> 기기 내부에 특정 충전 케이블을 직접 납땜(강한 결합)하지 않고, 표준 C타입 단자(인터페이스)를 배치하여 외부에서 충전선(구현 객체)을 갈아 끼우는 방식
-
-- **기기 내부 독립**: 충전 단자 규격만 맞으면 어떤 제조사의 케이블이든 유연하게 결합 가능
-- **부품 교체 용이**: 스마트폰 본체 코드를 분해하거나 훼손하지 않고 외부 케이블만 쉽게 교체
+- **ObjectMapper 자동 매핑**: Jackson 라이브러리를 통해 JSON 데이터와 자바 DTO 상호 직렬화 수행
+- **동작 트리거**: `@RequestBody` 및 `@ResponseBody` 선언 시 컨버터가 가동되어 형식 변환 수행
+- **타입별 분기**: 미디어 타입(JSON, XML, Text)에 따라 적절한 컨버터가 우선순위대로 선택됨
 
 ---
 layout: default
 ---
 
-# DI와 SOLID 설계 원칙
+# 요청 경로 및 파라미터 매핑
 
-- **DIP (의존역전 원칙) 완성**: 고수준 모듈이 하위 구현체에 의존하지 않고 인터페이스를 의존하게 강제
-- **OCP (개방-폐쇄 원칙) 만족**: 기존 비즈니스 로직 변경 없이 새로운 구현 클래스를 플러그인처럼 교체
-- **결합도 완화**: 구체적인 타입 결합을 낮춰 유지보수 및 코드 확장성을 향상시킴
-
----
-layout: default
----
-
-# DIP (의존역전 원칙) 의존성 구조
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#F2AA4C"
-    arrowheadColor: "#F2AA4C"
-    edgeLabelBackground: "#101820"
-  flowchart:
-    padding: 8
-    nodeSpacing: 52
-    rankSpacing: 48
----
-flowchart TD
-  Service["고수준 서비스 계층 (Service)"] -->|"<span style='padding:8px;color:#F2AA4C;'>의존</span>"| Interface["추상화 인터페이스 (Repository)"]
-  Impl["저수준 구현체 계층 (RepositoryImpl)"] -->|"<span style='padding:8px;color:#F2AA4C;'>구현</span>"| Interface
-
-  class Service,Interface,Impl step
-  classDef step fill:#18232F,stroke:#F2AA4C,color:#E0E6ED,stroke-width:2px
-  linkStyle default stroke:#F2AA4C,stroke-width:4px
-```
+- **`@RequestMapping`**: 클래스 또는 메서드 레벨에 URL 경로와 HTTP 메서드 매핑
+- **HTTP 전용 매핑**: `@GetMapping`, `@PostMapping` 등 가독성을 높인 직관적 전용 애너테이션 제공
+- **`@PathVariable`**: RESTful API 경로상의 변수 값(예: `/users/{userId}`)을 메서드 매개변수로 추출
+- **`@RequestParam`**: URL 쿼리 스트링 또는 POST 폼 파라미터 값을 1:1로 매핑 (필수 여부 설정 가능)
 
 ---
 layout: default
 ---
 
-# DI와 클린 아키텍처
+# 요청 바디 및 모델 바인딩
 
-- **의존성 방향의 통제**: 의존성 방향이 웹이나 DB가 아닌 고수준의 핵심 비즈니스(도메인/엔티티)를 향함
-- **제어 흐름과 의존 방향 역전**: 웹/DB가 비즈니스를 호출하지만, 물리적 코드는 비즈니스의 인터페이스를 의존
-- **도메인 영역 기술 독립성**: 순수 POJO 형태를 유지하여 데이터베이스나 외부 API 기술 오염 차단
-
----
-layout: default
----
-
-# 스프링 빈 등록 방식 비교
-
-| 비교 항목 | 수동 빈 등록 (`@Configuration` + `@Bean`) | 자동 빈 등록 (`@ComponentScan` + `@Component`) |
-| :--- | :--- | :--- |
-| **설정 위치** | 설정 클래스 내부에 자바 코드로 통합 관리 | 각 컴포넌트 클래스 선언부에 어노테이션 추가 |
-| **등록 주체** | 개발자가 명시적으로 반환 메서드 작성 | 스프링 컴포넌트 스캐너가 자동 수집 |
-| **주요 용도** | 외부 라이브러리 객체, 전역 기술 및 설정 빈 | 일반 업무 비즈니스 로직 (Controller, Service) |
+- **`@ModelAttribute`**: 요청 파라미터들을 자바 객체(Command Object) 필드에 자동 매핑하고 모델에 추가
+- **`@RequestBody`**: HTTP 요청 바디의 페이로드(주로 JSON)를 자바 객체로 역직렬화하여 수신
+- **`@ResponseBody`**: 메서드의 반환값을 뷰 리졸버에 보내지 않고 HTTP 응답 바디에 직접 출력
 
 ---
 layout: default
 ---
 
-# 수동 빈 등록 문법 (Java Config)
+# Model 객체를 통한 데이터 전달
+
+- **데이터 전달 매개체**: 컨트롤러가 데이터를 화면(뷰)으로 넘겨주기 위한 Map 구조의 스프링 전용 저장소
+- **의존성 자동 주입**: 컨트롤러 메서드 파라미터로 선언 시 스프링이 실행 시점에 인스턴스를 알아서 전달
+- **뷰 바인딩**: `model.addAttribute(key, value)`로 저장하며, 뷰 템플릿(JSP, Thymeleaf)에서 꺼내어 활용
+
+---
+layout: default
+---
+
+## 컨트롤러 데이터 전달 및 뷰 반환
 
 ```java
-@Configuration
-public class AppConfig {
-    @Bean
-    public MemberRepository memberRepository() {
-        return new MemoryMemberRepository();
+@Controller
+public class HelloController {
+    @GetMapping("/hello")
+    public String hello(Model model) {
+        model.addAttribute("greeting", "Hello, Spring MVC!");
+        return "hello"; // hello.jsp로 포워딩
     }
 }
 ```
@@ -306,16 +173,183 @@ public class AppConfig {
 layout: default
 ---
 
-# 자동 빈 등록 및 주입 문법
+# 뷰 리졸버 (ViewResolver)
+
+> **뷰 리졸버 (ViewResolver)**
+>
+> 컨트롤러가 반환한 논리적 뷰 이름을 기반으로 실제 화면을 렌더링할 뷰 객체를 찾아 매핑해 주는 웹 컴포넌트
+
+- **물리 경로 조합**: 접두사(prefix)와 접미사(suffix)를 결합하여 실제 파일의 상세 위치 결정
+- **JSP 특화 구현**: `InternalResourceViewResolver`가 대표적이며 서블릿의 포워딩 기술 활용
+- **다양한 구현체**: ThymeleafViewResolver, FreeMarkerViewResolver 등 뷰 기술에 맞게 확장 가능
+
+---
+layout: default
+---
+
+# 정적 리소스 설정
+
+- **루트 매핑 문제**: 디스패처 서블릿이 `/` 요청을 처리하도록 설정되면 CSS, JS 등 정적 리소스까지 가로채는 문제 발생
+- **우회 처리**: `WebMvcConfigurer`를 구현하여 특정 경로 패턴에 대해 정적 파일 리소스 폴더로 직접 매핑
+- **캐싱 및 최적화**: 리소스 매핑 시 HTTP 캐싱 헤더를 자동으로 설정하여 클라이언트 성능 향상 가능
+
+---
+layout: default
+---
+
+## 뷰 리졸버 빈 등록 및 경로 매핑
 
 ```java
-@Component
-public class MemberService {
-    private final MemberRepository memberRepository;
+@Bean
+public ViewResolver customViewResolver() {
+    InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+    resolver.setPrefix("/WEB-INF/views/");
+    resolver.setSuffix(".jsp");
+    return resolver;
+}
+```
 
-    @Autowired // 생성자가 1개인 경우 생략 가능
-    public MemberService(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
+---
+layout: default
+---
+
+## 정적 리소스 요청의 물리 경로 매핑
+
+```java
+@Override
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/resources/**")
+            .addResourceLocations("/resources/");
+}
+```
+
+---
+layout: default
+---
+
+# 프론트 컨트롤러 패턴
+
+> **프론트 컨트롤러 패턴 (Front Controller Pattern)**
+>
+> 웹 애플리케이션의 최전방에 단 하나의 서블릿을 배치하여 모든 요청을 통합 접수하고 공통 작업을 일괄 처리하는 디자인 패턴
+
+- **중복 코드 제거**: 공통 로깅, 문자 인코딩, 예외 처리 등을 각 서블릿마다 개별 구현할 필요가 없어짐
+- **체계적 요청 제어**: 입구를 하나로 통제하여 개별 비즈니스 핸들러로 유연하게 요청을 분기 처리함
+- **유지보수성 향상**: 웹 요청의 라이프사이클을 단일 접점에서 중앙 통제 및 모니터링 가능
+
+---
+layout: default
+---
+
+# DispatcherServlet 개요
+
+- **스프링 MVC의 심장**: 프론트 컨트롤러 패턴을 구체화한 서블릿으로, 모든 HTTP 요청의 흐름을 지휘함
+- **컨테이너 바인딩**: 스프링 컨테이너와 연결되어 관리 빈들을 검색하고 적절한 핸들러를 가동시킴
+- **확장과 위임**: 자체적으로 로직을 다 처리하지 않고 핸들러 매핑, 핸들러 어댑터 등 인터페이스를 통해 역할 위임
+
+---
+layout: default
+---
+
+# DispatcherServlet 요청 처리 흐름
+
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#F2AA4C"
+    actorBkg: "#18232F"
+    actorBorder: "#F2AA4C"
+    actorTextColor: "#E0E6ED"
+    actorLineColor: "#F2AA4C"
+    signalColor: "#F2AA4C"
+    signalTextColor: "#E0E6ED"
+    labelBoxBkgColor: "#101820"
+    labelBoxBorderColor: "#F2AA4C"
+    labelTextColor: "#E0E6ED"
+    noteBkgColor: "#18232F"
+    noteBorderColor: "#F2AA4C"
+    noteTextColor: "#E0E6ED"
+    activationBkgColor: "#F2AA4C"
+    activationBorderColor: "#F2AA4C"
+  sequence:
+    actorMargin: 48
+    messageMargin: 36
+    mirrorActors: false
+---
+sequenceDiagram
+  autonumber
+  actor Client as 클라이언트
+  participant DS as DispatcherServlet
+  participant HM as HandlerMapping
+  participant HA as HandlerAdapter
+  participant C as Controller
+  participant VR as ViewResolver
+  participant V as View
+
+  Client->>DS: HTTP Request
+  DS->>HM: 핸들러 조회
+  HM-->>DS: 핸들러 반환
+  DS->>HA: 어댑터 조회
+  HA->>C: 핸들러 실행
+  C-->>HA: ModelAndView 반환
+  HA-->>DS: ModelAndView 전달
+  DS->>VR: 뷰 이름 전달
+  VR-->>DS: View 객체 반환
+  DS->>V: 모델 데이터 주입
+  V-->>DS: 렌더링 완료
+  DS-->>Client: HTTP Response
+```
+
+---
+layout: default
+---
+
+# 서블릿 컨테이너와 스프링 컨테이너
+
+- **서블릿 컨테이너(Tomcat)**: 서블릿의 라이프사이클을 관리하며 HTTP 요청을 서블릿으로 연결해 줌
+- **스프링 컨테이너**: 비즈니스 컴포넌트(빈)들의 생성과 결합(DI)을 관리하는 영역
+- **다리 놓기 (Bridge)**: 톰캣이 켜질 때 스프링 컨텍스트를 기동하여 디스패처 서블릿에 바인딩함으로써 연동
+
+---
+layout: default
+---
+
+# WebApplicationInitializer
+
+> **웹애플리케이션 초기화기 (WebApplicationInitializer)**
+>
+> Servlet 3.0+ 환경에서 XML 설정 없이 자바 코드만으로 서블릿 컨텍스트를 동적으로 구성할 수 있는 스프링 인터페이스
+
+- **자동 감지**: 서블릿 컨테이너 구동 시 `SPI` 메커니즘에 의해 해당 구현체가 자동 탐색 및 실행됨
+- **서블릿 수동 등록**: `DispatcherServlet` 인스턴스를 직접 생성하고 서블릿 컨텍스트에 추가 매핑 처리
+- **현대적 애플리케이션 표준**: 기존 `web.xml`을 대체하는 자바 기반 스프링 부트 및 스프링 MVC의 구성 표준
+
+---
+layout: default
+---
+
+# 계층형 스프링 컨테이너 구조
+
+- **Root WebApplicationContext**: DB 접근 및 비즈니스 서비스 등 웹 기술에 무관한 핵심 빈을 관리
+- **Servlet WebApplicationContext**: Controller, ViewResolver 등 웹 전용 빈을 관리하며 Root Context를 부모로 참조
+- **참조 구조**: 자식 컨테이너(Servlet)는 부모 컨테이너(Root)의 빈을 가져다 쓸 수 있으나, 역방향 참조는 차단됨
+- **관심사 분리**: 백엔드 인프라 빈과 프론트 웹 컨트롤 빈을 논리적 계층으로 분리하여 의존성 오염 최소화
+
+---
+layout: default
+---
+
+## 초기화기 클래스 구성 및 설정 등록
+
+```java
+public class MyInitializer implements WebApplicationInitializer {
+    @Override
+    public void onStartup(ServletContext ctx) {
+        AnnotationConfigWebApplicationContext wCtx = new AnnotationConfigWebApplicationContext();
+        wCtx.register(WebConfig.class);
+        ServletRegistration.Dynamic reg = ctx.addServlet("app", new DispatcherServlet(wCtx));
+        reg.addMapping("/");
     }
 }
 ```
@@ -324,83 +358,23 @@ public class MemberService {
 layout: default
 ---
 
-# 의존성 주입 방식 비교
+# 웹 스코프 - Request & Session
 
-| 비교 항목 | 필드 주입 | Setter (수정자) 주입 | 생성자 주입 |
-| :--- | :--- | :--- | :--- |
-| **문법 스타일** | `@Autowired private Field f;` | `@Autowired public void setF(F f)` | `public Class(Field f) { ... }` |
-| **불변성 확보** | 불가능 | 불가능 (임의 변경 가능) | **가능** (`final` 키워드 지정) |
-| **의존성 누락** | NPE 발생 (런타임) | NPE 발생 (런타임) | **컴파일 타임 차단** (빌드 에러) |
-| **순환 참조** | 메서드 실행 시 에러 | 메서드 실행 시 에러 | **컨테이너 기동 시 차단** (기동 에러) |
-
----
-layout: default
----
-
-# 생성자 주입을 권장하는 이유
-
-- **불변성 (Immutability) 보장**: `final` 필드 사용으로 런타임에 의존성 오염 원천 차단
-- **주입 누락 방지**: 생성자 생성 시 필수 객체가 비어있다면 컴파일 오류로 빠른 발견 가능
-- **순환 참조 예방**: 기동 시점에 `BeanCurrentlyInCreationException` 발생으로 예방 가능
-- **순수 자바 테스트**: 스프링 컨테이너 기동 없이 JUnit 등으로 Mock 인스턴스 주입 테스트 편리
+| 구분 항목 | Request 스코프 (`@RequestScope`) | Session 스코프 (`@SessionScope`) |
+| :--- | :--- | :--- |
+| **생명 주기** | HTTP 요청이 수신되고 응답이 나갈 때까지 | 웹 브라우저 사용자 세션이 만료될 때까지 |
+| **인스턴스 특징**| 요청별로 완전히 격리된 별도 객체 생성 | 웹 사용자(세션 ID)별 고유 객체 생성·유지 |
+| **주요 사용처** | HTTP 헤더나 클라이언트 IP 등 요청 정보 저장 | 로그인 회원 정보, 사용자 장바구니 관리 |
+| **리소스 관리** | 요청 완료 시 인스턴스가 즉각 소멸함 | 브라우저 종료나 타임아웃 전까지 메모리 점유 |
 
 ---
 layout: default
 ---
 
-# Lombok 기반 생성자 주입 자동화 문법
+# 핵심 정리: Spring Web MVC
 
-```java
-@Component
-@RequiredArgsConstructor
-public class MemberService {
-    private final MemberRepository memberRepository;
-}
-```
-
----
-layout: default
----
-
-# AOP 개념 및 동작 원리
-
-> **AOP (Aspect Oriented Programming)**
->
-> 로깅, 트랜잭션 등 여러 비즈니스 로직에 공통적으로 나타나는 횡단 관심사를 핵심 비즈니스 영역과 분리하여 모듈화하는 기술
-
-- **프록시 기반 동작**: 스프링은 런타임에 프록시 객체를 생성하여 실제 객체의 메서드 호출을 가로챔
-- **선언적 트랜잭션 (`@Transactional`)**: 비즈니스 메서드 시작 시 트랜잭션을 열고, 종료 시 자동으로 커밋/롤백을 대행하는 AOP의 대표적 활용 문법
-
----
-layout: default
----
-
-# 공통 관심사의 분리
-
-> **생산 공장과 안전 점검원**
->
-> 작업자(핵심 로직)가 제품 조립 시마다 안전모 확인 및 보고서 작성(공통 관심사)을 수동으로 하지 않고, 출입문 앞의 점검원(프록시)이 이를 일괄 처리 및 기록하는 방식
-
-- **비즈니스 고립**: 핵심 업무 코드는 오직 자신의 본업 비즈니스 수행에만 집중
-- **일괄 제어**: 공통 로깅이나 트랜잭션 등은 비즈니스 코드 침투 없이 외부 프록시 단에서 처리
-
----
-layout: default
----
-
-# AOP 커스텀 구현을 지양하는 이유
-
-- **높은 개념 학습 장벽**: Aspect, Pointcut, Advice 등 생소하고 복잡한 AOP 특유의 전용 언어와 개념 숙지 필요
-- **디버깅 및 흐름 분석의 난해함**: 런타임에 프록시가 보이지 않게 개입하므로 에러 발생 시 호출 스택 디버깅이 극도로 까다로움
-- **완성형 어노테이션 제공**: 트랜잭션(`@Transactional`) 등 빈번한 횡단 관심사는 프레임워크가 이미 제공하므로 초심자가 직접 짤 일이 없음
-
----
-layout: default
----
-
-# 핵심 정리: Spring Core
-
-- **POJO 지향**: 복잡한 EJB의 침투성을 배제하고 자바 단순 객체 중심으로 설계
-- **IoC / DI**: 객체 생명주기 및 의존 관계 바인딩을 스프링 컨테이너로 위임하여 결합도 완화
-- **싱글톤 / 프로토타입**: 기본 싱글톤 빈은 무상태로 설계하고, 혼용 시 생성 시점 주입 한계 인지
-- **생성자 주입**: 불변성 확보 및 순환 참조 방지를 위해 생성자 주입을 사용하며 Lombok으로 자동화
+- **MVC 디자인 패턴**: Model-View-Controller의 엄격한 역할 분담을 통한 구조적 유연성 확보
+- **DispatcherServlet**: 프론트 컨트롤러로서 핵심 요청 흐름 통제 및 하위 컴포넌트 지휘
+- **어노테이션 기반**: `@Controller`, `@RequestParam` 등 선언적 바인딩으로 생산성 극대화
+- **자바 설정 연동**: `WebApplicationInitializer` 구현으로 톰캣 구동 시 동적 서블릿 및 컨테이너 연동
+- **웹 스코프**: HTTP 요청 및 세션 범위로 제한되는 빈 관리를 통해 객체지향적 상태 정보 유지
