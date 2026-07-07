@@ -54,7 +54,7 @@ layout: default
 # 학습 체크리스트 (1/2)
 
 - [ ] Spring Boot의 개념 및 핵심 철학(Auto Configuration) 이해
-- [ ] Spring Boot 주요 버전별(1.x ~ 4.x) 변화 및 특징 파악
+- [ ] 3.5.x 보안 패치 종료(2026년 6월부)에 따른 Spring Boot 4 마이그레이션 필요성 숙지
 - [ ] Spring Framework와 Spring Boot의 핵심 차이점 숙지
 - [ ] Spring Initializr 및 Starter를 활용한 프로젝트 구성 방법 습득
 
@@ -125,11 +125,29 @@ layout: default
 # Spring Boot 버전 로드맵 (3.x ~ 4.x)
 
 - **Spring Boot 3.x (Java 17 최소 요구, Spring 6 기반)**:
-  - Jakarta EE 9/10 스펙 (`javax.*` -> `jakarta.*`)으로의 대대적 패키지 전환 완료
-  - 가상 스레드(JDK 21+) 지원 및 GraalVM AOT를 이용한 네이티브 이미지 빌드 지원
+  - Jakarta EE 9/10 스펙으로의 대대적 패키지 전환 완료 및 가상 스레드 지원
+  - **[보안 패치 종료]** 3.5.x를 끝으로 2026년 6월부 무료 보안 패치 공식 종료 (OSS Support End)
 - **Spring Boot 4.x (Java 17 최소 요구, Spring 7 기반)**:
+  - 3.5.x 보안 패치 종료에 대응하는 공식 마이그레이션 대상 버전
   - Jakarta EE 11 지원 및 코드베이스 모듈화를 통한 성능 최적화와 시작 시간 단축
-  - JSpecify 어노테이션의 전면 도입을 통해 컴파일 타임의 Null-Safety 검증 대폭 강화
+
+---
+layout: default
+---
+
+# Spring Boot 3.5.x 보안 패치 종료와 마이그레이션
+
+> **무료 보안 지원 종료 (2026년 6월부)**
+>
+> Spring Boot 3.5.x 버전을 끝으로 3.x 대의 무료 오픈소스 보안 패치(OSS Support)가 공식 종료됨
+>
+> 이에 따라 기업 및 실무 운영 환경에서는 Spring Boot 4로의 버전 업그레이드가 강력히 요구됨
+>
+> *참고: [Spring Boot 공식 지원 로드맵](https://spring.io/projects/spring-boot#support)*
+
+- **보안 취약점 노출**: 2026년 6월 이후 발견된 신규 취약점(CVE)에 대해 더 이상 무료 패치가 제공되지 않음
+- **업그레이드 전환점**: Spring Boot 4는 JDK 17+ 환경을 지원하며 Jakarta EE 11 및 Spring 7 환경 탑재
+- **시스템 안전성 확보**: 인프라 컴플라이언스 준수 및 보안 사고 예방을 위해 즉각적인 마이그레이션 계획 필요
 
 ---
 layout: cover
@@ -382,7 +400,7 @@ layout: default
 
 - **Spring Boot**: 복잡한 XML/Java Boilerplate 설정 없이 바로 실행되는 프레임워크
 - **핵심 철학**: Auto Configuration(자동 구성)과 Opinionated 설정을 통한 개발 집중도 향상
-- **Spring vs Boot**: 내장 서버(WAS) 탑재 및 스타터 의존성, Actuator로 수동 구성 영역 제거
+- **Spring Boot 4 마이그레이션**: 3.5.x 무료 보안 패치 종료(2026년 6월부)에 대응하는 필수 조치
 - **Spring Initializr**: 공식 도구를 통해 신속하고 안정적인 프로젝트 뼈대 구성 및 기동
 - **패키지 스캔 경로**: 메인 클래스는 하위 빈 감지를 위해 반드시 프로젝트 루트 패키지에 배치
 - **설정 다이어트**: `@SpringBootApplication` 하나로 기존 복잡한 설정 클래스를 대체 및 생략
