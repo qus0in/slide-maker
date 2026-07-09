@@ -1,12 +1,14 @@
 # 시각 테마 및 스타일 오버라이드 규칙 (Styling & CSS Rules)
 
 ## 5.1 배경 우선 색상계 (Background-First Colors)
-- **배경색 (Primary Background):** `#02343F` (딥 틸 그린)
-- **전경색/텍스트색 (Primary Foreground):** `#F0EDCC` (따뜻한 라이트 옐로우 크림)
-- **코드 블록 배경색 (Code Background):** `#0d2026` (맑은 틸-차콜 네이비)
+- **배경색 (Primary Background):** `#2D3047` (딥 네이비)
+- **전경색/텍스트색 (Primary Foreground):** `#FFFFFF` (순수 화이트)
+- **주요 강조색 (Accent Color):** `#E0CA3C` (골드 옐로우)
+- **보조 청회색 (Secondary Muted Color):** `#93B7BE` (파스텔 청회색)
+- **보조 라벤더색 (Secondary Accent Color):** `#A799B7` (라벤더 퍼플)
+- **코드 블록 배경색 (Code Background):** `#212335` (딥 틸-차콜)
 - 슬라이드는 전체적으로 차분하고 집중도 높게 다크 테마를 고수한다.
 - 네온, 그라데이션, 글로우(glow), 블러, 드롭 섀도우, 임의의 포인트 컬러 남발을 절대 금지한다.
-- *참고: 사용자의 요구사항에 따라 옐로우-블랙(`F2AA4C`, `101820`) 등 프로젝트 커스텀 컬러셋으로 전역 테마가 오버라이드될 수 있다.*
 
 ## 5.2 전역 타이포그래피 (Global Typography)
 - 모든 폰트는 시스템 기본 폰트를 배제하고 다음 웹폰트를 엄격히 일관되게 사용한다:

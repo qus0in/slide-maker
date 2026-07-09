@@ -88,12 +88,14 @@
 
 /* 3. 전역 변수 설정 */
 :root {
-  --slide-bg: #101820;
-  --slide-fg: #E0E6ED;
-  --accent: #F2AA4C;
+  --slide-bg: #2D3047;
+  --slide-fg: #FFFFFF;
+  --accent: #E0CA3C;
+  --muted: #93B7BE;
+  --lavender: #A799B7;
   
   /* 🌟 [CODE BACKGROUND FIXED] 깊은 다크 블루 그레이 적용 */
-  --code-bg: #18232F; 
+  --code-bg: #212335; 
   
   /* 🌟 [CODE FONT OVERRIDE] Slidev 및 UnoCSS D2Coding 서체 변수 장악 */
   --slidev-code-font-family: 'D2Coding', monospace !important;
@@ -358,7 +360,7 @@ pre .shiki span {
   border-left: 5px solid var(--accent) !important;
   padding: 0.45rem 1.1rem 0.3rem 1.1rem !important; /* 특히 하단 패딩을 0.3rem으로 얇게 조절 */
   margin: 0.5rem 0 0.6rem 0 !important; /* 위아래 외부 마진을 절반에 가깝게 줄여 컴팩트하게 거치 */
-  background: rgba(242, 170, 76, 0.05) !important;
+  background: rgba(224, 202, 60, 0.05) !important;
   opacity: 1 !important;
   border-radius: 2px;
   width: 100% !important;
@@ -385,11 +387,11 @@ pre .shiki span {
 
 /* 🌟 [DEVELOPER-FRIENDLY CODE BLOCKS] 코드 구문 강조 컬러셋과 블랙 배경 조화 🌟 */
 .slidev-layout :not(pre) > code {
-  background: rgba(24, 35, 47, 0.95) !important; /* 인라인 코딩 배경 */
+  background: rgba(33, 35, 53, 0.95) !important; /* 인라인 코딩 배경 */
   color: var(--accent) !important;
   padding: 0.2rem 0.4rem !important;
   border-radius: 4px !important;
-  border: 1px solid rgba(242, 170, 76, 0.2) !important;
+  border: 1px solid rgba(224, 202, 60, 0.2) !important;
   font-size: 0.95em !important;
   font-family: 'D2Coding', monospace !important; /* D2Coding 서체 탑재 */
 }
@@ -409,7 +411,7 @@ code * {
 .print-slide-container pre,
 pre {
   background-color: var(--code-bg) !important;
-  border: 1px solid rgba(242, 170, 76, 0.15) !important;
+  border: 1px solid rgba(224, 202, 60, 0.15) !important;
   border-radius: 6px !important;
   padding: 0.9rem 1.1rem !important;
   margin-top: 0.75rem !important;
@@ -439,7 +441,7 @@ code * {
    Shiki v1의 듀얼 테마(CSS Variables) 및 인라인 스타일과 클래스 기반 렌더링에 모두 대응하는
    하이브리드 구문 강조 규칙입니다. Exporter와 PDF 인쇄 상태에서도 쨍하게 빛나도록 보장합니다. */
 
-/* 1. 예약어 (const, function, let, return, new, if 등) -> 황금 옐로우 오렌지 (#F2AA4C) */
+/* 1. 예약어 (const, function, let, return, new, if 등) -> 주요 강조색 (#E0CA3C) */
 pre span[style*="color:#0000FF"], 
 pre span[style*="color:#0033B0"],
 pre span[style*="color:#0000af"],
@@ -455,7 +457,7 @@ pre span[style*="--shiki-dark:#0000FF"],
 pre span.token.keyword,
 pre span.keyword,
 pre span.storage {
-  color: #F2AA4C !important;
+  color: #E0CA3C !important;
   font-weight: bold !important;
 }
 
@@ -527,7 +529,7 @@ pre span.comment {
   font-style: italic !important;
 }
 
-/* 6. 패키지명·임포트 경로·기본 텍스트 -> 라이트 실버 그레이 (#E0E6ED) */
+/* 6. 패키지명·임포트 경로·기본 텍스트 -> 순수 화이트 (#FFFFFF) */
 pre span[style*="color:#ABB2BF"],
 pre span[style*="color:#abb2bf"],
 pre span[style*="--shiki-default:#ABB2BF"],
@@ -538,7 +540,7 @@ pre span[style*="color:#9ECBFF"],
 pre span.token.namespace,
 pre span.token.entity,
 pre span.namespace {
-  color: #E0E6ED !important;
+  color: #FFFFFF !important;
 }
 
 table {
@@ -550,7 +552,7 @@ table {
 
 th,
 td {
-  border: 1px solid rgba(242, 170, 76, 0.25);
+  border: 1px solid rgba(224, 202, 60, 0.25);
   padding: 0.5rem 0.8rem !important;
 }
 
@@ -564,7 +566,7 @@ td {
   width: 1.15em !important;
   height: 1.15em !important;
   margin-top: 0.18em !important;
-  border: 1.5px solid rgba(242, 170, 76, 0.55) !important;
+  border: 1.5px solid rgba(224, 202, 60, 0.55) !important;
   border-radius: 3px !important;
   background: transparent !important;
   vertical-align: middle !important;
@@ -584,8 +586,8 @@ td {
   max-width: 100% !important;
   box-sizing: border-box !important;
   border-radius: 6px !important;
-  background: rgba(242, 170, 76, 0.03) !important; /* 체크리스트별 개별 카드 느낌 부여 */
-  border: 1px solid rgba(242, 170, 76, 0.08) !important;
+  background: rgba(224, 202, 60, 0.03) !important; /* 체크리스트별 개별 카드 느낌 부여 */
+  border: 1px solid rgba(224, 202, 60, 0.08) !important;
   margin-bottom: 0.75rem !important;
 }
 
@@ -630,8 +632,8 @@ td {
 .slidev-layout .mermaid .node ellipse,
 .slidev-layout .mermaid .node polygon,
 .slidev-layout .mermaid .node path {
-  fill: #18232F !important;
-  stroke: rgba(242, 170, 76, 0.82) !important;
+  fill: #212335 !important;
+  stroke: rgba(224, 202, 60, 0.82) !important;
   stroke-width: 2.2px !important;
   rx: 6px !important;
   ry: 6px !important;
@@ -640,8 +642,8 @@ td {
 .slidev-layout .mermaid .cluster rect,
 .slidev-layout .mermaid .cluster polygon,
 .slidev-layout .mermaid .cluster path {
-  fill: rgba(24, 35, 47, 0.42) !important;
-  stroke: rgba(242, 170, 76, 0.45) !important;
+  fill: rgba(33, 35, 53, 0.42) !important;
+  stroke: rgba(224, 202, 60, 0.45) !important;
   stroke-width: 1.6px !important;
 }
 
@@ -662,7 +664,7 @@ td {
 .slidev-layout .mermaid .messageLine0,
 .slidev-layout .mermaid .messageLine1,
 .slidev-layout .mermaid line {
-  stroke: rgba(242, 170, 76, 0.86) !important;
+  stroke: rgba(224, 202, 60, 0.86) !important;
   stroke-width: 2.8px !important;
   opacity: 1 !important;
 }
@@ -681,7 +683,7 @@ td {
 .slidev-layout .mermaid .messageText,
 .slidev-layout .mermaid .loopText,
 .slidev-layout .mermaid .labelText {
-  background-color: #101820;
+  background-color: #2D3047;
   color: var(--slide-fg);
   fill: var(--slide-fg);
   font-weight: 700 !important;
@@ -690,8 +692,8 @@ td {
 .slidev-layout .mermaid .edgeLabel rect,
 .slidev-layout .mermaid .labelBkg,
 .slidev-layout .mermaid .labelBox {
-  fill: #101820;
-  stroke: rgba(242, 170, 76, 0.35);
+  fill: #2D3047;
+  stroke: rgba(224, 202, 60, 0.35);
   rx: 4px !important;
   ry: 4px !important;
 }
@@ -699,8 +701,8 @@ td {
 .slidev-layout .mermaid .actor,
 .slidev-layout .mermaid .actor-man circle,
 .slidev-layout .mermaid .actor-man line {
-  fill: #18232F !important;
-  stroke: rgba(242, 170, 76, 0.85) !important;
+  fill: #212335 !important;
+  stroke: rgba(224, 202, 60, 0.85) !important;
   stroke-width: 2px !important;
 }
 
@@ -708,18 +710,18 @@ td {
 .slidev-layout .mermaid .activation0,
 .slidev-layout .mermaid .activation1,
 .slidev-layout .mermaid .activation2 {
-  stroke: rgba(242, 170, 76, 0.55) !important;
-  fill: rgba(242, 170, 76, 0.12) !important;
+  stroke: rgba(224, 202, 60, 0.55) !important;
+  fill: rgba(224, 202, 60, 0.12) !important;
 }
 
 .slidev-layout .mermaid .note {
-  fill: rgba(242, 170, 76, 0.08) !important;
-  stroke: rgba(242, 170, 76, 0.55) !important;
+  fill: rgba(224, 202, 60, 0.08) !important;
+  stroke: rgba(224, 202, 60, 0.55) !important;
 }
 
 .slidev-layout .mermaid .loopLine,
 .slidev-layout .mermaid .loopLine path {
-  stroke: rgba(242, 170, 76, 0.5) !important;
+  stroke: rgba(224, 202, 60, 0.5) !important;
 }
 
 * {
@@ -741,18 +743,18 @@ html:has(#export-container) body,
 html:has(#export-container) #app,
 div:has(> #export-container),
 div.bg-main {
-  background-color: #1a232c !important; /* 슬라이드 테마와 통일감을 주는 웅장한 딥 틸-블랙 */
-  background: #1a232c !important;
-  color: #E0E6ED !important;
+  background-color: #2D3047 !important; /* 슬라이드 테마와 통일감을 주는 웅장한 딥 틸-블랙 */
+  background: #2D3047 !important;
+  color: #FFFFFF !important;
 }
 
 /* 2. Exporter 왼쪽 컨트롤 패널 다크 카드 스타일링 */
 html:has(#export-container) .print\:hidden.min-w-fit,
 div:has(> #export-container) .print\:hidden.min-w-fit,
 div:has(> #export-container) div[flex~="col"][gap-2] {
-  background-color: #101820 !important; /* 패널 전용 다크 틸 배경 */
-  border-right: 1.5px solid rgba(242, 170, 76, 0.15) !important;
-  color: #E0E6ED !important;
+  background-color: #2D3047 !important; /* 패널 전용 다크 틸 배경 */
+  border-right: 1.5px solid rgba(224, 202, 60, 0.15) !important;
+  color: #FFFFFF !important;
 }
 
 /* 3. 하위 폼 레이블, 제목, 문단 고대비 크림색 강제 고정 (슬라이드 본문 영역 침투 완전 차단) */
@@ -762,7 +764,7 @@ html:has(#export-container) .print\:hidden.min-w-fit span,
 html:has(#export-container) .print\:hidden.min-w-fit label,
 html:has(#export-container) .print\:hidden.min-w-fit p,
 html:has(#export-container) .print\:hidden.min-w-fit div {
-  color: #E0E6ED !important;
+  color: #FFFFFF !important;
 }
 
 /* 4. 입력 필드 (Title, Range, Delay 등)의 고가시성 다크 스타일링 */
@@ -770,9 +772,9 @@ html:has(#export-container) input[type="text"],
 html:has(#export-container) input[type="number"],
 div:has(> #export-container) input[type="text"],
 div:has(> #export-container) input[type="number"] {
-  background-color: #18232F !important;
-  color: #E0E6ED !important;
-  border: 1.5px solid rgba(242, 170, 76, 0.35) !important;
+  background-color: #212335 !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid rgba(224, 202, 60, 0.35) !important;
   border-radius: 4px !important;
   padding: 0.4rem 0.7rem !important;
   font-family: inherit !important;
@@ -781,8 +783,8 @@ div:has(> #export-container) input[type="number"] {
 
 html:has(#export-container) input:focus,
 div:has(> #export-container) input:focus {
-  border-color: #F2AA4C !important;
-  box-shadow: 0 0 5px rgba(242, 170, 76, 0.25) !important;
+  border-color: #E0CA3C !important;
+  box-shadow: 0 0 5px rgba(224, 202, 60, 0.25) !important;
   outline: none !important;
 }
 
@@ -791,8 +793,8 @@ html:has(#export-container) .slidev-form-button,
 html:has(#export-container) button,
 div:has(> #export-container) .slidev-form-button,
 div:has(> #export-container) button {
-  background-color: #F2AA4C !important;
-  color: #101820 !important;
+  background-color: #E0CA3C !important;
+  color: #2D3047 !important;
   font-weight: bold !important;
   font-family: inherit !important;
   border: none !important;
@@ -807,14 +809,14 @@ html:has(#export-container) button:hover,
 div:has(> #export-container) .slidev-form-button:hover,
 div:has(> #export-container) button:hover {
   background-color: #ffffff !important;
-  color: #101820 !important;
+  color: #2D3047 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(242, 170, 76, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(224, 202, 60, 0.3) !important;
 }
 
 /* 6. 다크 테마 하에서의 테두리 라인 보정 */
 html:has(#export-container) div[border~="main"] {
-  border: 1.5px solid rgba(242, 170, 76, 0.2) !important;
+  border: 1.5px solid rgba(224, 202, 60, 0.2) !important;
 }
 
 /* 7. 특정 슬라이드 폰트 다운 스케일링 클래스 (한 단계 아래로) */
