@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: 데이터베이스 설계와 정규화
+title: Spring JDBC와 영속성
 mermaid:
   theme: base
   themeVariables:
@@ -43,17 +43,9 @@ mermaid:
     noteTextColor: '#2D3047'
     activationBkgColor: '#E0CA3C'
     activationBorderColor: '#E0CA3C'
-tags:
-  - D42
-  - 데이터베이스
-  - DB
-  - 데이터베이스_설계
-  - 정규화
-  - ERD
-  - 키
 ---
 
-# 데이터베이스 설계와 정규화
+# Spring JDBC와 영속성
 
 ---
 layout: default
@@ -61,10 +53,11 @@ layout: default
 
 # 학습 체크리스트 (1/2)
 
-- [ ] 현실 세계를 데이터로 변환하는 데이터 모델링 과정과 핵심 용어 이해
-- [ ] 개념적, 논리적, 물리적 스키마(Schema)의 3단계 구조와 특징 파악
-- [ ] 데이터베이스 시각화 및 설계 도구(ERD, ERD Cloud, Mermaid) 습득
-- [ ] 튜플을 유일하게 식별하고 연결하는 6가지 데이터베이스 키 분류 숙지
+- [ ] 영속성(Persistence) 개념과 영속 계층의 분리 목적 이해
+- [ ] DAO, Repository, DTO, VO, Entity 객체 패턴의 관점 차이 구분
+- [ ] JDK 17의 Record를 활용한 불변 데이터 객체 선언 방법 습득
+- [ ] MVC 패턴에서 Model의 책임과 관심사의 분리 원칙 파악
+- [ ] Layered / Clean Architecture에서 영속 계층의 위치와 의존 방향 이해
 
 ---
 layout: default
@@ -72,109 +65,223 @@ layout: default
 
 # 학습 체크리스트 (2/2)
 
-- [ ] 식별자 선정 시 자연 키(Natural Key)와 인조 키(Surrogate Key)의 우수성 비교
-- [ ] 인조 키 발급의 두 가지 형태인 Sequence와 UUID의 물리적 이점 및 한계 분석
-- [ ] 데이터 중복 및 이상 현상(Anomaly)을 원천 예방하는 단계별 정규화 학습
-- [ ] 고속 조회 및 트래픽 부하 해결을 위한 반정규화(Denormalization) 기법 파악
+- [ ] Spring JDBC의 JdbcTemplate과 RowMapper 활용 방법 습득
+- [ ] View - Controller - Service - Repository 요청 처리 흐름 숙지
+- [ ] 커넥션 풀 동작 원리와 application.properties 환경 구성 방법 습득
+- [ ] 의존성 주입(DI)과 @Transactional 선언적 트랜잭션 처리 이해
 
 ---
 layout: cover
 class: text-center
 ---
 
-# 데이터 모델링
+# 영속성과 계층형 설계
 
 ---
 layout: default
 ---
 
-# 데이터 모델링 개요
+# 영속성 개념
 
-> **데이터 모델링 (Data Modeling)**
+> **영속성 (Persistence)**
 >
-> 현실 세계의 복잡한 비즈니스 요구사항과 데이터를 추상화, 단순화, 명확화하여 데이터베이스 구조로 설계하는 일련의 과정
+> 프로그램이 종료되어 메모리의 데이터가 소멸되더라도, 파일 시스템이나 데이터베이스 등 비휘발성 저장소에 기록하여 데이터를 영구적으로 보존하는 성질
 
-- **추상화 및 구조화**:
-  - 현실의 업무 프로세스를 가시적인 데이터 구조(스키마)로 정돈하여 시스템의 기반을 설계함
-- **데이터 무결성 확보**:
-  - 데이터가 정합성을 유지하도록 구조적 형식과 각종 제약 사항을 선제적으로 통제함
-- **협업 가속화**:
-  - 개발자와 비즈니스 기획자 간의 요구사항 오해를 해소하는 표준 명세서 역할을 담당함
-
----
-layout: default
----
-
-# 관계형 모델의 핵심 용어 (1/2)
-
-- **엔터티 (Entity / 개체)**:
-  - 데이터베이스에서 관리하고자 하는 유무형의 대상체로, 고유한 식별자를 가지며 저장이 필요한 정보의 단위
-- **릴레이션 (Relation / 테이블)**:
-  - 엔터티 혹은 이들의 연관 관계를 2차원 표(Table) 형태로 구조화하여 나타낸 데이터 구조
-- **튜플 (Tuple / 행 / 레코드)**:
-  - 릴레이션을 구성하는 각 가로 줄로, 실세계의 구체적인 개체 인스턴스 하나를 나타내는 데이터 단위
+- **메모리의 휘발성 한계**:
+  - 프로세스가 종료되면 변수와 객체 등 메모리상의 데이터는 모두 사라짐
+- **비휘발성 저장소 기록**:
+  - 데이터베이스에 저장(영속화)하여 재시작 이후에도 데이터를 유지
+- **영속 계층 (Persistence Layer)**:
+  - 데이터베이스 입출력(저장, 조회, 수정, 삭제)을 전담하도록 분리한 소프트웨어 계층
+  - 비즈니스 로직과 데이터 접근 기술을 격리하여 유지보수성 확보
 
 ---
 layout: default
 ---
 
-# 관계형 모델의 핵심 용어 (2/2)
+# 데이터 접근 객체: DAO와 Repository
 
-- **속성 (Attribute / 열 / 필드)**:
-  - 릴레이션의 세로 열에 해당하며, 엔터티가 가지는 구체적인 성격, 특징 또는 데이터 타입
-- **도메인 (Domain)**:
-  - 하나의 속성(Attribute)이 안전하게 가질 수 있는 원자값들의 논리적/물리적 유효 범위
+| 패턴 | 관점 | 핵심 역할 |
+| :--- | :--- | :--- |
+| **DAO** (Data Access Object) | 데이터베이스 중심 | DB(Database) 접근 로직을 캡슐화 |
+| **Repository** | 도메인(객체) 중심 | 저장소를 컬렉션처럼 추상화하여 접근 |
 
----
-layout: default
----
-
-# 가구 설계와 실물 가구
-
-- **엔터티 (가구 종류)**:
-  - 관리실에서 입출고를 기록할 가구 종류(예: '책상', '의자')처럼 이름을 붙인 고유 대상
-- **속성 (가구의 제원)**:
-  - 가로 길이, 세로 길이, 재질, 색상 등 개별 가구의 구체적인 스펙을 명시하는 열(Column)
-- **도메인 (색상 선택 폭)**:
-  - 색상 칸에 '갈색', '검은색', '하얀색'만 칠할 수 있도록 허용 범위를 안전하게 차단해 둔 장치
-- **튜플 (주문된 단 하나의 책상)**:
-  - "1번 책상, 120cm, 80cm, 참나무, 갈색"이라는 특징이 실제로 결합되어 방 안에 안착한 실물
+- **같은 영속 계층, 다른 관점**:
+  - DAO는 "어떤 SQL로 접근하는가", Repository는 "어떤 도메인 객체를 보관하는가"에 집중
 
 ---
 layout: default
 ---
 
-# 데이터베이스 스키마 개요
+# 데이터 운반 객체: DTO · VO · Entity
 
-> **데이터베이스 스키마 (Database Schema)**
+| 패턴 | 관점 | 핵심 역할 |
+| :--- | :--- | :--- |
+| **DTO** (Data Transfer Object) | 계층 간 전달 | 로직 없는 데이터 운반 객체 |
+| **VO** (Value Object) | 값 그 자체 | 불변 객체, 내부 값의 동등성으로 비교 |
+| **Entity** | 테이블 대응 | 테이블 행(Row)과 1:1 매핑, 식별자(PK, Primary Key) 보유 |
+
+- **역할별 분리 이유**:
+  - 전달·값 표현·영속화라는 목적이 서로 달라 하나의 객체로 겸하면 책임이 뒤섞임
+
+---
+layout: default
+---
+
+# DTO · VO · Entity 구분 기준
+
+| 구분 | 같음의 판단 기준 | 불변성 | 주 용도 |
+| :--- | :--- | :--- | :--- |
+| **DTO** | 식별 개념 없음 | 자유로움 | 계층 간 데이터 전달 |
+| **VO** | 내부 값의 동등성 | 불변 필수 | 돈, 좌표, 주소 등 값 표현 |
+| **Entity** | 식별자(PK) | 상태 변경 가능 | 테이블 행 표현, 영속화 대상 |
+
+- **핵심 질문**: "이 객체는 무엇으로 같음을 판단하는가?"
+  - 값이 모두 같아도 id가 다르면 다른 Entity, 값이 같으면 같은 VO
+
+---
+layout: default
+---
+
+# 계층 간 데이터를 나르는 DTO 클래스
+
+```java
+public class UserDto {
+    private Long id;
+    private String name;
+
+    // 로직 없이 getter/setter만 보유
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+```
+
+---
+layout: default
+---
+
+# 레코드 (Record) 개념
+
+> **레코드 (Record)**
 >
-> 데이터베이스의 구조와 제약 조건에 관해 전반적으로 기술한 메타데이터의 집합
+> 불변 데이터 운반을 위해 필드 선언만으로 생성자, 조회 메서드, equals/hashCode, toString을 자동 생성해 주는 자바의 특수 클래스 — JDK(Java Development Kit) 16에서 도입, 17 LTS(Long-Term Support) 버전의 표준
 
-- **구조적 뼈대 선언**:
-  - 테이블 명세, 컬럼 속성, 인덱스 관계 및 기본키/외래키 등 모든 구조의 규칙을 담음
-- **데이터 독립성 구현**:
-  - 내부 구조가 바뀌거나 외부 뷰가 바뀌어도 데이터 처리 방식에 영향을 주지 않도록 매핑함
-- **데이터 안정성 보장**:
-  - 허용하지 않는 범위나 규칙에 어긋나는 잘못된 값이 들어오지 않도록 정합성을 수호함
-
----
-layout: default
----
-
-# 스키마의 3단계 구조
-
-- **개념적 스키마 (Conceptual Schema)**:
-  - 사용자나 조직 전체의 관점에서 표현한 논리 구조로, 물리 구현을 배제하고 전체 엔터티 관계(E-R 다이어그램)를 통합 정의함
-- **논리적 스키마 (Logical Schema)**:
-  - 개념 스키마를 특정 RDBMS가 이해할 수 있는 테이블 정의, 속성 타입, 키 관계 등으로 매핑하여 구체화한 모델
-- **물리적 스키마 (Physical Schema)**:
-  - 논리 스키마가 디스크 등의 실제 저장 장치에 보관되는 명세로, 인덱스 생성 및 파일 할당 크기 등을 상세 설계함
+- **보일러플레이트 제거**:
+  - getter/setter, 생성자, equals/hashCode를 손으로 작성할 필요가 없음
+- **불변성 기본 보장**:
+  - 모든 필드가 `final`로 고정되어 생성 이후 값 변경이 불가능
+- **DTO와 VO에 최적**:
+  - 값 동등성 비교와 불변 전달 객체라는 요구사항을 문법 차원에서 충족
 
 ---
 layout: default
 ---
 
-# 스키마 구조의 계층적 연동 관계
+# Record 한 줄로 압축한 DTO 선언
+
+```java
+// 클래스 버전과 동일한 역할을 한 줄로 선언
+public record UserDto(Long id, String name) { }
+```
+
+```java
+UserDto dto = new UserDto(101L, "홍길동");
+
+String name = dto.name(); // getName()이 아닌 필드명 그대로 조회
+```
+
+---
+layout: default
+---
+
+# Record VO의 값 동등성 비교
+
+```java
+public record Money(String currency, long amount) { }
+```
+
+```java
+Money a = new Money("KRW", 1000L);
+Money b = new Money("KRW", 1000L);
+
+boolean same = a.equals(b); // true — 내부 값이 같으면 같은 값
+```
+
+---
+layout: default
+---
+
+# 엔터티 (Entity) 개념
+
+> **엔터티 (Entity)**
+>
+> 데이터베이스 테이블의 행(Row)과 1:1로 대응되며, 값이 아닌 식별자(PK)로 같음을 판단하는 영속화 대상 객체
+
+- **식별자 기준 동등성**:
+  - 이름과 이메일이 모두 같아도 id가 다르면 서로 다른 엔터티
+- **상태 변경 가능**:
+  - 조회 후 값을 수정하고 다시 저장하는 생명주기를 가지므로 일반 클래스로 작성
+- **Record 부적합**:
+  - Record는 불변이라 상태 변경이 필요한 Entity에는 적합하지 않음 (DTO/VO에 사용)
+
+---
+layout: default
+---
+
+# 테이블 행과 대응되는 User 엔터티
+
+```java
+public class User {
+    private final Long id;  // 식별자(PK) — 변경 불가
+    private String name;    // 상태 — 변경 가능
+
+    public User(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    public void changeName(String name) { this.name = name; }
+}
+```
+
+---
+layout: default
+---
+
+# Class와 Record의 선택 기준
+
+| 상황 | 선택 | 이유 |
+| :--- | :--- | :--- |
+| **JPA Entity** | 클래스 강제 | 기본 생성자와 상태 변경(더티 체킹)이 필수 |
+| **JSP/JSTL EL 표현식** | getter 클래스 | `${user.name}`이 `getName()` 규약을 탐색 |
+| **REST API 요청/응답** | Record 편리 | JSON 직렬화 지원 + 불변으로 안전한 전달 |
+
+- **판단 기준**: 사용하는 기술이 **JavaBeans 규약(getter/기본 생성자)을 요구하는가?**
+  - 요구하면 클래스로 작성, 아니면 Record가 더 간결하고 안전
+- **용어 풀이**: JPA(Jakarta Persistence API) · EL(Expression Language) · REST(Representational State Transfer) API · JSON(JavaScript Object Notation)
+
+---
+layout: default
+---
+
+# MVC 패턴에서의 Model
+
+> **MVC 패턴 (Model-View-Controller)**
+>
+> 애플리케이션을 Model(데이터와 비즈니스 로직), View(화면 표현), Controller(요청 제어)로 분리하는 아키텍처 패턴
+
+- **영속성은 Model의 책임**:
+  - 데이터베이스 연동(영속화)은 Model 영역에서 담당
+- **Model의 독립성**:
+  - View나 Controller에 종속되지 않고 데이터 상태와 비즈니스 규칙을 처리
+- **관심사의 분리 (SoC, Separation of Concerns)**:
+  - 화면 로직과 데이터 로직을 분리하여 화면 변경이 데이터 처리 코드에 영향을 주지 않음
+  - 재사용성과 테스트 용이성 향상
+
+---
+layout: default
+---
+
+# Layered Architecture의 단방향 의존
 
 ```mermaid
 ---
@@ -185,191 +292,220 @@ config:
     edgeLabelBackground: "#2D3047"
   flowchart:
     padding: 8
-    nodeSpacing: 52
-    rankSpacing: 48
+    nodeSpacing: 40
+    rankSpacing: 40
 ---
-flowchart TD
-  CS["개념적 스키마 (Conceptual)"] -->|"<span style='padding:2px 6px;color:#2D3047 !important;background-color:#E0CA3C !important;border:1px solid #E0CA3C !important;border-radius:4px;font-weight:bold;display:inline-block;'>DBMS 테이블 매핑</span>"| LS["논리적 스키마 (Logical)"]
-  LS -->|"<span style='padding:2px 6px;color:#2D3047 !important;background-color:#E0CA3C !important;border:1px solid #E0CA3C !important;border-radius:4px;font-weight:bold;display:inline-block;'>디스크 물리 설계</span>"| PS["물리적 스키마 (Physical)"]
+flowchart LR
+  P["Presentation<br/>(Controller)"] --> B["Business<br/>(Service)"]
+  B --> R["Persistence<br/>(Repository)"]
+  R --> D["Database"]
 
-  class CS,LS,PS engine
-  classDef engine fill:#2D3047,stroke:#E0CA3C,color:#FFFFFF,stroke-width:2px
+  class P,B,R step
+  class D db
+  classDef step fill:#2D3047,stroke:#E0CA3C,color:#FFFFFF,stroke-width:2px
+  classDef db fill:#A799B7,stroke:#E0CA3C,color:#2D3047,stroke-width:2px
   linkStyle default stroke:#E0CA3C,stroke-width:4px
 ```
 
+- **단방향 흐름 강제**: 상위 계층은 바로 아래 하위 계층에만 의존
+- **책임 단위 수평 분할**: 각 계층이 자신의 역할에만 집중하는 전통적 구조
+
 ---
 layout: default
 ---
 
-# 데이터베이스 설계 및 시각화 도구
+# Clean Architecture와 의존성 역전
 
-> **ERD (Entity-Relationship Diagram)**
+> **클린 아키텍처 (Clean Architecture)**
 >
-> 엔터티 간의 관계를 도식화하여 데이터베이스의 전체 구조를 시각화하는 설계 도구
+> 도메인(비즈니스 규칙)을 중심에 두고, 데이터베이스와 웹 프레임워크 등 세부 기술을 바깥 원에 배치하는 설계 구조
 
-- **ERD Cloud**:
-  - 웹 브라우저 기반 실시간 동시 협업 모델링 툴로, 설치 없이 스키마 구축이 가능하며 SQL 생성 기능을 지원함
-- **Mermaid**:
-  - 마크다운 내에서 텍스트 문법을 통해 다이어그램을 코드로 즉시 생성하고 렌더링하는 오픈소스 스크립팅 도구
-- **DB Tool (DBeaver, IntelliJ)**:
-  - 실제 DB 서버에 이미 생성된 테이블 구조와 참조선 관계를 역공학(Reverse Engineering)하여 자동으로 ERD를 시각화해 줌
-
----
-layout: default
----
-
-# 회원 및 구매 데이터 관계 선언
-
-```sql
-CREATE TABLE customers (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
-  registered_date DATE DEFAULT (CURRENT_DATE)
-);
-```
+- **의존 방향의 역전**:
+  - 의존성이 항상 바깥에서 안쪽(도메인)으로만 향하도록 설계
+- **영속성은 세부사항 (Detail)**:
+  - 데이터베이스 기술은 교체 가능한 바깥 원의 세부사항으로 취급
+- **Layered와의 차이**:
+  - 계층형은 위에서 아래로 의존, 클린은 바깥에서 중심(도메인)으로 의존
 
 ---
 layout: cover
 class: text-center
 ---
 
-# 데이터베이스 키
+# Spring JDBC와 웹 요청 흐름
 
 ---
 layout: default
 ---
 
-# 데이터베이스 키 개요
+# Spring JDBC 개요
 
-> **데이터베이스 키 (Database Keys)**
+> **Spring JDBC**
 >
-> 릴레이션 내에서 각 튜플들을 유일하게 식별하고 테이블 간의 참조 관계를 구성하여 데이터 무결성을 보장하는 속성들의 조합
+> 순수 JDBC(Java Database Connectivity)의 반복적인 보일러플레이트 코드를 스프링이 대신 처리해 주는 데이터 접근 기술
 
-- **유일 식별자 역할**:
-  - 테이블 안에 저장된 수많은 행들이 겹치지 않고 온전히 분리될 수 있는 유일성을 부여함
-- **참조 무결성 보장**:
-  - 외래키를 통해 부모 테이블의 고유값을 가리키도록 설정하여 서로 어긋나는 참조를 영구 차단함
-- **검색 및 조인 가속**:
-  - 식별 키 값을 통해 탐색 범위가 압축되어 대용량 조회 성능의 속도를 끌어올림
+- **보일러플레이트 제거**:
+  - 드라이버 로딩, 커넥션 획득/반납, 예외 처리를 프레임워크가 자동 수행
+- **개발자의 집중 영역**:
+  - SQL(Structured Query Language) 작성과 조회 결과의 객체 매핑에만 집중
 
 ---
 layout: default
 ---
 
-# 키의 분류와 정의 (1/2)
+# JdbcTemplate과 RowMapper
 
-- **슈퍼 키 (Super Key)**:
-  - 릴레이션 내의 모든 튜플을 유일하게 식별할 수 있는 속성 집합 (유일성 만족, 최소성 미만족)
-- **후보 키 (Candidate Key)**:
-  - 튜플을 유일하게 식별할 수 있는 최소한의 속성 집합 (유일성과 최소성을 모두 충족하는 기본키 후보군)
-- **기본 키 (Primary Key / PK)**:
-  - 후보 키 중 테이블을 대표하는 식별자로 지정된 키로, 중복 값과 `NULL` 값을 가질 수 없음
-
----
-layout: default
----
-
-# 키의 분류와 정의 (2/2)
-
-- **대체 키 (Alternate Key)**:
-  - 후보 키 중 기본키로 최종 발탁되지 못하고 남은 나머지 식별 키
-- **외래 키 (Foreign Key / FK)**:
-  - 다른 테이블의 기본키를 참조하여 테이블 간의 연관 관계를 맺고 데이터 참조 무결성을 보장하는 제약 조건
-- **복합 키 (Composite Key)**:
-  - 두 개 이상의 속성을 결합하여 하나의 기본키로 작동하도록 설계한 식별 키
+- **JdbcTemplate**:
+  - 커넥션 관리·Statement 생성·자원 반납을 템플릿 메서드 패턴으로 자동화한 핵심 클래스
+  - `query()`, `queryForObject()`, `update()` 등의 메서드 제공
+- **RowMapper**:
+  - `ResultSet`의 각 행(Row)을 자바 객체(DTO)로 변환하는 매핑 규칙을 정의하는 함수형 인터페이스
+  - 조회 결과의 객체화를 담당하며 람다식으로 간결하게 구현 가능
 
 ---
 layout: default
 ---
 
-# 아파트 동호수와 입주자 관리
+# JdbcTemplate 조회와 RowMapper 매핑
 
-- **슈퍼 키 (동호수 + 이름 + 차종)**:
-  - 주민을 식별하는 데 문제없으나 차종이나 이름 정보까지 굳이 포함할 필요는 없는 장황한 조합
-- **후보 키 (동호수, 혹은 세대주 주민번호)**:
-  - 중복되지 않으면서도 불필요한 군더더기가 없는 가장 심플하고 최소화된 식별자
-- **기본 키 (동호수)**:
-  - 아파트 관리사무소에서 단지 관리를 위해 최종 대표 식별자로 선택하여 못 박은 핵심 키
-- **외래 키 (배달 차량 등록표의 동호수)**:
-  - 배달 차량에 "101동 202호 방문"이라는 동호수(PK)를 적어두어 실체하는 동호수 주민과의 연계를 확실하게 인증하는 안전끈
+```java
+String sql = "SELECT id, name FROM users WHERE id = ?";
 
----
-layout: default
----
-
-# 자연 키와 인조 키의 대립
-
-> **자연 키와 인조 키 (Natural & Surrogate Keys)**
->
-> 도메인 비즈니스적 의미의 포함 여부에 따른 기본키의 분류 체계
-
-- **자연 키 (Natural Key)**:
-  - 이메일, 전화번호, 주민등록번호처럼 현실 비즈니스 영역에서 고유성을 갖는 실제 데이터를 식별키로 채용하는 방식
-- **인조 키 (Surrogate Key)**:
-  - 비즈니스와는 전혀 무관한 가상의 일련번호나 해시 난수 등을 인위적으로 부여하여 기본키로 삼는 방식
-
----
-layout: default
----
-
-# 자연 키 설계의 아킬레스건
-
-- **비즈니스 규칙 변경 위험**:
-  - 회원 식별용 이메일 주소를 변경해야 하거나, 주민번호 수집이 법적으로 정면 금지되는 상황이 닥칠 때 키 설계 자체가 붕괴함
-- **외래키 변경의 전파 부하 (Cascade Overhead)**:
-  - 자연키 값이 도중에 변경되면, 이 키를 외래키로 참조하여 물려있던 수많은 자식 테이블의 필드까지 일괄 갱신해야 하므로 정합성 위기가 심화됨
-- **개인정보 유출 리스크**:
-  - 주민번호나 전화번호 같은 주요 정보를 키로 쓰면 자식 테이블마다 이 정보가 복제되어 퍼지므로 심각한 보안 침해 경로를 만듦
-
----
-layout: default
----
-
-# 인조 키의 강점 및 채번 전략
-
-- **참조 불변성의 완벽한 만족**:
-  - 의미 없는 가상의 값을 기본키로 고정하므로 비즈니스나 개인정보 법령이 바뀌어도 식별자는 영원히 변치 않고 안전함
-- **대표적인 인조키 생성 유형**:
-  - **Seq (Sequential Auto Increment)**: 1부터 1씩 순차적으로 자동 증가하는 정수 번호
-  - **UUID (Universally Unique Identifier)**: 128비트 크기로 자동 생성되는 난수형 고유 식별자
-
----
-layout: default
----
-
-# 인조키 전략 비교 (Seq vs UUID)
-
-| 비교 항목 | Seq (순차 증가 정수) | UUID (128비트 난수) |
-| :--- | :--- | :--- |
-| **저장 크기** | 4~8바이트 (매우 작음) | 16바이트/36문자 (상대적으로 큼) |
-| **쓰기 성능** | 매우 뛰어남 (물리 순차 저장) | 현저히 낮음 (무작위 분산으로 페이지 분할 발생) |
-| **분산 확장성** | 분산 발급 시 Sync 조율 비용 발생 | 중앙 조율 없이 독립 고유성 완전 보장 |
-| **보안 유출** | 취약함 (규모 추정 및 URL 조작 가능) | 강함 (추적 및 순서 예측이 불가능) |
-
----
-layout: default
----
-
-# 부서와 사원 테이블의 기본 연결 설계
-
-```sql
-CREATE TABLE departments (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE employees (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  dept_id INT,
-  FOREIGN KEY (dept_id) REFERENCES departments(id)
-);
+// RowMapper 람다가 한 행을 UserDto(record) 생성자로 변환
+UserDto user = jdbcTemplate.queryForObject(sql,
+    (rs, rowNum) -> new UserDto(
+        rs.getLong("id"),
+        rs.getString("name")
+    ), 101);
 ```
 
 ---
 layout: default
 ---
 
-# 외래키를 활용한 상호 참조 관계도
+# 웹 계층 요청 처리 흐름
+
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#E0CA3C"
+    actorBkg: "#2D3047"
+    actorBorder: "#E0CA3C"
+    actorTextColor: "#FFFFFF"
+    signalColor: "#E0CA3C"
+    signalTextColor: "#FFFFFF"
+    activationBkgColor: "#E0CA3C"
+    activationBorderColor: "#E0CA3C"
+  sequence:
+    actorMargin: 48
+    messageMargin: 36
+    mirrorActors: false
+---
+sequenceDiagram
+  View(JSP)->>Controller: 폼(form) 전송
+  Controller->>Service: DTO 바인딩 후 위임
+  Service->>Repository: 업무 단위 데이터 요청
+  Repository->>DB: JdbcTemplate SQL 실행
+  DB-->>View(JSP): 결과를 Model에 담아 화면 출력
+```
+
+---
+layout: default
+---
+
+# 계층별 어노테이션과 책임
+
+| 계층 | 선언 | 핵심 책임 |
+| :--- | :--- | :--- |
+| **View** | JSP / JSTL | `<form>` 입력 전송, `<c:forEach>` 등으로 Model 출력 |
+| **Controller** | `@Controller` | HTTP 요청 수신, 폼 파라미터를 DTO로 바인딩 |
+| **Service** | `@Service` | 비즈니스 로직 전담, 트랜잭션 경계 설정 |
+| **Repository** | `@Repository` | `JdbcTemplate`으로 실제 SQL 실행 |
+
+- **협력 구조**: 사용자 입력이 데이터베이스까지 도달하고 결과가 다시 화면으로 반환
+- **용어 풀이**: JSP(JavaServer Pages) · JSTL(JSP Standard Tag Library) · HTTP(HyperText Transfer Protocol)
+
+---
+layout: default
+---
+
+# 어노테이션 개념
+
+> **어노테이션 (Annotation)**
+>
+> 클래스나 메서드에 `@` 기호로 부착하는 메타데이터 표식으로, 컴파일러나 프레임워크에게 해당 코드를 어떻게 처리할지 알려주는 문법
+
+- **코드에 붙이는 설명 라벨**:
+  - 코드 자체의 로직을 바꾸지 않고, "이 클래스는 이런 역할"이라는 정보를 부여
+- **스프링의 활용 방식**:
+  - 스프링이 어노테이션을 읽고 빈(Bean) 등록, 트랜잭션 처리 등 부가 기능을 자동 적용
+- **컴포넌트 스캔 (Component Scan)**:
+  - `@Component` 계열이 붙은 클래스를 찾아 스프링 컨테이너에 빈으로 자동 등록
+
+---
+layout: default
+---
+
+# 계층 어노테이션이 담고 있는 의미
+
+| 어노테이션 | 의미 |
+| :--- | :--- |
+| `@Controller` | 웹 요청 창구 빈으로 등록, View 반환을 담당한다는 표식 |
+| `@Service` | 비즈니스 로직 계층임을 알리는 역할 명시 표식 |
+| `@Repository` | 영속 계층 표식 + DB 예외를 스프링 공통 예외로 자동 변환 |
+| `@Transactional` | 메서드를 트랜잭션 경계로 감싸 커밋/롤백을 자동 처리 |
+
+- **스테레오타입 (Stereotype) 어노테이션**:
+  - `@Controller`/`@Service`/`@Repository`는 모두 `@Component`의 계층별 특화 버전
+
+---
+layout: default
+---
+
+# 클라우드 데이터베이스 활용 (DBaaS)
+
+| 서비스 | DBMS | 특징 |
+| :--- | :--- | :--- |
+| **Aiven** | MySQL | 무료 티어 제공, 호스트/포트/계정을 JDBC URL(Uniform Resource Locator)로 조합 |
+| **Neon** | PostgreSQL | 서버리스, 접속 문자열 한 줄 연결, 사용량 기반 자동 확장 |
+
+- **DBaaS (Database as a Service)**:
+  - 로컬 설치 없이 클라우드 데이터베이스를 프로비저닝하여 원격 접속으로 실습
+- **DBMS (Database Management System)**:
+  - MySQL, PostgreSQL 같은 데이터베이스 관리 시스템을 관리형 서비스로 제공받음
+- **접속 정보 보안**:
+  - 자격 증명의 소스코드 하드코딩을 배제하고 환경 변수나 외부 설정으로 주입
+
+---
+layout: cover
+class: text-center
+---
+
+# Spring JDBC 환경 구성
+
+---
+layout: default
+---
+
+# 커넥션 풀 개념
+
+> **커넥션 풀 (Connection Pool)**
+>
+> 애플리케이션 시작 시점에 데이터베이스 커넥션을 미리 여러 개 생성해 풀에 보관하고, 빌려주고 반납받으며 재사용하는 기법
+
+- **고비용 작업 제거**:
+  - 매 요청마다 커넥션을 새로 생성/소멸하는 TCP(Transmission Control Protocol) 연결 및 인증 비용을 제거
+- **대여와 반납**:
+  - 요청 스레드가 유휴 커넥션을 대여(borrow)하고, close 시 연결을 끊지 않고 풀에 반납(return)
+- **DataSource**:
+  - 커넥션 획득 방법을 추상화한 표준 인터페이스로, `DriverManager` 대신 사용
+
+---
+layout: default
+---
+
+# 커넥션 대여와 반납 사이클
 
 ```mermaid
 ---
@@ -380,136 +516,135 @@ config:
     edgeLabelBackground: "#2D3047"
   flowchart:
     padding: 8
-    nodeSpacing: 52
-    rankSpacing: 48
+    nodeSpacing: 40
+    rankSpacing: 40
 ---
 flowchart LR
-  subgraph Parent["부모 테이블: departments"]
-    direction TB
-    D1["id (PK, INT)"]
-    D2["name (VARCHAR)"]
-  end
+  S1["애플리케이션 시작<br/>커넥션 미리 생성"] --> S2["요청 스레드<br/>대여 (borrow)"]
+  S2 --> S3["SQL 실행"]
+  S3 --> S4["close 호출<br/>풀에 반납 (return)"]
+  S4 --> S2
 
-  subgraph Child["자식 테이블: employees"]
-    direction TB
-    E1["id (PK, INT)"]
-    E2["dept_id (FK, INT)"]
-  end
-
-  E2 -->|"<span style='padding:2px 6px;color:#2D3047 !important;background-color:#E0CA3C !important;border:1px solid #E0CA3C !important;border-radius:4px;font-weight:bold;display:inline-block;'>참조 (FK -> PK)</span>"| D1
-
-  class D1,E2 engine
-  class D2,E1 step
+  class S1,S2,S3,S4 step
   classDef step fill:#2D3047,stroke:#E0CA3C,color:#FFFFFF,stroke-width:2px
-  classDef engine fill:#E0CA3C,stroke:#E0CA3C,color:#2D3047,stroke-width:2px
-  linkStyle default stroke:#E0CA3C,width:4px
+  linkStyle default stroke:#E0CA3C,stroke-width:4px
+```
+
+- **HikariCP**: Spring Boot가 기본 채택한 초경량 고성능 커넥션 풀 구현체
+
+---
+layout: default
+---
+
+# application.properties 설정
+
+> **application.properties**
+>
+> Spring Boot 애플리케이션의 설정 값(데이터소스, 포트, 로깅 등)을 코드 밖에서 선언적으로 관리하는 중앙 구성 파일
+
+- **자동 구성 (Auto-Configuration)**:
+  - 데이터소스 항목을 등록하면 Spring Boot가 커넥션 풀과 `DataSource` 빈을 자동 생성
+- **환경 변수 참조**:
+  - `${DB_URL}` 같은 플레이스홀더 문법으로 OS(Operating System) 환경 변수 값을 주입받아 민감 정보 노출 차단
+- **풀 크기 조정**:
+  - `spring.datasource.hikari.maximum-pool-size` 등으로 풀 크기와 타임아웃 제어
+
+---
+layout: default
+---
+
+# 데이터소스와 환경 변수 주입 선언
+
+```properties
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USER}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.datasource.hikari.maximum-pool-size=10
 ```
 
 ---
-layout: cover
-class: text-center
----
-
-# 정규화와 반정규화
-
----
 layout: default
 ---
 
-# 정규화 개요
+# 의존성 주입 (DI)
 
-> **정규화 (Normalization)**
+> **의존성 주입 (Dependency Injection)**
 >
-> 데이터 중복을 최소화하여 삽입·수정·삭제 시 발생하는 이상 현상을 예방하고 데이터 정합성을 철저히 지키기 위해 테이블을 단계별로 분해하는 과정
+> 객체가 필요로 하는 의존 객체를 내부에서 직접 생성하지 않고, 외부의 스프링 IoC(Inversion of Control, 제어의 역전) 컨테이너가 대신 생성하여 주입해 주는 기법
 
-- **이상 현상 (Anomaly) 차단**:
-  - 설계 오류로 인해 발생하는 튜플 수정/삭제/삽입 시의 모순적 동작을 근본적으로 제거함
-- **데이터 정합성(Consistency) 유지**:
-  - 중복 저장을 차단하여 한 곳만 고쳐도 전체 데이터 일관성이 확보되게 정비함
-- **저장 자원 최적화**:
-  - 무의미하게 중복 축적되는 컬럼 값들을 분리해 저장 비용을 절감함
-
----
-layout: default
----
-
-# 설계 결함으로 인한 3대 이상 현상
-
-- **삽입 이상 (Insertion Anomaly)**:
-  - 새로운 데이터를 추가하고 싶으나, 관련 없는 다른 필수 칼럼 정보가 누락되어 입력을 거부당하거나 가짜 데이터를 넣어야 하는 현상
-- **삭제 이상 (Deletion Anomaly)**:
-  - 필요 없는 특정 내역을 골라 지우는 과정에서, 보관해야 할 무관한 유용 데이터까지 통째로 지워져 영구 소실되는 현상
-- **갱신 이상 (Update Anomaly)**:
-  - 복제/중복 보관된 일부 행만 수정이 이루어져 동일한 속성인데 서로 다른 값을 가리키는 정합성 파괴 모순
+- **생성자 주입 (권장)**:
+  - 의존 객체를 생성자 매개변수로 전달받아 `final` 필드로 불변성을 보장
+- **계층 자동 조립**:
+  - Controller → Service → Repository → `JdbcTemplate` 순으로 스프링 컨테이너가 결합
+- **낮은 결합도**:
+  - 구현체 교체가 용이하고, 테스트 시 가짜 객체(Mock) 주입으로 단위 테스트가 수월
 
 ---
 layout: default
 ---
 
-# 패키지 등록과 회원 명부 파손
+# 생성자 주입 기반 Repository 조립
 
-- **삽입 이상**:
-  - 신규 고객 정보만 등록하려 했으나, 구매한 강습 프로그램(필수 속성) 번호가 미정이라 회원 가입 자체를 반려함
-- **삭제 이상**:
-  - 회원이 기간 만료된 개인 사물함 이용증을 해지했더니, 이용증 테이블에서 회원 고유 프로필까지 동시 영구 삭제됨
-- **갱신 이상**:
-  - 이사한 회원의 주소를 수정했는데, 회원 테이블의 주소는 수정되었으나 결제 테이블 상에 복사된 주소는 갱신되지 않고 방치됨
+```java
+@Repository
+public class UserRepository {
+    private final JdbcTemplate jdbcTemplate; // final로 불변 보장
 
----
-layout: default
----
-
-# 단계별 정규화 규칙 (1/2)
-
-- **제1정규형 (1NF) - 원자값 확보**:
-  - 테이블 내 모든 컬럼의 값이 단 하나의 원자 값(Atomic Value)을 갖도록 보장하고, 중복 컬럼 그룹을 완전 제거함
-- **제2정규형 (2NF) - 부분 함수 종속 제거**:
-  - 1NF를 만족하고, 기본키가 여러 개일 때 일부 열에만 종속되는 부분 함수 종속을 분해하여 완전 함수 종속 구조를 세움
-- **제3정규형 (3NF) - 이행적 함수 종속 제거**:
-  - 2NF를 만족하고, 일반 컬럼 간의 이행적 함수 종속(A $\rightarrow$ B $\rightarrow$ C) 관계를 별도 테이블로 분리함
+    // 스프링 컨테이너가 JdbcTemplate을 대신 생성하여 주입
+    public UserRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+}
+```
 
 ---
 layout: default
 ---
 
-# 단계별 정규화 규칙 (2/2)
+# 트랜잭션 개념
 
-- **보이스-코드 정규형 (BCNF) - 결정자 키 강제**:
-  - 3NF를 만족하며, 후보키가 아닌 결정자(Determinant)가 존재하는 종속 구조를 쪼개어 모든 결정자가 후보키가 되게 함
-- **제4정규형 (4NF) - 다치 종속 해소**:
-  - 릴레이션에 존재하는 다치 종속(Multi-valued Dependency) 구조를 다른 테이블로 쪼개어 독립시킴
-- **제5정규형 (5NF) - 조인 종속 제거**:
-  - 조인 종속(Join Dependency)이 오직 후보키를 통해서만 성립되도록 하여 조인 복원 시 무손실 분해를 종결함
-
----
-layout: default
----
-
-# 반정규화 개요
-
-> **반정규화 (Denormalization)**
+> **트랜잭션 (Transaction)**
 >
-> 대량의 웹 서비스 트래픽 환경에서 정규화된 테이블의 과도한 조인 연산으로 인한 성능 병목을 해소하기 위해, 의도적으로 데이터의 중복을 허용하는 물리 설계 조정 기법
+> 데이터베이스의 상태를 변화시키는 논리적으로 분리할 수 없는 작업의 최소 단위로, 전부 성공(Commit)하거나 전부 취소(Rollback)되어야 하는 원자적 작업 묶음
 
-- **조인 병목 해결**:
-  - 분산된 테이블들을 엮어 읽을 때 수반되는 다중 디스크 I/O 조인 횟수를 줄여 초고속 조회를 유도함
-- **데이터 정합성 트레이드오프**:
-  - 쓰기/수정 시 갱신 부하가 늘고 데이터 중복 불일치 위험을 감수하는 대신, 극단적인 읽기 성능 향상을 위해 수행함
-- **주요 배경**:
-  - 조회 응답 지연 속도가 서비스 사용자 이탈에 직접적인 위협을 주는 웹 아키텍처에서 빈번하게 채용됨
+- **전부 아니면 전무**:
+  - 여러 SQL이 반드시 함께 성공해야 하는 업무를 하나의 단위로 묶음
+- **대표 사례**:
+  - 계좌 이체(출금 + 입금), 주문 처리(주문 생성 + 재고 차감)의 데이터 정합성 보장
+- **커밋과 롤백**:
+  - 정상 완료 시 커밋으로 확정, 중간 실패 시 롤백으로 전체 취소
 
 ---
 layout: default
 ---
 
-# 반정규화의 핵심 설계 기법
+# 트랜잭션 ACID 4대 원칙
 
-- **테이블 병합 및 분할**:
-  - 1:1 관계의 테이블을 병합하여 Join 횟수를 아끼거나, 특정 기준(수평/수직)으로 테이블을 파티셔닝(Partitioning)하여 탐색 범위를 한정함
-- **컬럼 반정규화**:
-  - 자주 조회되는 상위 테이블 속성을 하위 테이블에 복사해 두는 '중복 컬럼 주입', 합계/평균을 미리 구해 기록해 두는 '파생 컬럼 생성'
-- **관계 반정규화**:
-  - 먼 조상 테이블까지 거슬러 올라가 조인하는 속도를 줄이기 위해 중간 단계를 뛰어넘어 직접 외래키(FK)를 연결함
+| 성질 | 의미 |
+| :--- | :--- |
+| **원자성 (Atomicity)** | 전부 성공하거나 전부 취소 (전부 아니면 전무) |
+| **일관성 (Consistency)** | 트랜잭션 전후로 무결성 규칙 유지 |
+| **격리성 (Isolation)** | 동시 실행 트랜잭션 간 간섭 차단 |
+| **지속성 (Durability)** | 커밋된 결과는 영구적으로 보존 |
+
+---
+layout: default
+---
+
+# @Transactional 계좌 이체 서비스
+
+```java
+@Service
+public class TransferService {
+    @Transactional // 시작 시 트랜잭션 개시
+    public void transfer(Long from, Long to, int amount) {
+        accountRepository.withdraw(from, amount); // 출금
+        accountRepository.deposit(to, amount);    // 입금
+    } // 정상 종료 시 커밋, 런타임 예외 시 롤백
+}
+```
 
 ---
 layout: default
@@ -517,11 +652,11 @@ layout: default
 
 # 학습 요약 (Summary)
 
-- **데이터 모델링**:
-  - 현실 요구사항을 추상화하여 개념-논리-물리 스키마 3단계 설계를 수립해 가독성과 독립성을 보장하는 기초 공사
-- **데이터베이스 키**:
-  - 고유한 튜플 식별 및 참조 무결성을 수호하며, 도메인 규칙 변경에 유연하게 대응하기 위해 자연키 대비 인조키(Seq/UUID)를 전략적으로 배치함
-- **정규화**:
-  - 데이터 중복을 억제하고 이상 현상(삽입/삭제/갱신)을 제거하기 위해 테이블을 단계별(1NF~5NF, BCNF) 함수 종속으로 무손실 분해하는 절차
-- **반정규화**:
-  - 고트래픽 읽기 부하를 해결하기 위해 중복 위험을 감수한 채 의도적으로 구조를 타협하여 디스크 I/O 조인 병목을 해소하는 튜닝
+- **영속성과 데이터 객체 설계**:
+  - 영속 계층은 DAO/Repository로 격리하고, DTO/VO는 Record(JDK 17)로, 상태가 변하는 Entity는 클래스로 작성
+- **Spring JDBC**:
+  - `JdbcTemplate`이 보일러플레이트를 자동화하고, `RowMapper`가 조회 결과를 자바 객체로 매핑
+- **환경 구성**:
+  - 커넥션 풀(HikariCP)과 `application.properties`의 환경 변수 참조로 성능과 보안을 동시 확보
+- **DI와 트랜잭션**:
+  - 생성자 주입으로 계층을 조립하고, `@Transactional`로 커밋/롤백을 선언적으로 처리
