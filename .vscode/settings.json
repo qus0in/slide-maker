@@ -1,0 +1,8 @@
+{
+  // Slidev 슬라이드 마크다운은 저장 시 포맷하지 않는다.
+  // 포매터가 슬라이드 구분자(--- / layout: default / ---)를 h2 제목으로 바꿔
+  // 레이아웃 지정이 통째로 무효화되는 사고가 발생한다.
+  "[markdown]": {
+    "editor.formatOnSave": false
+  }
+}

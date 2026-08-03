@@ -1,0 +1,9 @@
+# Slidev 슬라이드 마크다운
+# 포매터가 슬라이드 구분자(--- / layout: default / ---)를 h2 제목으로 변환해
+# 레이아웃 지정이 통째로 무효화되므로 포맷 대상에서 제외한다.
+slides.md
+outputs/**/*.md
+
+# 빌드 산출물
+dist
+node_modules
