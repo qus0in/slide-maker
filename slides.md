@@ -1,6 +1,6 @@
 ---
 theme: default
-background: '#2D3047'
+background: '#1F2F16'
 class: text-center
 layout: cover
 highlighter: shiki
@@ -12,41 +12,41 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: Spring Boot 기반 RAG 구현
+title: Thymeleaf 기초
 mermaid:
   theme: base
   themeVariables:
-    background: '#2D3047'
-    primaryColor: '#A799B7'
-    primaryTextColor: '#FFFFFF'
-    primaryBorderColor: '#E0CA3C'
-    secondaryColor: '#E0CA3C'
-    tertiaryColor: '#2D3047'
-    lineColor: '#E0CA3C'
-    textColor: '#FFFFFF'
-    mainBkg: '#2D3047'
-    nodeBorder: '#E0CA3C'
-    clusterBkg: '#2D3047'
-    clusterBorder: '#E0CA3C'
-    edgeLabelBackground: '#2D3047'
-    actorBkg: '#2D3047'
-    actorBorder: '#E0CA3C'
-    actorTextColor: '#FFFFFF'
-    actorLineColor: '#E0CA3C'
-    signalColor: '#E0CA3C'
-    signalTextColor: '#FFFFFF'
-    labelBoxBkgColor: '#2D3047'
-    labelBoxBorderColor: '#E0CA3C'
-    labelTextColor: '#FFFFFF'
-    loopTextColor: '#FFFFFF'
-    noteBkgColor: '#A799B7'
-    noteBorderColor: '#E0CA3C'
-    noteTextColor: '#2D3047'
-    activationBkgColor: '#E0CA3C'
-    activationBorderColor: '#E0CA3C'
+    background: '#1F2F16'
+    primaryColor: '#5A7684'
+    primaryTextColor: '#F4F7F0'
+    primaryBorderColor: '#92AFD7'
+    secondaryColor: '#92AFD7'
+    tertiaryColor: '#1F2F16'
+    lineColor: '#92AFD7'
+    textColor: '#F4F7F0'
+    mainBkg: '#1F2F16'
+    nodeBorder: '#92AFD7'
+    clusterBkg: '#1F2F16'
+    clusterBorder: '#5A7684'
+    edgeLabelBackground: '#1F2F16'
+    actorBkg: '#1F2F16'
+    actorBorder: '#92AFD7'
+    actorTextColor: '#F4F7F0'
+    actorLineColor: '#5A7684'
+    signalColor: '#92AFD7'
+    signalTextColor: '#F4F7F0'
+    labelBoxBkgColor: '#1F2F16'
+    labelBoxBorderColor: '#5A7684'
+    labelTextColor: '#F4F7F0'
+    loopTextColor: '#F4F7F0'
+    noteBkgColor: '#5A7684'
+    noteBorderColor: '#92AFD7'
+    noteTextColor: '#F4F7F0'
+    activationBkgColor: '#92AFD7'
+    activationBorderColor: '#92AFD7'
 ---
 
-# Spring Boot 기반 RAG 구현
+# Thymeleaf 기초
 
 ---
 layout: default
@@ -54,9 +54,10 @@ layout: default
 
 # 학습 체크리스트 (1/2)
 
-- [ ] Spring Boot에서 PostgreSQL과 pgvector를 연결하는 구조 이해
-- [ ] `Document`와 `VectorStore`로 문서를 저장·검색하는 방식 습득
-- [ ] SQL 대신 Spring AI 추상화로 벡터 저장소를 다루는 이유 이해
+- [ ] SSR 개념과 Thymeleaf의 서버 사이드 렌더링 동작 방식 이해
+- [ ] `templates` 디렉터리 규약과 캐시 설정(`spring.thymeleaf.cache`) 파악
+- [ ] 컨트롤러의 뷰 이름 반환이 실제 템플릿 경로로 해석되는 방식 습득
+- [ ] `${}`·`#{}`·`@{}` 표현식과 메시지 리소스 기반 국제화(i18n) 이해
 
 ---
 layout: default
@@ -64,516 +65,527 @@ layout: default
 
 # 학습 체크리스트 (2/2)
 
-- [ ] `QuestionAnswerAdvisor`가 검색 결과를 프롬프트에 연결하는 과정 파악
-- [ ] 문서 적재·청킹·임베딩·검색 흐름을 Spring AI로 구성
-- [ ] `ChatClient`와 컨트롤러를 연결해 RAG 응답을 반환
-- [ ] 검색 품질과 보안을 좌우하는 청킹·Top-K·메타데이터 필터 이해
+- [ ] `th:text`와 `th:utext`의 이스케이프 차이와 XSS 위험 이해
+- [ ] `th:if`·`th:switch`로 조건부 렌더링을 처리하는 방법 습득
+- [ ] `th:each` 반복과 상태 변수(`index`·`count` 등) 활용법 이해
+- [ ] `@{}` 표현식으로 URL을 생성하는 방법 습득
 
 ---
 layout: cover
 class: text-center
 ---
 
-# Spring Boot와 RAG 애플리케이션
+# Thymeleaf와 SSR
 
 ---
 layout: default
 ---
 
-# Spring Boot에서 RAG가 동작하는 구조
+# SSR이란
+
+> **서버 사이드 렌더링 (SSR, Server-Side Rendering)**
+>
+> 컨트롤러가 `Model`에 데이터를 담고 뷰 이름을 반환하면, Thymeleaf가 템플릿과 데이터를 조합해 서버에서 HTML을 렌더링하는 방식
+
+- 브라우저가 아닌 서버에서 완성된 HTML을 만들어 응답
+- 클라이언트는 별도 렌더링 없이 완성된 화면을 즉시 받음
+
+---
+layout: default
+---
+
+# 요청 처리 흐름
 
 ```mermaid
 ---
 config:
   themeVariables:
-    lineColor: "#E0CA3C"
-    arrowheadColor: "#E0CA3C"
-    edgeLabelBackground: "#2D3047"
+    lineColor: "#92AFD7"
+    arrowheadColor: "#92AFD7"
+    edgeLabelBackground: "#1F2F16"
   flowchart:
     padding: 8
     nodeSpacing: 40
     rankSpacing: 40
 ---
 flowchart LR
-  A["Spring Boot<br/>DataSource"] --> B["PgVectorStore"]
-  B --> C["Document<br/>저장·검색"]
-  C --> D["QuestionAnswerAdvisor"]
-  D --> E["ChatClient"]
-  E --> F["LLM 답변"]
+  R["요청"] --> C["컨트롤러<br/>(Model에 데이터 담기)"]
+  C --> V["뷰 이름 반환"]
+  V --> T["Thymeleaf가<br/>템플릿+데이터 결합"]
+  T --> H["완성된 HTML 응답"]
 
-  class A,B,C,D,E step
-  class F result
-  classDef step fill:#2D3047,stroke:#E0CA3C,color:#FFFFFF,stroke-width:2px
-  classDef result fill:#A799B7,stroke:#E0CA3C,color:#2D3047,stroke-width:2px
-  linkStyle default stroke:#E0CA3C,stroke-width:4px
-```
-
-- Spring Boot는 `DataSource`로 PostgreSQL 연결을 관리
-- `PgVectorStore`는 문서의 임베딩 저장과 유사도 검색을 담당
-- `QuestionAnswerAdvisor`가 검색 결과를 `ChatClient` 호출에 자동으로 결합
-
----
-layout: default
----
-
-# Spring AI가 SQL을 감추는 이유
-
-- 애플리케이션 코드는 테이블·벡터 연산자를 직접 다루지 않고 `VectorStore`를 호출
-- 저장은 `add()`, 검색은 `similaritySearch()`로 표현해 저장소 구현과 애플리케이션 로직을 분리
-- Spring Boot 설정이 연결을 담당하고, Spring AI가 임베딩·검색·프롬프트 조립을 연결
-
----
-layout: default
----
-
-# Spring Boot 접속 설정
-
-```properties
-spring.datasource.url=jdbc:postgresql://ep-xxx.neon.tech/db
-spring.datasource.username=${NEON_DB_USER}
-spring.datasource.password=${NEON_DB_PASSWORD}
-spring.datasource.hikari.maximum-pool-size=5
-```
-
-- Aiven은 서비스별 포트와 접속 정보를 제공하므로 Connection Details를 사용
-- 무료 플랜은 커넥션 수 제한이 있어 HikariCP 풀 크기를 작게 설정
-
----
-layout: cover
-class: text-center
----
-
-# Document와 VectorStore
-
----
-layout: default
----
-
-# Document 정의
-
-> **Document**
->
-> Spring AI에서 벡터 저장소가 다루는 데이터 단위로, 본문(content)·메타데이터(metadata)·식별자(id)로 구성
-
-- 문서 조각 하나하나가 이 형태로 저장되고 검색됨
-
----
-layout: default
----
-
-# 본문과 메타데이터로 문서 만들기
-
-```java
-Document doc = new Document(
-        "Spring AI는 VectorStore로 벡터 DB를 추상화한다.",
-        Map.of("source", "guide.pdf", "category", "framework"));
+  class R,C,V step
+  class T,H result
+  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
+  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
+  linkStyle default stroke:#92AFD7,stroke-width:4px
 ```
 
 ---
 layout: default
 ---
 
-# 메타데이터의 역할
+# 의존성과 디렉터리 규약
 
-- 출처·페이지·작성일·부서 같은 부가 정보를 담음
-- 검색 필터 조건으로 활용해 검색 범위를 좁힐 수 있음
-- 화면에 출처를 표시하는 근거로도 사용됨
-
----
-layout: default
----
-
-# 왜 JSON으로 저장하는가
-
-- Document마다 메타데이터 키가 제각각이라 고정 컬럼으로 정의하기 어려움
-- JSON은 스키마 변경 없이 임의의 키를 담으면서도 필터링이 가능
-- Spring AI 2.0 pgvector 자동 스키마의 metadata 컬럼은 `json` 타입 (`jsonb` 아님)
+- `spring-boot-starter-thymeleaf` 의존성 추가만으로 자동 설정 적용
+- 기본적으로 `src/main/resources/templates/` 아래의 HTML 파일을 템플릿으로 인식
+- 정적 리소스(CSS·JS·이미지)는 템플릿과 별도 경로에 위치
 
 ---
 layout: default
 ---
 
-# 임베딩은 언제 일어나는가
+# 기본 경로 규약 표
 
-- Document를 만들 때는 벡터 필드가 비어 있는 상태
-- `VectorStore.add()`를 호출하는 시점에 내부적으로 EmbeddingModel이 본문을 벡터화
-- 개발자가 임베딩을 직접 호출할 필요가 없음
-
----
-layout: default
----
-
-# VectorStore 인터페이스
-
-> **VectorStore**
->
-> `add`(저장)·`similaritySearch`(검색)·`delete`(삭제)로 이루어진 단순한 계약
-
-- 이 세 메서드만으로 벡터 저장소를 다룰 수 있음
-
----
-layout: default
----
-
-# 문서 저장하기
-
-```java
-vectorStore.add(List.of(doc1, doc2));
-```
-
-- 리스트로 여러 Document를 한 번에 전달하면 내부에서 배치 임베딩 수행
-
----
-layout: default
----
-
-# 유사한 문서 검색하기
-
-```java
-List<Document> results = vectorStore.similaritySearch(
-        SearchRequest.builder()
-                .query("벡터 DB를 어떻게 추상화하나요?")
-                .topK(4)
-                .similarityThreshold(0.7)
-                .build());
-```
-
----
-layout: default
----
-
-# filterExpression으로 범위 좁히기
-
-- `category == 'framework' && year >= 2026`처럼 SQL과 비슷한 문자열로 메타데이터 조건을 표현
-- Spring AI가 각 저장소의 네이티브 필터 문법으로 자동 번역
-- "이 부서 문서 중에서만" 검색하는 식의 조건 적용에 사용
-
----
-layout: default
----
-
-# 저장소를 갈아 끼울 수 있다
-
-- 위 `add`·`similaritySearch` 코드는 pgvector든 Chroma든 Pinecone이든 동일
-- 저장소 교체는 의존성과 설정만 바꾸면 됨 = Portable Abstraction
-- 애플리케이션 코드는 특정 벡터 DB에 종속되지 않음
-
----
-layout: default
----
-
-# PgVectorStore 의존성
-
-```xml
-<dependency>
-    <groupId>org.springframework.ai</groupId>
-    <artifactId>
-        spring-ai-starter-vector-store-pgvector
-    </artifactId>
-</dependency>
-```
-
----
-layout: default
----
-
-# PgVectorStore 설정
-
-```properties
-spring.ai.vectorstore.pgvector.initialize-schema=true
-spring.ai.vectorstore.pgvector.dimensions=1536
-spring.ai.vectorstore.pgvector.index-type=HNSW
-spring.ai.vectorstore.pgvector.distance-type=COSINE_DISTANCE
-```
-
-- `PgVectorStore`는 `spring.datasource.*`의 커넥션을 그대로 사용
-
----
-layout: default
----
-
-# 자동 스키마 생성 주의점
-
-- `initialize-schema=true`면 기동 시 테이블·인덱스를 자동 생성 (CREATE EXTENSION은 콘솔에서 미리 수행)
-- 운영 환경에서는 false로 두고 마이그레이션 스크립트로 관리
-- `dimensions` 값이 임베딩 모델과 불일치하면 저장 시점에 오류 발생
-
----
-layout: cover
-class: text-center
----
-
-# 문서 적재하기
-
----
-layout: default
----
-
-# 적재의 3단계
-
-| 단계 | 역할 |
+| 항목 | 기본값 |
 | :--- | :--- |
-| DocumentReader (Extract) | 원본 문서를 읽어 옴 |
-| DocumentTransformer (Transform) | 조각내기 등 가공 수행 |
-| DocumentWriter (Load) | 벡터 저장소에 기록 |
-
-- `VectorStore` 자체가 DocumentWriter를 구현
+| 템플릿 위치 | `src/main/resources/templates/` |
+| 접두사/확장자 | `.html` |
+| 정적 리소스 | `src/main/resources/static/` |
 
 ---
 layout: default
 ---
 
-# 텍스트 파일을 벡터로 적재하기
+# 캐시 설정
 
-```java
-List<Document> docs = new TextReader(resource).get();
-List<Document> chunks = TokenTextSplitter.builder().build().apply(docs);
-vectorStore.add(chunks);
+```yaml
+spring.thymeleaf.cache: false # 개발 시
 ```
 
-- `vectorStore.add(chunks)` 한 번으로 임베딩과 저장이 함께 이루어짐
+- 개발 중엔 캐시를 꺼서 수정 사항이 즉시 반영되도록 설정, 운영에서는 기본값(캐시 사용) 유지
 
 ---
 layout: default
 ---
 
-# 청킹이란
+# 컨트롤러의 뷰 이름 반환
 
-> **청킹 (Chunking)**
->
-> 긴 문서를 검색 단위가 될 만한 크기의 조각으로 나누는 작업
+```java
+@GetMapping("/users")
+String users(Model model) { return "users/list"; }
+```
 
-- 조각 하나하나가 임베딩되어 벡터 저장소에 들어감
-
----
-layout: default
----
-
-# 조각이 너무 크면 / 너무 작으면
-
-- **너무 크면**: 한 조각에 여러 주제가 섞여 벡터 의미가 흐려지고, 불필요한 내용까지 딸려와 토큰 낭비
-- **너무 작으면**: 문맥이 끊겨 조각만으로 무슨 말인지 알 수 없고 정보가 흩어짐
-- 적절한 크기는 문서 성격에 따라 실험으로 찾아야 함
+- 반환한 문자열은 `templates/` 아래 템플릿 경로로 해석됨
 
 ---
 layout: default
 ---
 
-# 중첩 (Overlap)
+# 뷰 이름과 파일 경로 매핑
 
-- 조각 경계에서 문맥이 잘리는 것을 완화하려고 인접 조각을 일부 겹침
-- 보통 조각 크기의 10~20% 정도를 중첩
-- FAQ는 짧게, 기술 문서는 길게 — 몇 가지 설정으로 적재해 보고 검색 품질을 비교해 정하는 것이 실무 감각
-
----
-layout: default
----
-
-# 적재 운영에서 부딪히는 것들
-
-- **중복 적재**: 같은 문서를 두 번 넣으면 검색 결과가 중복됨 — id를 원본 경로+조각 번호 해시로 고정해 재실행 시 덮어쓰기
-- **RPM 제한**: 무료 티어 제약 때문에 적재를 기동 시 1회성 작업으로 분리하고 조각 수를 적당히 유지
-- **갱신 전략**: 원본이 바뀌면 해당 문서 조각을 delete 후 재적재
+| 반환값 | 실제 파일 |
+| :--- | :--- |
+| `"users/list"` | `templates/users/list.html` |
 
 ---
 layout: cover
 class: text-center
 ---
 
-# Advisor로 RAG 완성하기
+# 기본 표현식
 
 ---
 layout: default
 ---
 
-# QuestionAnswerAdvisor
+# 세 가지 표현식
 
-> **QuestionAnswerAdvisor**
+| 표현식 | 이름 | 접근 대상 |
+| :--- | :--- | :--- |
+| `${...}` | 변수 표현식 | `Model`에 담긴 속성 |
+| `#{...}` | 메시지 표현식 | 메시지 리소스와 국제화(i18n) |
+| `@{...}` | 링크 표현식 | 컨텍스트 경로를 반영한 URL |
+
+- 용도에 따라 셋 중 하나를 골라 사용
+
+---
+layout: default
+---
+
+# 변수 표현식: `${...}`
+
+```html
+<span th:text="${user.name}">이름</span>
+```
+
+- `Model`에 담긴 `user` 객체의 `name` 속성을 출력
+
+---
+layout: default
+---
+
+# 국제화(i18n)란
+
+> **국제화 (Internationalization, i18n)**
 >
-> 질문으로 벡터 저장소를 검색해 결과를 프롬프트에 자동으로 덧붙이는 내장 Advisor
+> 하나의 애플리케이션이 사용자의 언어와 지역에 맞는 화면 문구를 제공하도록 설계하는 것
 
-- Spring AI 2.0에서는 별도 모듈 `spring-ai-vector-store-advisor` 의존성 필요
-
----
-layout: default
----
-
-# 의존성 추가
-
-```xml
-<dependency>
-    <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-vector-store-advisor</artifactId>
-</dependency>
-```
+- `i18n`은 `i`와 `n` 사이의 18글자를 줄인 표현
+- 화면 문구를 템플릿에서 분리해 언어별 메시지 리소스로 관리
+- 현재 Locale에 맞는 리소스를 선택해 같은 화면을 여러 언어로 제공
 
 ---
 layout: default
 ---
 
-# RAG용 ChatClient 구성
+# 메시지 표현식: `#{...}`
 
-```java
-@Bean
-public ChatClient ragChatClient(
-        ChatClient.Builder builder, VectorStore vectorStore) {
-    return builder
-            .defaultSystem("주어진 컨텍스트에만 근거해 한국어로 답하세요.")
-            .defaultAdvisors(
-                QuestionAnswerAdvisor.builder(vectorStore).build())
-            .build();
-}
-```
+> **메시지 표현식 (Message Expression)**
+>
+> `#{key}`로 현재 Locale에 맞는 외부 메시지를 조회하는 표현식
+
+- 표현식 안에는 화면 문구가 아닌 메시지 키를 작성
+- 같은 키라도 Locale에 따라 서로 다른 문구를 반환
+- 조회된 값은 `th:text` 등의 속성을 통해 HTML에 출력
 
 ---
 layout: default
 ---
 
-# Advisor가 대신 해 주는 네 가지
+# 메시지 리소스 파일 구성
 
-- ① 질문 임베딩
-- ② `VectorStore.similaritySearch` 실행
-- ③ 검색된 Document 본문을 컨텍스트로 조립해 사용자 메시지에 덧붙임
-- ④ 그 상태로 LLM 호출
+| 파일 | 역할 |
+| :--- | :--- |
+| `messages.properties` | 기본 메시지와 Locale 미일치 시 대체값 |
+| `messages_ko.properties` | 한국어 Locale 메시지 |
+| `messages_en.properties` | 영어 Locale 메시지 |
 
----
-layout: default
----
-
-# 시스템 메시지가 반드시 필요한 이유
-
-- "컨텍스트에만 근거하라"는 제약이 없으면 모델이 검색 결과를 무시하고 자체 지식으로 답할 수 있음
-- 환각을 억제하려면 이 지침을 시스템 메시지로 반드시 지정해야 함
-- 근거 문서가 있어도 지침이 없으면 근거를 안 쓰는 경우가 생김
+- 기본 위치는 `src/main/resources`, 기본 basename은 `messages`
+- 언어별 파일만 두지 않고 기본 `messages.properties`도 함께 작성
 
 ---
 layout: default
 ---
 
-# 호출마다 검색 범위 좁히기
-
-```java
-String answer = chatClient.prompt()
-        .user(question)
-        .advisors(a -> a.param(
-            QuestionAnswerAdvisor.FILTER_EXPRESSION, "category == 'faq'"))
-        .call()
-        .content();
-```
-
-- 사용자 권한별 문서 격리 등 호출별로 검색 범위를 다르게 적용
-
----
-layout: default
----
-
-# 생성 모델 연결 — Groq
+# 메시지 리소스 정의 예시
 
 ```properties
-spring.ai.openai.api-key=${GROQ_API_KEY}
-spring.ai.openai.base-url=https://api.groq.com/openai/v1
-spring.ai.openai.chat.model=openai/gpt-oss-120b
-spring.ai.openai.chat.temperature=0.2
+# messages.properties
+page.title=User List
+
+# messages_ko.properties
+page.title=사용자 목록
 ```
 
-- Spring AI 2.0에서는 `chat.options.*`가 아니라 위처럼 직접 지정
-
 ---
 layout: default
 ---
 
-# 빈 충돌과 temperature 주의
+# 메시지 표현식 사용 예시
 
-- Google GenAI 채팅 스타터와 OpenAI 호환(Groq) 스타터를 함께 쓰면 `ChatModel` 빈이 둘 생김 — `@Qualifier`나 `@Primary`로 명시
-- RAG는 창작이 아니라 근거의 요약·인용이므로 temperature는 0~0.3으로 낮게
-- topK를 크게 잡으면 토큰 한도에 먼저 걸림 — topK와 청크 크기가 비용에 직결
-
----
-layout: default
----
-
-# 질문을 받는 컨트롤러
-
-```java
-@PostMapping("/rag")
-public String ask(@RequestParam String question, Model model) {
-    String answer = ragChatClient.prompt()
-            .user(question)
-            .call()
-            .content();
-    model.addAttribute("answer", answer);
-    return "rag";      // /WEB-INF/views/rag.jsp
-}
+```html
+<h1 th:text="#{page.title}">제목</h1>
 ```
 
-- `ragChatClient`는 `RagConfig`에서 만든 빈을 생성자 주입으로 받음
+---
+layout: default
+---
+
+# 링크 표현식: `@{...}`
+
+```html
+<a th:href="@{/users}">목록</a>
+```
+
+- 컨텍스트 경로를 자동으로 붙여 최종 URL을 생성
 
 ---
 layout: default
 ---
 
-# 컨트롤러가 단순한 이유
+# `th:` 속성의 동작 원리
 
-- 검색·프롬프트 조립이 Advisor 안으로 숨겨져 애플리케이션 코드는 평범한 ChatClient 호출과 다르지 않음
-- `.call().chatResponse()`로 받으면 컨텍스트에 사용된 Document 목록을 메타데이터에서 꺼내 출처로 표시 가능
+- 태그 안의 기존 내용(`이름`, `제목`, `목록`)은 정적 목업용 더미 텍스트
+- 서버 렌더링 시 더미 텍스트가 `th:` 속성 값으로 **치환됨**
+- 디자이너가 서버 없이 브라우저에서 파일을 열어도 목업 화면 확인 가능
+- 이러한 특성을 **내추럴 템플릿(Natural Template)이라 부름**
 
 ---
 layout: default
 ---
 
-# 전체 흐름 한눈에 보기
+# 세 표현식 조합
+
+```html
+<a th:href="@{/users/{id}(id=${user.id})}" th:text="${user.name}">사용자</a>
+```
+
+- `@{}`로 URL을 만들고 `${}`로 링크 텍스트를 채우는 조합
+
+---
+layout: cover
+class: text-center
+---
+
+# 출력과 XSS
+
+---
+layout: default
+---
+
+# Spring Boot 세대와 인라인 문법
+
+| Spring Boot | 기본 Thymeleaf | 인라인 문법의 변화 |
+| :--- | :--- | :--- |
+| 1.x | 2.1 | 이스케이프 출력 `[[...]]` 지원 |
+| 2.x | 3.0 | 비이스케이프 출력 `[(...)]` 추가, 본문 인라이닝 기본 활성화 |
+| 3.x / 4.x | 3.1 | 같은 문법을 유지하며 현재 환경에서도 그대로 사용 |
+
+- 현재는 HTML 본문에서 `[[...]]`과 `[(...)]`을 별도 설정 없이 사용할 수 있음
+
+---
+layout: default
+---
+
+# 본문에서 쓰는 인라인 표기
+
+```html
+<p>안녕하세요, [[${user.name}]]님</p>
+<p>[(${trustedHtml})]</p>
+```
+
+---
+layout: default
+---
+
+# 이스케이프 여부 비교
+
+| 문법 | 인라인 문법 | 이스케이프 | 용도 |
+| :--- | :--- | :--- | :--- |
+| `th:text` | `[[${...}]]` | O | 일반 텍스트 출력 |
+| `th:utext` | `[(${...})]` | X | 신뢰할 수 있는 HTML 출력 |
+
+- 기본은 항상 `th:text` 사용을 권장
+
+---
+layout: default
+---
+
+# XSS란
+
+> **XSS (Cross-Site Scripting)**
+>
+> 악성 스크립트를 웹 페이지에 삽입해 사용자 브라우저에서 실행되게 하는 공격
+
+- 사용자 입력을 이스케이프 없이 그대로 출력할 때 발생
+
+---
+layout: default
+---
+
+# 이스케이프 적용 비교
+
+```html
+<span th:text="${user.name}">이름</span>
+<span th:utext="${trustedHtml}">신뢰할 수 있는 HTML</span>
+```
+
+- `th:text`는 특수 문자를 이스케이프, `th:utext`는 그대로 출력
+
+---
+layout: default
+---
+
+# `<script>` 입력 시 차이
+
+| 속성 | 사용자 입력에 `<script>` 포함 시 |
+| :--- | :--- |
+| `th:text` | 문자 그대로 화면에 표시됨(실행 안 됨) |
+| `th:utext` | 스크립트가 그대로 실행될 수 있음 |
+
+- `th:utext`는 **신뢰할 수 있는 HTML에만** 제한적으로 사용
+
+---
+layout: cover
+class: text-center
+---
+
+# 조건과 반복
+
+---
+layout: default
+---
+
+# 조건 속성 세 가지
+
+| 속성 | 동작 |
+| :--- | :--- |
+| `th:if` | 조건이 참일 때만 태그를 렌더링 |
+| `th:unless` | 조건이 거짓일 때만 태그를 렌더링 |
+| `th:switch` / `th:case` | 값에 따라 여러 갈래 중 하나를 렌더링 |
+
+---
+layout: default
+---
+
+# `th:if` 조건부 렌더링
+
+```html
+<p th:if="${user.active}">활성 사용자</p>
+```
+
+- `user.active`가 `true`일 때만 `<p>` 태그가 생성됨
+
+---
+layout: default
+---
+
+# `th:switch` / `th:case` 분기
+
+```html
+<div th:switch="${user.role}">
+  <p th:case="'ADMIN'">관리자</p>
+  <p th:case="'USER'">일반 사용자</p>
+  <p th:case="*">알 수 없음</p>
+</div>
+```
+
+- `th:case="*"`는 앞선 값과 일치하지 않을 때의 기본값
+
+---
+layout: default
+---
+
+# 숨김이 아니라 미생성
+
+- `th:if` 조건이 거짓이면 태그 자체가 결과 HTML에 존재하지 않음
+- CSS로 감추는 방식(`display: none`)과는 다른 동작임
+- 브라우저 개발자 도구에서도 해당 요소를 확인할 수 없음
+- 조건이 거짓인 요소는 클라이언트로 전송조차 되지 않음
+
+---
+layout: default
+---
+
+# `th:each` 컬렉션 순회
+
+```html
+<ul>
+  <li th:each="user : ${users}" th:text="${user.name}">사용자</li>
+</ul>
+```
+
+- `users` 컬렉션의 각 항목마다 `<li>` 태그가 반복 생성됨
+
+---
+layout: default
+---
+
+# 반복 상태 변수
+
+| 변수 | 의미 |
+| :--- | :--- |
+| `index` | 0부터 시작하는 순번 |
+| `count` | 1부터 시작하는 순번 |
+| `first` / `last` | 첫 번째 / 마지막 요소 여부 |
+| `size` | 전체 요소 개수 |
+
+---
+layout: default
+---
+
+# 상태 변수 사용
+
+```html
+<li th:each="user, stat : ${users}">
+  <span th:text="${stat.count}">1</span>번째: <span th:text="${user.name}"></span>
+</li>
+```
+
+---
+layout: default
+---
+
+# 컬렉션이 목록으로 렌더링되는 흐름
 
 ```mermaid
 ---
 config:
   themeVariables:
-    lineColor: "#E0CA3C"
-    arrowheadColor: "#E0CA3C"
-    edgeLabelBackground: "#2D3047"
+    lineColor: "#92AFD7"
+    arrowheadColor: "#92AFD7"
+    edgeLabelBackground: "#1F2F16"
   flowchart:
     padding: 8
-    nodeSpacing: 36
-    rankSpacing: 36
+    nodeSpacing: 40
+    rankSpacing: 40
 ---
 flowchart LR
-  A["문서 적재"] --> B["벡터 DB"]
-  C["질문"] --> B
-  B --> D["Advisor가<br/>컨텍스트 조립"]
-  D --> E["LLM 답변"]
+  M["Model 속성 users"] -->|"<span style='padding:8px;color:#F4F7F0;'>th:each 순회</span>"| E["항목별 반복 처리"]
+  E -->|"<span style='padding:8px;color:#F4F7F0;'>항목마다 생성</span>"| L["li 태그 생성"]
+  L --> H["완성된 목록 HTML"]
 
-  class A,B,C,D step
-  class E result
-  classDef step fill:#2D3047,stroke:#E0CA3C,color:#FFFFFF,stroke-width:2px
-  classDef result fill:#A799B7,stroke:#E0CA3C,color:#2D3047,stroke-width:2px
-  linkStyle default stroke:#E0CA3C,stroke-width:4px
+  class M,E step
+  class L,H result
+  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
+  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
+  linkStyle default stroke:#92AFD7,stroke-width:4px
 ```
 
 ---
-layout: default
+layout: cover
+class: text-center
 ---
 
-# RAG 품질을 좌우하는 요소
-
-- **청킹**:
-  - 조각 크기·중첩이 검색 품질에 가장 큰 영향을 줌
-- **검색 파라미터**:
-  - topK와 유사도 임계값 설정
-- **프롬프트와 보안**:
-  - 검색 문서는 신뢰할 수 없는 입력으로 취급, 사용자 권한 필터를 검색 전에 적용
-- **임베딩 모델**:
-  - 한국어 성능과 차원 수, 교체 시 전체 재임베딩이 필요하므로 초기에 신중히 결정
+# URL 표현식
 
 ---
 layout: default
 ---
 
-# 학습 요약 (Summary)
+# URL 표현식 문법 패턴
 
-- **Spring Boot 연결**:
-  - `spring.datasource.*` 설정으로 PostgreSQL을 연결하고 `PgVectorStore`가 해당 연결을 사용
-- **Spring AI 추상화**:
-  - 애플리케이션은 SQL과 벡터 연산자 대신 `Document`·`VectorStore`의 저장·검색 API를 호출
-- **RAG 자동화**:
-  - `QuestionAnswerAdvisor`가 질문 임베딩, 유사도 검색, 컨텍스트 조립을 `ChatClient` 호출 앞에서 처리
-- **애플리케이션 구조**:
-  - 컨트롤러는 질문을 전달하고, Spring AI가 검색된 근거를 포함한 LLM 응답을 생성
+| 용도 | 문법 |
+| :--- | :--- |
+| 경로 변수 | `@{/users/{id}(id=${user.id})}` |
+| 쿼리 파라미터 | `@{/users(page=1)}` |
+| 정적 경로 | `@{/css/app.css}` |
+
+---
+layout: default
+---
+
+# 경로 변수를 포함한 링크
+
+```html
+<a th:href="@{/users/{id}(id=${user.id})}">상세</a>
+```
+
+- `{id}` 자리에 괄호 안의 `id` 값이 치환됨
+
+---
+layout: default
+---
+
+# 문자열 연결 대신 `@{}`를 쓰는 이유
+
+| 구분 | 문자열 직접 연결 | `@{}` URL 표현식 |
+| :--- | :--- | :--- |
+| 컨텍스트 경로 | 수동으로 반영해야 함 | 자동으로 반영됨 |
+| 특수 문자 인코딩 | 직접 처리 필요 | 자동으로 안전하게 처리됨 |
+| 배포 환경 변경 | 경로 하드코딩 위험 | 환경 변화에 안전함 |
+
+---
+layout: default
+---
+
+# 학습 요약 (1/2)
+
+- **Thymeleaf와 SSR**:
+  - 서버가 HTML을 완성해 응답하는 서버 사이드 렌더링 방식과 템플릿 엔진의 역할 이해
+- **기본 표현식**:
+  - `${}`·`#{}`·`@{}`의 용도와 메시지 리소스 기반 국제화(i18n) 출력 방식 이해
+- **출력과 XSS**:
+  - `th:text`의 자동 이스케이프와 `th:utext`의 위험성, XSS 방지 원칙 이해
+
+---
+layout: default
+---
+
+# 학습 요약 (2/2)
+
+- **조건과 반복**:
+  - `th:if`/`th:unless`/`th:switch`로 조건부 렌더링을, `th:each`와 상태 변수로 반복 렌더링을 처리
+- **URL 표현식**:
+  - `@{}` 문법으로 경로 변수·쿼리 파라미터를 안전하게 조합해 URL 생성
