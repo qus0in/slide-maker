@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: 객체 스토리지로 파일 저장하기
+title: PDF 문서로 RAG 구현하기
 mermaid:
   theme: base
   themeVariables:
@@ -46,7 +46,7 @@ mermaid:
     activationBorderColor: '#92AFD7'
 ---
 
-# 객체 스토리지로 파일 저장하기
+# PDF 문서로 RAG 구현하기
 
 ---
 layout: default
@@ -54,10 +54,10 @@ layout: default
 
 # 학습 체크리스트 (1/2)
 
-- [ ] 로컬 저장 방식의 한계와 객체 스토리지의 필요성 이해
-- [ ] 버킷·객체·키 개념과 객체 키 설계 원칙 습득
-- [ ] Supabase 비공개 버킷과 서버 전용 S3 키 관리 방법 습득
-- [ ] `endpointOverride`·`forcePathStyle`로 S3 연결을 구성하는 방법 이해
+- [ ] RAG가 필요한 이유와 파인튜닝·프롬프트 방식과의 차이 이해
+- [ ] 문서·청크·임베딩·벡터 스토어 용어와 전체 파이프라인 파악
+- [ ] 임베딩 차원과 pgvector HNSW 2,000차원 제한의 관계 이해
+- [ ] Spring AI 의존성·pgvector·임베딩 모델 설정 방법 습득
 
 ---
 layout: default
@@ -65,43 +65,91 @@ layout: default
 
 # 학습 체크리스트 (2/2)
 
-- [ ] `FileStore` 구현만 교체해 저장소를 바꾸는 구조 이해
-- [ ] `PutObjectRequest`·`deleteObject`로 객체를 저장·삭제하는 흐름 습득
-- [ ] 자체 컨트롤러로 비공개 객체를 읽어 응답하는 방법 습득
-- [ ] 프리티어 한도와 업로드 실패·고아 객체 주의점 파악
+- [ ] ETL 파이프라인으로 PDF를 청크로 나누어 저장하는 흐름 습득
+- [ ] PDF 검증·중복 업로드·트랜잭션 분리 주의점 파악
+- [ ] `similaritySearch`와 메타데이터 필터로 검색 결과를 점검하는 방법 습득
+- [ ] `QuestionAnswerAdvisor` 기반 답변 생성과 모델 fallback 설계 이해
 
 ---
 layout: default
 ---
 
-# 로컬 저장의 한계와 객체 스토리지
+# LLM이 모르는 것
 
-| 로컬 `static` 저장의 한계 | 객체 스토리지의 해결 방식 |
-| :--- | :--- |
-| 실행 JAR 내부에 새 파일을 쓸 수 없음 | 애플리케이션 밖의 저장 서비스에 보관 |
-| 재배포할 때 기존 파일이 사라질 수 있음 | 배포와 파일의 수명 주기를 분리 |
-| 서버마다 서로 다른 파일이 남음 | 모든 서버가 같은 저장소를 공유 |
+- **학습 시점 이후 자료**: 최신 뉴스·정책·통계를 알지 못함
+- **조직 내부 문서**: 회사·기관 고유의 비공개 자료를 알지 못함
+- **환각(hallucination)**: 모르는 내용을 그럴듯하게 지어냄
+- **근거 부재**: 답변이 어디서 나왔는지 제시하지 못함
 
 ---
 layout: default
 ---
 
-# 객체 스토리지 3가지 용어
+# 세 가지 대응 방법 비교
+
+| 방법 | 비용 | 최신성 | 근거 제시 |
+| :--- | :--- | :--- | :--- |
+| 파인튜닝 | 학습 비용 큼 | 다시 학습해야 반영 | 근거 문장 없음 |
+| 프롬프트에 전문 붙여넣기 | 요청마다 토큰 비용 증가 | 붙여넣은 만큼 즉시 | 있으나 비효율 |
+| RAG | 임베딩·검색 비용만 추가 | 문서 추가 시 바로 반영 | 검색된 문단이 근거 |
+
+- **선택 기준**: 비용 대비 최신성과 근거 확보가 중요할수록 RAG 유리
+- **이번 차시 방향**: RAG 방식으로 구현
+
+---
+layout: default
+---
+
+# RAG 세 글자의 의미
+
+> **검색 증강 생성 (RAG, Retrieval-Augmented Generation)**
+>
+> 질문과 관련된 문단만 찾아(Retrieval) 프롬프트에 넣고(Augmented) 답을 생성(Generation)하는 방식
+
+- **Retrieval**: 질문과 관련된 문단을 검색으로 찾음
+- **Augmented**: 찾은 문단을 프롬프트에 추가함
+- **Generation**: 추가된 문단을 근거로 LLM이 답변 생성
+
+---
+layout: default
+---
+
+# 이번 차시에서 만들 것
+
+- **업로드 흐름 확장**: Thymeleaf 폼으로 PDF 업로드 → 텍스트 추출
+- **벡터화 처리**: 청크 분할 → 임베딩 → pgvector 저장
+- **저장 대상 변화**: 404차시는 "파일"을, 이번엔 "벡터"를 저장
+- **실습 소재**: 정책브리핑 보도자료 PDF로 근거 있는 답변 구현
+
+---
+layout: default
+---
+
+# 핵심 용어 (1/2)
 
 | 용어 | 의미 | 예 |
 | :--- | :--- | :--- |
-| 버킷 (bucket) | 파일을 묶는 최상위 저장 공간 | `course-images` |
-| 객체 (object) | 버킷 안에 실제로 저장된 파일 | 업로드된 이미지 파일 |
-| 키 (key) | 버킷 안에서 객체를 찾는 이름 | `profiles/uuid.png` |
-
-- **이름 전체가 키**: 슬래시를 포함해도 실제 디렉터리가 아니라 이름 전체가 하나의 키
-- **규칙으로 그룹화**: 키를 정하는 규칙만 정해두면 폴더처럼 묶어서 다룰 수 있음
+| 문서 (Document) | 업로드된 원본 자료 | 업로드한 보도자료 PDF |
+| 청크 (chunk) | 문서를 나눈 조각 | 문단 하나 분량의 텍스트 |
+| 임베딩 (embedding) | 텍스트를 숫자로 표현한 값 | `[0.021, -0.153, ...]` |
 
 ---
 layout: default
 ---
 
-# 업로드부터 화면 표시까지의 흐름
+# 핵심 용어 (2/2)
+
+| 용어 | 의미 | 예 |
+| :--- | :--- | :--- |
+| 벡터 스토어 (VectorStore) | 임베딩을 저장하는 저장소 | pgvector |
+| 유사도 검색 | 질문과 가까운 벡터를 찾는 검색 | 코사인 거리 기반 검색 |
+| 메타데이터 | 벡터에 딸린 부가 정보 | 원본 파일명, 페이지 번호 |
+
+---
+layout: default
+---
+
+# PDF가 벡터로 저장되기까지
 
 ```mermaid
 ---
@@ -116,13 +164,13 @@ config:
     rankSpacing: 40
 ---
 flowchart LR
-  A["타임리프 업로드 폼"] --> B["MultipartFile"]
-  B --> C["Supabase Storage 업로드"]
-  C --> D["DB에 객체 키 저장"]
-  D --> E["자체 컨트롤러로 이미지 표시"]
+  A["업로드 폼"] --> B["PDF 텍스트 추출"]
+  B --> C["청크 분할"]
+  C --> D["임베딩"]
+  D --> E["pgvector 저장"]
 
-  class A,B,C step
-  class D,E result
+  class A,B,C,D step
+  class E result
   classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
   classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
   linkStyle default stroke:#92AFD7,stroke-width:4px
@@ -132,275 +180,228 @@ flowchart LR
 layout: default
 ---
 
-# Supabase Free Plan 주요 한도
+# 질문에 답하기까지
 
-| 항목 | 한도 |
-| :--- | :--- |
-| 파일 저장 공간 | 1GB |
-| 파일 하나 최대 크기 | 50MB |
-| 캐시된 전송량 | 5GB |
-| 그 외 전송량 | 5GB |
-| 이미지 변환 | 미제공 |
-
+```mermaid
 ---
-layout: default
+config:
+  themeVariables:
+    lineColor: "#92AFD7"
+    arrowheadColor: "#92AFD7"
+    edgeLabelBackground: "#1F2F16"
+  flowchart:
+    padding: 8
+    nodeSpacing: 40
+    rankSpacing: 40
 ---
+flowchart LR
+  A["질문"] --> B["질문 임베딩"]
+  B --> C["pgvector 유사도 검색"]
+  C --> D["프롬프트에 근거 주입"]
+  D --> E["LLM 답변"]
 
-# 프리티어에 맞춘 실습 정책
-
-- **업로드 용량 제한**: 이미지 하나당 5MB로 제한해 공간과 전송량을 절약
-- **이미지 변환 제외**: Free Plan에서 제공하지 않는 리사이징·최적화는 다루지 않음
-- **프로젝트 일시 중지**: Free 프로젝트는 1주 미사용 시 일시 중지될 수 있음
-
----
-layout: default
----
-
-# 업로드 용량 제한 설정
-
-```yaml
-spring:
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 20MB
+  class A,B,C,D step
+  class E result
+  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
+  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
+  linkStyle default stroke:#92AFD7,stroke-width:4px
 ```
 
 ---
 layout: default
 ---
 
-# 버킷과 S3 연결 정보 준비 순서
+# 임베딩은 의미를 좌표로 바꾼다
+
+- **벡터 변환**: 문장을 고정 길이 실수 배열로 변환
+- **거리와 의미**: 의미가 비슷할수록 벡터 사이 거리가 가까움
+- **검색 방식**: 단어 일치가 아니라 의미 근접도로 검색
+- **모델 일관성**: 같은 모델로 만든 벡터끼리만 비교 가능
+
+---
+layout: default
+---
+
+# 유사도를 재는 세 가지 방법
+
+| 거리 방식 | 설명 |
+| :--- | :--- |
+| 코사인 거리 | 기본값, 벡터 방향만 비교해 길이 차이에 영향 없음 |
+| 유클리드 거리 | 벡터 사이의 직선 거리 |
+| 내적 | 두 벡터를 곱해 더한 값으로 비교 |
+
+- 실습은 pgvector 기본값인 코사인 거리를 사용
+
+---
+layout: default
+---
+
+# 차원 수를 먼저 정해야 하는 이유
+
+- **인덱스 제약**: pgvector의 HNSW 인덱스는 최대 2,000차원까지만 인덱싱 지원
+- **큰 벡터 불가**: 3072차원 같은 큰 벡터는 인덱스 생성 자체가 불가능
+- **모델 선택 기준**: 2,000 이하를 지원하는 임베딩 모델 선택이 필수
+- **변경 비용**: 모델을 바꾸면 테이블 컬럼과 인덱스를 재생성해야 하므로 초기에 신중히 결정
+
+---
+layout: default
+---
+
+# 실습에 사용할 임베딩 모델
+
+- **모델**: Google `gemini-embedding-001` 사용
+- **차원 축소**: Matryoshka 축소로 1536차원 세팅
+- **지원 기한**: 종료 예정일 2028년 5월 14일, 2026년 8월 기준 사용 가능
+- **대안 모델**: `bge-m3`(1024차원)는 추후 Cloudflare Workers AI 구성 시 활용
+- **향후 확장**: `gemini-embedding-2`는 이후 Image RAG(멀티모달) 차시에서 다룸
+
+---
+layout: default
+---
+
+# 1536은 세 곳이 모두 같아야 한다
+
+| 위치 | 설정 값 |
+| :--- | :--- |
+| 임베딩 모델 출력 차원 | `dimensions: 1536` |
+| DB 컬럼 타입 | `vector(1536)` |
+| 벡터 스토어 설정 | `spring.ai.vectorstore.pgvector.dimensions: 1536` |
+
+- **불일치 시 문제**: 차원이 어긋나면 검색 자체가 불가능
+
+---
+layout: default
+---
+
+# pgvector 사용 준비 순서
 
 | 단계 | 할 일 |
 | :--- | :--- |
-| ① | Storage에서 `course-images` 버킷 생성 |
-| ② | 버킷을 비공개(private)로 설정 |
-| ③ | S3 연결 활성화 후 Access Key ID·Secret Access Key 발급 |
-| ④ | 같은 화면의 endpoint와 region 확인 |
+| ① | PostgreSQL JDBC·Spring Data JPA 및 Supabase DB 준비(이미 구축 가정) |
+| ② | Supabase Dashboard → Database → Extensions 이동 |
+| ③ | `vector` 확장 활성화 확인 |
+| ④ | Spring AI 기본 설정으로 스키마 자동 생성 |
 
 ---
 layout: default
 ---
 
-# 비공개 버킷과 서버 전용 키
-
-- **공개 URL 차단**: 공개 URL만으로는 객체를 열 수 없음
-- **서버에서 권한 판단**: 자체 컨트롤러가 접근을 확인한 뒤 객체를 응답
-- **강력한 S3 키**: 모든 버킷에 접근하고 RLS를 우회하므로 서버에서만 사용
-- **환경 변수 주입**: HTML·JavaScript·Git에 넣지 않고 실행 환경에서 주입
-
----
-layout: default
----
-
-# S3 연결 정보와 마스킹 예시
-
-| 항목 | 마스킹한 예시 |
-| :--- | :--- |
-| Project ref | `abcdefghijklmnopqrst` |
-| Bucket | `course-images` |
-| Region | `ap-northeast-2` |
-| Endpoint | `https://abcdefghijklmnopqrst.storage.supabase.co/storage/v1/s3` |
-| Access key | `********************` |
-| Secret key | `****************************************` |
-
----
-layout: default
----
-
-# 비밀 값은 실행 환경에서 주입
-
-- **회수 불가**: 소스 코드와 Git 이력에 한 번 남으면 되돌려 지우기 어려움
-- **설정 파일 역할**: `application.yml`에는 환경 변수 이름만 적어둠
-- **실제 값 주입**: 값 자체는 실행 환경에서 주입해 소스와 분리함
-
----
-layout: default
----
-
-# 설정 파일에는 환경 변수 이름만
-
-```yaml
-app:
-  storage:
-    bucket: ${SUPABASE_S3_BUCKET}
-    endpoint: ${SUPABASE_S3_ENDPOINT}
-    region: ${SUPABASE_S3_REGION}
-    access-key: ${SUPABASE_S3_ACCESS_KEY}
-    secret-key: ${SUPABASE_S3_SECRET_KEY}
-```
-
----
-layout: default
----
-
-# 실행 환경에 넣는 값
+# 자동으로 만들어지는 테이블
 
 ```text
-SUPABASE_S3_BUCKET=course-images
-SUPABASE_S3_ENDPOINT=https://abcdefghijklmnopqrst.storage.supabase.co/storage/v1/s3
-SUPABASE_S3_REGION=ap-northeast-2
-SUPABASE_S3_ACCESS_KEY=********************
-SUPABASE_S3_SECRET_KEY=****************************************
+id         uuid          PK
+content    text
+metadata   json
+embedding  vector(1536)
++ HNSW 인덱스 (2000차원 이하 지원)
 ```
 
 ---
 layout: default
 ---
 
-# Supabase에 AWS SDK를 쓰는 이유
+# HNSW와 IVFFlat
 
-- **S3 호환 API**: Supabase Storage가 S3와 동일한 방식의 API를 제공함
-- **동일한 클라이언트 사용**: Java에서는 AWS SDK for Java 2.x의 `S3Client`로 그대로 연결
-- **최소 의존성**: 필요한 모듈은 S3 하나뿐이며 다른 AWS 서비스 모듈은 불필요
+| 인덱스 | 빌드 속도 | 메모리 | 검색 품질 | 특이사항 |
+| :--- | :--- | :--- | :--- | :--- |
+| HNSW | 느림 | 많음 | 좋음 | 기본값, 최대 2,000차원 한계 |
+| IVFFlat | 빠름 | 적음 | 낮음 | 미리 학습(List) 필요 |
 
 ---
 layout: default
 ---
 
-# AWS SDK 2.x의 S3 모듈 추가
+# 의존성 추가
 
 ```kotlin
-dependencies {
-    implementation("software.amazon.awssdk:s3:2.51.1")
-}
+implementation(platform("org.springframework.ai:spring-ai-bom:2.0.0"))
+implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
+implementation("org.springframework.ai:spring-ai-pdf-document-reader")
+implementation("org.springframework.ai:spring-ai-starter-model-google-genai")
+// Spring AI 2.0.0 GA, Spring Boot 4.0.x·4.1.x 지원
 ```
 
 ---
 layout: default
 ---
 
-# 연결 정보를 묶는 StorageProperties
-
-```java
-@ConfigurationProperties("app.storage")
-public record StorageProperties(
-        String bucket,
-        String endpoint,
-        String region,
-        String accessKey,
-        String secretKey
-) {
-}
-```
-
----
-layout: default
----
-
-# Supabase 연결의 핵심 세 가지
-
-- **엔드포인트 재정의**: `endpointOverride`로 AWS 대신 Supabase 주소를 사용하도록 덮어씀
-- **자격 증명 지정**: 발급받은 액세스 키·시크릿 키로 인증 정보를 구성
-- **path-style 강제**: Supabase S3는 path-style 주소 방식이므로 `forcePathStyle(true)` 필요
-
----
-layout: default
----
-
-# S3Client 빈 생성
-
-```java
-@Bean
-S3Client s3Client(StorageProperties p) {
-    return S3Client.builder()
-            .region(Region.of(p.region()))
-            .endpointOverride(URI.create(p.endpoint()))
-            .credentialsProvider(StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(p.accessKey(), p.secretKey())))
-            .forcePathStyle(true)
-            .build();
-}
-```
-
----
-layout: default
----
-
-# Spring Cloud AWS 스타터라는 선택지
-
-- **자동 구성**: `S3Client`를 직접 만들지 않아도 스타터가 구성함
-- **둘 중 하나만 선택**: 직접 만든 `S3Client` 빈과 스타터 자동 구성을 중복 적용하지 않음
-- **설정 중심 구성**: endpoint와 path-style 접근도 `application.yml`에서 지정
-
----
-layout: default
----
-
-# 스타터 의존성
-
-```kotlin
-dependencies {
-    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:4.1.0")
-}
-```
-
----
-layout: default
----
-
-# 스타터 방식의 설정
+# Chat 모델과 API 키 설정
 
 ```yaml
 spring:
-  cloud:
-    aws:
-      credentials:
-        access-key: ${SUPABASE_S3_ACCESS_KEY}
-        secret-key: ${SUPABASE_S3_SECRET_KEY}
-      s3:
-        endpoint: ${SUPABASE_S3_ENDPOINT}
-        region: ${SUPABASE_S3_REGION}
-        path-style-access-enabled: true
+  ai:
+    google:
+      genai:
+        api-key: ${GOOGLE_AI_API_KEY}
+        chat:
+          model: ${app.ai.google.primary-model}
 ```
 
 ---
 layout: default
 ---
 
-# 직접 설정과 스타터 방식 비교
+# 임베딩 모델과 차원 설정
 
-| 방식 | 특징 |
-| :--- | :--- |
-| AWS SDK 직접 설정 | 연결 과정이 명확하고 Spring 밖에서도 재사용 가능 |
-| Spring Cloud AWS 스타터 | `S3Client`·`S3Template` 자동 등록으로 설정이 간결함 |
-
-- 두 방식을 중복 적용하지 않고 프로젝트 상황에 맞춰 하나만 선택
-- 어느 방식을 택해도 `S3FileStore`와 컨트롤러의 역할은 유지
-
----
-layout: default
----
-
-# S3Template으로 간단히 업로드
-
-```java
-s3Template.upload(properties.bucket(), key, file.getInputStream());
+```yaml
+spring:
+  ai:
+    google:
+      genai:
+        embedding:
+          text:
+            model: gemini-embedding-001
+            dimensions: 1536
 ```
 
 ---
 layout: default
 ---
 
-# 저장 구현만 갈아끼우기
+# 벡터 스토어 설정
 
-- **그대로 유지**: 컨트롤러, `User`, `Book`, `BookImage`의 구조는 손대지 않음
-- **교체 대상**: 실제 저장을 수행하는 `FileStore`의 내부 구현만 바뀜
-- **가능한 이유**: 저장 방식을 `FileStore` 인터페이스 뒤로 숨겨 두었기 때문
+```yaml
+spring:
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 1536
+        table-name: vector_store
+```
 
 ---
 layout: default
 ---
 
-# 저장 방식을 감추는 FileStore 인터페이스
+# 애플리케이션 커스텀 설정
+
+```yaml
+app:
+  ai:
+    google:
+      primary-model: gemini-3.5-flash-lite
+      fallback-model: gemini-3.1-flash-lite
+    rag:
+      top-k: 5
+      similarity-threshold: 0.7
+```
+
+---
+layout: default
+---
+
+# 설정값을 타입 안전하게 묶기
 
 ```java
-public interface FileStore {
+@ConfigurationProperties(prefix = "app.ai")
+public record AiProperties(Google google, Rag rag) {
 
-    UploadFile store(MultipartFile file) throws IOException;
+    public record Google(String primaryModel, String fallbackModel) {}
 
-    void delete(String storedName);
+    public record Rag(int topK, double similarityThreshold) {}
 }
 ```
 
@@ -408,29 +409,181 @@ public interface FileStore {
 layout: default
 ---
 
-# DB에는 URL이 아닌 객체 키를 저장
+# 설정에서 조심할 것
 
-| 항목 | 저장 값과 원칙 |
-| :--- | :--- |
-| `originalName` | 경로 부분을 제거한 사용자 표시용 이름 |
-| `storedName` | 로컬에서는 파일명, 객체 스토리지에서는 객체 키 |
-| 저장 예 | `봄 표지.png` / `books/2f60c5a8-....png` |
-| URL | endpoint·공개 URL은 저장하지 않고 조회할 때 생성 |
+- **타입 안전성**: `@Value`는 오타·미설정을 기동 시점에 걸러내기 어려워 `@ConfigurationProperties` 사용
+- **기본값 유지**: pgvector 설정은 기본값 유지가 가장 안정적
+- **스키마 자동 생성**: `initialize-schema: true`는 개발·실습 단계에서만
+- **테이블 삭제 위험**: `remove-existing-vector-store-table: true`는 데이터 손실 위험
+- **키 관리**: API 키는 소스와 저장소에 남기지 않고 환경 변수로 주입
 
 ---
 layout: default
 ---
 
-# 객체 키와 업로드 요청 만들기
+# Spring AI가 정리해 둔 ETL 3단계
+
+| 인터페이스 | 역할 | 이번 실습 구현 |
+| :--- | :--- | :--- |
+| `DocumentReader` | 원본에서 `Document` 목록 읽기 | `PagePdfDocumentReader` |
+| `DocumentTransformer` | 정제·청크 분할 | `TokenTextSplitter` |
+| `DocumentWriter` | 저장소에 저장 | `VectorStore` 구현체 |
+
+---
+layout: default
+---
+
+# 업로드 요청이 처리되는 순서
+
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#92AFD7"
+    arrowheadColor: "#92AFD7"
+    edgeLabelBackground: "#1F2F16"
+  flowchart:
+    padding: 8
+    nodeSpacing: 40
+    rankSpacing: 40
+---
+flowchart LR
+  A["MultipartFile"] --> B["InputStreamResource"]
+  B --> C["페이지 단위 텍스트 추출"]
+  C --> D["청크 분할"]
+  D --> E["pgvector 저장"]
+
+  class A,B,C,D step
+  class E result
+  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
+  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
+  linkStyle default stroke:#92AFD7,stroke-width:4px
+```
+
+---
+layout: default
+---
+
+# PDF 업로드 폼
+
+```html
+<form th:action="@{/rag/documents}" method="post" enctype="multipart/form-data">
+  <input type="file" name="file" accept="application/pdf" required />
+  <button type="submit">업로드</button>
+</form>
+```
+
+---
+layout: default
+---
+
+# 업로드 파일을 스트림으로 읽기
 
 ```java
-String original = Objects.requireNonNull(file.getOriginalFilename());
-String safeOriginalName = StringUtils.getFilename(StringUtils.cleanPath(original));
-String key = "books/" + UUID.randomUUID() + "." + extension;
-PutObjectRequest request = PutObjectRequest.builder()
-        .bucket(properties.bucket())
-        .key(key)
-        .contentType(validatedType.toString())
+Resource resource = new InputStreamResource(file.getInputStream());
+
+PagePdfDocumentReader reader = new PagePdfDocumentReader(
+        resource,
+        PdfDocumentReaderConfig.builder().build()
+);
+```
+
+---
+layout: default
+---
+
+# 청크로 나누어 벡터로 저장하기
+
+```java
+// 검색에 적합한 크기(기본 800토큰)로 분할
+List<Document> documents = new TokenTextSplitter().apply(reader.read());
+
+// 임베딩 생성 후 pgvector에 저장
+vectorStore.add(documents);
+```
+
+---
+layout: default
+---
+
+# PagePdfDocumentReader가 못 읽는 PDF
+
+- **기본 리더**: 목차에 의존하지 않고 페이지 단위로 추출해 실습 기본값으로 사용
+- **암호화·손상 PDF**: 추출 자체가 실패
+- **스캔 이미지 PDF**: 텍스트가 거의 존재하지 않음
+- **복잡한 레이아웃**: 다단 구성·글자 매핑 오류 시 읽기 순서가 어긋남
+
+---
+layout: default
+---
+
+# 업로드 파일 검증
+
+- **`accept` 속성**: 브라우저 힌트일 뿐 보안 검증 수단 아님
+- **Content-Type 헤더**: 클라이언트가 임의로 조작 가능해 신뢰 불가
+- **서버 검증**: 파일 크기 제한과 PDF 시그니처 확인 필수
+- **거부 기준**: 빈 파일·암호화·손상 파일은 저장 전에 차단
+
+---
+layout: default
+---
+
+# 스캔 이미지 PDF 걸러내기
+
+- **텍스트 부재**: 이미지로만 구성된 PDF는 추출 텍스트가 거의 없음
+- **저장 전 검증**: 공백 제외 전체 길이와 페이지별 추출량 확인
+- **기준 미달 처리**: 벡터 저장을 중단하고 오류 반환
+- **대안 경로**: OCR·멀티모달 처리로 전환(405-2 Multi Modal RAG에서 다룸)
+
+---
+layout: default
+---
+
+# 대용량 파일과 중복 업로드
+
+- **동기 처리 부담**: 읽기·분할·임베딩·저장을 한 번에 처리하면 응답 지연
+- **처리 전략**: 실습은 업로드 페이지 수 제한, 실무는 비동기 배치 처리
+- **중복 업로드 문제**: 같은 PDF 반복 업로드 시 중복 청크로 검색 결과 왜곡
+- **중복 제거**: 파일 해시·메타데이터로 검사 후 `vectorStore.delete(...)`로 재저장
+
+---
+layout: default
+---
+
+# 임시 파일과 트랜잭션 경계
+
+- **`InputStreamResource`의 한계**: 애플리케이션이 별도 임시 파일을 만들지 않게 할 뿐
+- **서버 임시 저장**: multipart 구현체가 임계값 초과 업로드를 서버 임시 디렉터리에 저장 가능
+- **분리된 트랜잭션**: 원본 파일 저장(객체 스토리지)과 벡터 DB 저장은 별개
+- **정합성 관리**: 한쪽만 성공하지 않도록 보정 로직 필요
+
+---
+layout: default
+---
+
+# 유사도 검색 요청 만들기
+
+```java
+SearchRequest request = SearchRequest.builder()
+        .query(question)
+        .topK(aiProperties.rag().topK())
+        .similarityThreshold(aiProperties.rag().similarityThreshold())
+        .build();
+
+List<Document> results = vectorStore.similaritySearch(request);
+```
+
+---
+layout: default
+---
+
+# 메타데이터로 검색 범위 좁히기
+
+```java
+SearchRequest.builder()
+        .query(question)
+        .topK(aiProperties.rag().topK())
+        .filterExpression("fileName == '보도자료.pdf'")
         .build();
 ```
 
@@ -438,76 +591,30 @@ PutObjectRequest request = PutObjectRequest.builder()
 layout: default
 ---
 
-# 스트림으로 객체 업로드
+# 검색 범위 제한이 곧 보안
 
-```java
-try (InputStream input = file.getInputStream()) {
-    s3Client.putObject(request,
-            RequestBody.fromInputStream(input, file.getSize()));
-}
-return new UploadFile(safeOriginalName, key);
-```
+- **1단계 점검**: 답변을 만들기 전에 `similaritySearch` 결과부터 확인
+- **범위 제한**: 특정 문서·작성자로 좁힐 때 `filterExpression` 사용
+- **다중 사용자 환경**: 소유자 필터를 필수로 적용
+- **위험**: 필터가 없으면 다른 사용자의 문서가 검색되어 유출로 이어짐
 
 ---
 layout: default
 ---
 
-# 업로드 검증과 스트림 처리
+# 답변이 이상할 때 점검 순서
 
-- **검증 우선**: 크기·확장자·파일 시그니처를 확인하고 안전한 미디어 타입 결정
-- **스트림 사용**: `getBytes()` 대신 스트림과 크기를 넘겨 바이트 배열 복제를 피함
-- **정확한 길이**: `fromInputStream`에는 실제 바이트 크기와 같은 값을 전달
-- **키 명명**: 사용자 파일명 대신 UUID 키를 써서 덮어쓰기를 방지
-
----
-layout: default
----
-
-# 저장 서비스 코드는 그대로
-
-```java
-UploadFile uploadFile = fileStore.store(image);
-user.changeProfileImage(uploadFile);
-// 1:다 도서 이미지도 각 BookImage.storedName에 키가 들어감
-```
+- **1단계**: `similaritySearch` 결과에 원하는 문단이 걸리는지 확인
+- **2단계**: 걸리지 않으면 청크 크기 → `topK` → `similarityThreshold` 순으로 조정
+- **기준값 주의**: `0.7`은 정답이 아니라 시작점
+- **분포 차이**: 유사도 점수 분포는 임베딩 방식과 데이터에 따라 달라짐
+- **결정 방법**: 실제 질문-정답 평가셋으로 임곗값 결정
 
 ---
 layout: default
 ---
 
-# 객체 삭제 요청
-
-```java
-s3Client.deleteObject(builder -> builder
-        .bucket(properties.bucket())
-        .key(storedName));
-```
-
----
-layout: default
----
-
-# 삭제할 때 주의할 점
-
-- **자동 삭제 아님**: DB 행을 지워도 스토리지 객체는 자동으로 지워지지 않음
-- **복구 불가**: Supabase Storage는 S3 버저닝을 지원하지 않아 삭제한 객체는 복구 불가
-- **파일 교체 순서**: 새 객체 저장과 DB 변경이 성공한 뒤 이전 객체를 삭제
-
----
-layout: default
----
-
-# 자체 컨트롤러로 이미지를 제공하는 이유
-
-- **접근 불가**: 비공개 버킷의 객체는 공개 URL로 열 수 없음
-- **키 은닉**: URL에는 객체 키 대신 DB의 이미지 ID만 노출
-- **판단 주체**: 접근 권한을 애플리케이션이 판단할 수 있음
-
----
-layout: default
----
-
-# 이미지 요청이 서버를 거치는 흐름
+# QuestionAnswerAdvisor가 대신 해주는 일
 
 ```mermaid
 ---
@@ -522,12 +629,13 @@ config:
     rankSpacing: 40
 ---
 flowchart LR
-  A["GET /files/book-images/15"] --> B["BookImage 조회<br/>storedName 확인"]
-  B --> C["Supabase Storage<br/>객체 조회"]
-  C --> D["이미지 응답"]
+  A["질문"] --> B["자동 임베딩"]
+  B --> C["pgvector 유사도 검색"]
+  C --> D["프롬프트에 문서 주입"]
+  D --> E["LLM 답변"]
 
-  class A,B,C step
-  class D result
+  class A,B,C,D step
+  class E result
   classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
   classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
   linkStyle default stroke:#92AFD7,stroke-width:4px
@@ -537,139 +645,116 @@ flowchart LR
 layout: default
 ---
 
-# 파일 조회 컨트롤러의 기본 뼈대
+# RAG 답변 생성
 
 ```java
-@Controller
-@RequestMapping("/files")
-public class FileViewController {
-
-    private final BookImageRepository bookImageRepository;
-    private final S3Client s3Client;
-    private final StorageProperties properties;
-
-    // 생성자 주입 생략
-}
+String answer = chatClient.prompt()
+        .advisors(QuestionAnswerAdvisor.builder(vectorStore).build())
+        .user(question)
+        .call()
+        .content();
 ```
 
 ---
 layout: default
 ---
 
-# 이미지 ID로 객체를 찾아 스토리지에서 읽기
+# 근거 제시와 프롬프트 인젝션 대비
 
-```java
-@GetMapping("/book-images/{id}")
-public ResponseEntity<Resource> getBookImage(@PathVariable Long id) {
-    BookImage image = bookImageRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-    ResponseInputStream<GetObjectResponse> input = s3Client.getObject(b -> b
-            .bucket(properties.bucket()).key(image.getStoredName()));
-    // 다음 슬라이드에서 응답 생성
-}
-```
+- **출처 표시**: 검색된 `Document`의 메타데이터(파일명·페이지 번호)를 답변과 함께 화면에 표시
+- **인젝션 위험**: PDF 본문에 "기존 지시를 무시하라"는 문구가 숨어 있을 수 있음
+- **방어 프롬프트**: "검색된 문서만 근거로 답하고 없으면 모른다고 답하라"를 시스템 프롬프트에 명시
+- **확장 옵션**: 질문 재작성·멀티 쿼리 확장은 `RetrievalAugmentationAdvisor`(모듈러 RAG)로 확장
 
 ---
 layout: default
 ---
 
-# 읽은 객체를 응답으로 내보내기
+# 한도가 소진되면 무엇을 바꾸나
 
-```java
-String raw = input.response().contentType();
-MediaType type = raw == null
-        ? MediaType.APPLICATION_OCTET_STREAM
-        : MediaType.parseMediaType(raw);
-
-return ResponseEntity.ok()
-        .contentType(type)
-        .contentLength(input.response().contentLength())
-        .body(new InputStreamResource(input));
-```
-
----
-layout: default
----
-
-# 스트리밍으로 응답하는 이유
-
-- **메모리 절약**: `InputStreamResource`를 쓰면 파일 전체를 메모리에 올리지 않고 전달
-- **진행률 제공**: contentLength를 함께 지정해 브라우저가 진행률을 알 수 있음
-- **동일 패턴 재사용**: 프로필 이미지도 `/files/users/{id}/profile-image`처럼 같은 방식으로 구현
-
----
-layout: default
----
-
-# 비공개 자료라면 권한 확인이 먼저
-
-- **소유자 검증**: 객체를 읽기 전에 로그인 사용자와 파일 소유자가 같은지 확인
-- **추측 접근 차단**: 확인 없이 ID만으로 응답하면 URL 추측으로 열람 가능
-- **404로 응답**: 권한이 없으면 존재 여부도 알리지 않도록 동일한 오류로 처리
-
----
-layout: default
----
-
-# 타임리프에서 자체 컨트롤러 주소 사용
-
-```html
-<img th:src="@{/files/book-images/{id}(id=${image.id})}"
-     th:alt="${image.originalName}" />
-```
-
----
-layout: default
----
-
-# 자체 컨트롤러 방식의 대가
-
-- **은닉된 내부 호출**: 개발자 도구에는 애플리케이션 요청만 보이지만 서버 내부에서는 Supabase를 호출
-- **중계 부담**: 모든 이미지 바이트가 애플리케이션 서버를 거쳐 네트워크 부담이 커짐
-- **단계적 접근**: 이번 차시는 흐름 이해를 위해 이 방식을 우선
-
----
-layout: default
----
-
-# 공개 범위와 파일 제공 방식
-
-| 구분 | 적합한 파일 | 제공 방법 |
+| 전환 방식 | 방법 | 주의 |
 | :--- | :--- | :--- |
-| **공개 버킷** | 누구나 볼 수 있는 이미지 | 스토리지 공개 URL |
-| **비공개 버킷** | 회원 파일(이번 실습) | 자체 컨트롤러 또는 서명 URL |
-
-- **중계 생략**: 서버가 파일을 중계하는 대신 권한 확인 후 짧은 만료 시간의 서명 URL을 발급
-- **직접 다운로드**: 브라우저가 스토리지에서 직접 내려받아 서버 부담이 줄어듦
-- **적용 범위**: 이번 차시에서는 개념만 확인하고 구현은 자체 컨트롤러로 진행
+| 같은 공급자의 다른 모델 | 요청별 `ChatOptions` 전달 | 하나의 `ChatClient`로 가능 |
+| 다른 공급자 | 공급자별 `ChatClient` Bean을 만들고 라우터에서 선택 | Google용 `ChatClient`에 `OpenAiChatOptions`를 넘기는 방식으로는 전환 불가 |
 
 ---
 layout: default
 ---
 
-# 프리티어에서 아껴 쓰기
+# 한도 소진일 때만 대체 모델 호출
 
-- **고아 객체 정리**: 1GB는 원본 이미지가 쌓이면 빠르게 소진되므로 DB가 참조하지 않는 객체를 정리
-- **전송량 관리**: 같은 이미지를 반복 조회해도 전송량이 소모되므로 목록 화면의 이미지 크기·개수를 제한
-- **이중 제한**: 애플리케이션 5MB 제한과 버킷 제한을 함께 걸어 두 단계로 차단
-
----
-layout: default
----
-
-# 업로드 실패와 트랜잭션 경계
-
-- **실패 가능성**: 업로드는 네트워크 요청이라 실패할 수 있고 실패하면 DB에 키를 저장하지 않고 재시도를 안내
-- **분리된 트랜잭션**: 스토리지 업로드와 DB 트랜잭션은 하나로 묶이지 않음
-- **주기적 정리**: 업로드 후 DB 저장이 실패하면 참조되지 않는 객체가 남으므로 주기적으로 정리
+```java
+public String answer(String question) {
+    try {
+        return callRag(question, aiProperties.google().primaryModel());
+    }
+    catch (RuntimeException exception) {
+        if (!isModelQuotaExceeded(exception)) throw exception;
+        return callRag(question, aiProperties.google().fallbackModel());
+    }
+}
+```
 
 ---
 layout: default
 ---
 
-# 학습 요약
+# 요청마다 모델 지정하기
 
-- **저장 구조**: 실제 파일은 객체 스토리지에, 객체 키는 DB에 저장
-- **연결 선택**: AWS SDK 직접 설정과 Spring Cloud AWS 스타터 중 하나를 선택
-- **보안 원칙**: 서버 전용 S3 키를 환경 변수로 관리하고 접근 권한을 확인
-- **파일 응답**: 자체 컨트롤러로 중계하고 트래픽 증가 시 서명 URL을 고려
+```java
+private String callRag(String question, String model) {
+    return chatClient.prompt()
+            .options(GoogleGenAiChatOptions.builder().model(model).build())
+            .advisors(QuestionAnswerAdvisor.builder(vectorStore).build())
+            .user(question)
+            .call()
+            .content();
+}
+```
+
+---
+layout: default
+---
+
+# 실패 원인을 네 가지로 분류
+
+| 분류 | 대표 상황 | 처리 |
+| :--- | :--- | :--- |
+| `RETRYABLE` | 순간적 RPM/TPM 제한·타임아웃·5xx | `Retry-After` 또는 제한된 지수 백오프 후 같은 모델 재시도 |
+| `SWITCH_MODEL` | RPD·모델별 용량 소진 | 같은 공급자의 대체 모델을 한 번 호출 |
+| `SWITCH_PROVIDER` | 공급자 장애·전체 한도 소진 | 다른 공급자의 `ChatClient` 호출 |
+| `FAIL` | 인증·권한·잘못된 요청·안전 정책 | fallback하지 않고 사용자 안내 |
+
+---
+layout: default
+---
+
+# fallback을 설계할 때의 원칙
+
+- **오류 코드 확인**: HTTP 429만 보지 말고 공급자 오류 코드까지 확인(OpenAI는 결제·사용량 한도 429가 섞여 있음)
+- **재시도 계층 분리**: 프레임워크 재시도와 애플리케이션 재시도를 겹치면 호출 횟수가 곱해지므로 한 계층만 담당
+- **순환 경로 금지**: `primary → fallback → primary` 같은 순환 경로를 만들지 않음
+- **일관성 유지**: fallback에도 같은 시스템 프롬프트·RAG Advisor·보안 필터를 그대로 적용
+- **벡터는 그대로**: 모델이 바뀌어도 임베딩 모델과 pgvector의 기존 벡터는 그대로
+
+---
+layout: default
+---
+
+# 학습 요약 (1/2)
+
+- **RAG 구조**: 질문과 관련된 청크만 찾아 프롬프트에 넣고 답을 생성
+- **ETL 파이프라인**: `DocumentReader` → `DocumentTransformer` → `VectorStore`
+- **차원 일치**: `gemini-embedding-001`을 1536차원으로 맞춰 HNSW 제한 충족
+- **PDF 추출**: `spring-ai-pdf-document-reader`로 업로드 스트림을 그대로 읽음
+
+---
+layout: default
+---
+
+# 학습 요약 (2/2)
+
+- **검색 점검**: `similaritySearch`로 근거 문단이 걸리는지 먼저 확인
+- **답변 생성**: `QuestionAnswerAdvisor`로 검색·주입·생성을 한 번에 처리
+- **보안 원칙**: 소유자 필터와 방어 프롬프트로 유출·인젝션을 차단
+- **Fallback**: 오류를 분류해 재시도·모델 전환·공급자 전환을 구분
