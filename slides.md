@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: PDF 문서로 RAG 구현하기
+title: OAuth2 소셜 로그인 연동
 mermaid:
   theme: base
   themeVariables:
@@ -46,7 +46,7 @@ mermaid:
     activationBorderColor: '#92AFD7'
 ---
 
-# PDF 문서로 RAG 구현하기
+# OAuth2 소셜 로그인 연동
 
 ---
 layout: default
@@ -54,10 +54,10 @@ layout: default
 
 # 학습 체크리스트 (1/2)
 
-- [ ] RAG가 필요한 이유와 파인튜닝·프롬프트 방식과의 차이 이해
-- [ ] 문서·청크·임베딩·벡터 스토어 용어와 전체 파이프라인 파악
-- [ ] 임베딩 차원과 pgvector HNSW 2,000차원 제한의 관계 이해
-- [ ] Spring AI 의존성·pgvector·임베딩 모델 설정 방법 습득
+- [ ] 비밀번호를 넘기지 않고 권한만 위임하는 OAuth2의 취지 이해
+- [ ] `Resource Owner`·`Client`·`Authorization Server`·`Resource Server` 역할 구분
+- [ ] 인가 코드 그랜트(Authorization Code Grant) 단계와 `code`를 먼저 받는 이유 파악
+- [ ] `oauth2Login` 설정과 프레임워크 기본 경로 규약 습득
 
 ---
 layout: default
@@ -65,343 +65,243 @@ layout: default
 
 # 학습 체크리스트 (2/2)
 
-- [ ] ETL 파이프라인으로 PDF를 청크로 나누어 저장하는 흐름 습득
-- [ ] PDF 검증·중복 업로드·트랜잭션 분리 주의점 파악
-- [ ] `similaritySearch`와 메타데이터 필터로 검색 결과를 점검하는 방법 습득
-- [ ] `QuestionAnswerAdvisor` 기반 답변 생성과 모델 fallback 설계 이해
+- [ ] `registration`과 `provider` 설정의 역할 분리와 시크릿 관리 원칙 확인
+- [ ] 제공자별 응답 구조 차이를 `OAuth2UserService`에서 정규화하는 방법 습득
+- [ ] 폼·소셜 로그인을 하나의 principal 타입으로 통합하는 설계 이해
+- [ ] `(provider, providerId)` 기반 계정 식별과 이메일 자동 통합의 위험 파악
 
 ---
 layout: default
 ---
 
-# LLM이 모르는 것
+# 학습 범위
 
-- **학습 시점 이후 자료**: 최신 뉴스·정책·통계를 알지 못함
-- **조직 내부 문서**: 회사·기관 고유의 비공개 자료를 알지 못함
-- **환각(hallucination)**: 모르는 내용을 그럴듯하게 지어냄
-- **근거 부재**: 답변이 어디서 나왔는지 제시하지 못함
-
----
-layout: default
----
-
-# 세 가지 대응 방법 비교
-
-| 방법 | 비용 | 최신성 | 근거 제시 |
-| :--- | :--- | :--- | :--- |
-| 파인튜닝 | 학습 비용 큼 | 다시 학습해야 반영 | 근거 문장 없음 |
-| 프롬프트에 전문 붙여넣기 | 요청마다 토큰 비용 증가 | 붙여넣은 만큼 즉시 | 있으나 비효율 |
-| RAG | 임베딩·검색 비용만 추가 | 문서 추가 시 바로 반영 | 검색된 문단이 근거 |
-
-- **선택 기준**: 비용 대비 최신성과 근거 확보가 중요할수록 RAG 유리
-- **이번 차시 방향**: RAG 방식으로 구현
+- **선행 조건**: DB 기반 회원 관리와 경로 단위 RBAC 완성
+- **1. 원리 이해**: OAuth2의 역할 구성과 인가 코드 그랜트(Authorization Code Grant) 흐름
+- **2. 클라이언트 구성**: `oauth2Login` 설정과 제공자 등록
+- **3. 실제 연동**: 구글·카카오 사용자 정보를 회원 테이블에 연결
 
 ---
 layout: default
 ---
 
-# RAG 세 글자의 의미
+# 전체 진행 순서
 
-> **검색 증강 생성 (RAG, Retrieval-Augmented Generation)**
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#92AFD7"
+    arrowheadColor: "#92AFD7"
+    edgeLabelBackground: "#1F2F16"
+  flowchart:
+    padding: 8
+    nodeSpacing: 40
+    rankSpacing: 40
+---
+flowchart LR
+  A["OAuth2 원리"] --> B["oauth2Login 설정"]
+  B --> C["제공자 등록"]
+  C --> D["회원 테이블 연동"]
+
+  class A,B,C step
+  class D result
+  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
+  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
+  linkStyle default stroke:#92AFD7,stroke-width:4px
+```
+
+---
+layout: cover
+class: text-center
+---
+
+# OAuth2의 원리와 구성
+
+---
+layout: default
+---
+
+# 비밀번호를 통째로 넘기는 방식의 위험
+
+- **자체 인증의 부담**: 해싱·유출 대비·무차별 대입 방어까지 전부 애플리케이션에서 담당
+- **위임 시나리오**: 카카오 메일함 대행 기능을 아이디·비밀번호를 직접 받아 저장하는 방식으로 구현
+- **전면 노출**: 클라이언트 서버가 침해되면 카카오 계정 전체 권한 유출 위험
+- **세분화 불가**: "메일함 읽기만 허용" 같은 권한 범위 제한이 불가능
+- **해지 불가**: 비밀번호를 바꾸는 것 외에 개별 연동만 취소할 방법이 없음
+
+---
+layout: default
+---
+
+# OAuth2의 해법
+
+> **인가 위임 (OAuth2)**
 >
-> 질문과 관련된 문단만 찾아(Retrieval) 프롬프트에 넣고(Augmented) 답을 생성(Generation)하는 방식
+> 비밀번호를 아예 넘기지 않고, 필요한 권한(scope)만 담긴 토큰을 대신 발급받는 표준
 
-- **Retrieval**: 질문과 관련된 문단을 검색으로 찾음
-- **Augmented**: 찾은 문단을 프롬프트에 추가함
-- **Generation**: 추가된 문단을 근거로 LLM이 답변 생성
-
----
-layout: default
----
-
-# 이번 차시에서 만들 것
-
-- **업로드 흐름 확장**: Thymeleaf 폼으로 PDF 업로드 → 텍스트 추출
-- **벡터화 처리**: 청크 분할 → 임베딩 → pgvector 저장
-- **저장 대상 변화**: 404차시는 "파일"을, 이번엔 "벡터"를 저장
-- **실습 소재**: 정책브리핑 보도자료 PDF로 근거 있는 답변 구현
+- **비밀번호 미노출**: 사용자는 카카오·구글 화면에서만 비밀번호 입력
+- **제한된 노출**: 애플리케이션 서버가 침해되어도 유출되는 위험 범위는 제한된 권한의 토큰으로 국한
+- **개별 해지**: 사용자가 카카오 계정 설정에서 연동만 따로 해지 가능
 
 ---
 layout: default
 ---
 
-# 핵심 용어 (1/2)
+# OAuth2의 네 가지 역할
 
-| 용어 | 의미 | 예 |
+| 역할 | 이 실습에서의 예 | 아는 것 / 모르는 것 |
 | :--- | :--- | :--- |
-| 문서 (Document) | 업로드된 원본 자료 | 업로드한 보도자료 PDF |
-| 청크 (chunk) | 문서를 나눈 조각 | 문단 하나 분량의 텍스트 |
-| 임베딩 (embedding) | 텍스트를 숫자로 표현한 값 | `[0.021, -0.153, ...]` |
+| `Resource Owner` | 가입하려는 사용자 | 어떤 scope를 허용할지 동의 화면에서 직접 결정 |
+| `Client` | 서비스 애플리케이션 (Spring Boot) | 비밀번호는 전혀 모름, 발급받은 토큰으로만 접근 |
+| `Authorization Server` | 카카오·구글 인증 서버 | 사용자 인증·동의 처리, 가능한 경우 `Client`도 인증 |
+| `Resource Server` | 카카오·구글 프로필 API | 로그인 과정은 모름, `access_token` 유효성만 확인 |
 
 ---
 layout: default
 ---
 
-# 핵심 용어 (2/2)
-
-| 용어 | 의미 | 예 |
-| :--- | :--- | :--- |
-| 벡터 스토어 (VectorStore) | 임베딩을 저장하는 저장소 | pgvector |
-| 유사도 검색 | 질문과 가까운 벡터를 찾는 검색 | 코사인 거리 기반 검색 |
-| 메타데이터 | 벡터에 딸린 부가 정보 | 원본 파일명, 페이지 번호 |
-
----
-layout: default
----
-
-# PDF가 벡터로 저장되기까지
+# 인가 코드 그랜트(Authorization Code Grant) 흐름
 
 ```mermaid
 ---
 config:
   themeVariables:
     lineColor: "#92AFD7"
-    arrowheadColor: "#92AFD7"
-    edgeLabelBackground: "#1F2F16"
-  flowchart:
-    padding: 8
-    nodeSpacing: 40
-    rankSpacing: 40
+    actorBkg: "#1F2F16"
+    actorBorder: "#92AFD7"
+    actorTextColor: "#F4F7F0"
+    signalColor: "#92AFD7"
+    signalTextColor: "#F4F7F0"
+    activationBkgColor: "#5A7684"
+    activationBorderColor: "#92AFD7"
+    labelBoxBkgColor: "#1F2F16"
+    labelBoxBorderColor: "#5A7684"
+    labelTextColor: "#F4F7F0"
+    loopTextColor: "#F4F7F0"
+  sequence:
+    actorMargin: 48
+    messageMargin: 36
+    mirrorActors: false
 ---
-flowchart LR
-  A["업로드 폼"] --> B["PDF 텍스트 추출"]
-  B --> C["청크 분할"]
-  C --> D["임베딩"]
-  D --> E["pgvector 저장"]
-
-  class A,B,C,D step
-  class E result
-  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
-  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
-  linkStyle default stroke:#92AFD7,stroke-width:4px
+sequenceDiagram
+  participant U as 사용자
+  participant C as Client
+  participant A as Authorization Server
+  participant R as Resource Server
+  U->>C: 소셜 로그인 요청
+  C->>A: 인가 요청 (리다이렉트)
+  U->>A: 로그인 및 scope 동의
+  A->>C: code 반환 (리다이렉트)
+  C->>A: code로 access_token 교환 (백채널)
+  C->>R: access_token으로 프로필 조회
 ```
 
 ---
 layout: default
 ---
 
-# 질문에 답하기까지
+# 토큰 대신 code를 먼저 받는 이유
 
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#92AFD7"
-    arrowheadColor: "#92AFD7"
-    edgeLabelBackground: "#1F2F16"
-  flowchart:
-    padding: 8
-    nodeSpacing: 40
-    rankSpacing: 40
----
-flowchart LR
-  A["질문"] --> B["질문 임베딩"]
-  B --> C["pgvector 유사도 검색"]
-  C --> D["프롬프트에 근거 주입"]
-  D --> E["LLM 답변"]
-
-  class A,B,C,D step
-  class E result
-  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
-  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
-  linkStyle default stroke:#92AFD7,stroke-width:4px
-```
+- **프런트채널의 한계**: 리다이렉트 URL은 브라우저 히스토리·서버 로그·`Referer` 헤더로 노출될 수 있음
+- **돌아오는 값**: 브라우저에 전달되는 값은 `access_token`이 아니라 일회성 `code`뿐
+- **백채널 교환**: 실제 토큰 교환은 브라우저를 거치지 않고 서버 간 직접 통신으로 수행
+- **피해 최소화**: `code`가 노출되어도 토큰 자체가 유출되는 것보다 안전
 
 ---
 layout: default
 ---
 
-# 임베딩은 의미를 좌표로 바꾼다
+# client_secret과 PKCE의 역할
 
-- **벡터 변환**: 문장을 고정 길이 실수 배열로 변환
-- **거리와 의미**: 의미가 비슷할수록 벡터 사이 거리가 가까움
-- **검색 방식**: 단어 일치가 아니라 의미 근접도로 검색
-- **모델 일관성**: 같은 모델로 만든 벡터끼리만 비교 가능
+| 보안 장치 | 막는 위험 | 주 사용 대상 |
+| :--- | :--- | :--- |
+| `client_secret` | 위조 클라이언트의 토큰 요청 | 비밀을 보관할 수 있는 서버형 클라이언트 |
+| PKCE `code_verifier` | 탈취한 인가 코드의 교환 | 모든 인가 코드 클라이언트에 권장 |
 
----
-layout: default
----
-
-# 유사도를 재는 세 가지 방법
-
-| 거리 방식 | 설명 |
-| :--- | :--- |
-| 코사인 거리 | 기본값, 벡터 방향만 비교해 길이 차이에 영향 없음 |
-| 유클리드 거리 | 벡터 사이의 직선 거리 |
-| 내적 | 두 벡터를 곱해 더한 값으로 비교 |
-
-- 실습은 pgvector 기본값인 코사인 거리를 사용
+- 두 장치는 목적이 달라 함께 사용할 수 있으며, `client_secret`은 인가 코드 흐름 자체의 필수 요소가 아님
 
 ---
 layout: default
 ---
 
-# 차원 수를 먼저 정해야 하는 이유
+# state로 막는 로그인 CSRF
 
-- **인덱스 제약**: pgvector의 HNSW 인덱스는 최대 2,000차원까지만 인덱싱 지원
-- **큰 벡터 불가**: 3072차원 같은 큰 벡터는 인덱스 생성 자체가 불가능
-- **모델 선택 기준**: 2,000 이하를 지원하는 임베딩 모델 선택이 필수
-- **변경 비용**: 모델을 바꾸면 테이블 컬럼과 인덱스를 재생성해야 하므로 초기에 신중히 결정
-
----
-layout: default
----
-
-# 실습에 사용할 임베딩 모델
-
-- **모델**: Google `gemini-embedding-001` 사용
-- **차원 축소**: Matryoshka 축소로 1536차원 세팅
-- **지원 기한**: 종료 예정일 2028년 5월 14일, 2026년 8월 기준 사용 가능
-- **대안 모델**: `bge-m3`(1024차원)는 추후 Cloudflare Workers AI 구성 시 활용
-- **향후 확장**: `gemini-embedding-2`는 이후 Image RAG(멀티모달) 차시에서 다룸
+- **동작 방식**: 인가 요청에 임의 문자열 `state`를 실어 보내고, 콜백에서 그대로 되돌려받아 대조
+- **막는 공격**: 공격자가 미리 받아 둔 `code`를 사용자 브라우저에 주입하는 로그인 CSRF
+- **불일치 시 거부**: 되돌아온 `state`가 저장된 값과 다르면 콜백을 거부
+- **자동 처리**: Spring Security가 `oauth2Login` 구성만으로 생성·검증을 자동 처리
 
 ---
 layout: default
 ---
 
-# 1536은 세 곳이 모두 같아야 한다
+# OAuth2 그랜트 타입 (Grant Type)
 
-| 위치 | 설정 값 |
-| :--- | :--- |
-| 임베딩 모델 출력 차원 | `dimensions: 1536` |
-| DB 컬럼 타입 | `vector(1536)` |
-| 벡터 스토어 설정 | `spring.ai.vectorstore.pgvector.dimensions: 1536` |
+> **그랜트 타입 (Grant Type)**
+>
+> 클라이언트가 인가 서버로부터 액세스 토큰(Access Token)을 발급받는 승인 절차 및 권한 부여 방식
 
-- **불일치 시 문제**: 차원이 어긋나면 검색 자체가 불가능
-
----
-layout: default
----
-
-# pgvector 사용 준비 순서
-
-| 단계 | 할 일 |
-| :--- | :--- |
-| ① | PostgreSQL JDBC·Spring Data JPA 및 Supabase DB 준비(이미 구축 가정) |
-| ② | Supabase Dashboard → Database → Extensions 이동 |
-| ③ | `vector` 확장 활성화 확인 |
-| ④ | Spring AI 기본 설정으로 스키마 자동 생성 |
+- **선택 기준**: 클라이언트의 유형(서버형/클라이언트형)과 보안 요구사항에 따라 결정
+- **핵심 목적**: 부적격 클라이언트의 토큰 발급을 차단하고 최적의 인증 흐름을 제공
+- **적용 대상**: 본 실습에서는 가장 표준적이고 안전한 `authorization_code` 방식 적용
 
 ---
 layout: default
 ---
 
-# 자동으로 만들어지는 테이블
+# 주요 그랜트 타입 비교
 
-```text
-id         uuid          PK
-content    text
-metadata   json
-embedding  vector(1536)
-+ HNSW 인덱스 (2000차원 이하 지원)
-```
+| 그랜트 타입 | 용도 | 현재 상태 |
+| :--- | :--- | :--- |
+| `authorization_code` | 사용자 개입 표준 로그인 (이 교안 사용) | 표준 (권장) |
+| `client_credentials` | 서버 간 직접 인증 (비대면) | 표준 |
+| `refresh_token` | 만료 토큰 재로그인 없이 갱신 | 표준 |
+| `implicit` | SPA에 토큰 직접 반환 (보안 위험) | OAuth 2.1 초안에서 제외 |
+| `password` (Resource Owner) | 클라이언트가 사용자 비밀번호 수령 | OAuth 2.1 초안에서 제외 |
 
----
-layout: default
----
-
-# HNSW와 IVFFlat
-
-| 인덱스 | 빌드 속도 | 메모리 | 검색 품질 | 특이사항 |
-| :--- | :--- | :--- | :--- | :--- |
-| HNSW | 느림 | 많음 | 좋음 | 기본값, 최대 2,000차원 한계 |
-| IVFFlat | 빠름 | 적음 | 낮음 | 미리 학습(List) 필요 |
+- **2026년 8월 기준**: OAuth 2.1은 RFC가 아니라 IETF Internet-Draft 단계
 
 ---
 layout: default
 ---
 
-# 의존성 추가
+# OIDC(OpenID Connect)는 무엇이 다른가
+
+> **오픈아이디 커넥트 (OpenID Connect, OIDC)**
+>
+> OAuth 2.0 프로토콜 상단에 사용자 신원 인증(Authentication) 계층을 추가한 표준 인증 프로토콜
+
+- **역할 차이**: OAuth2는 인가(Authorization) 위임, OIDC는 신원 인증(Authentication)까지 담당
+- **핵심 산출물**: `id_token`(JWT)을 추가로 발급받아 별도 API 호출 없이 사용자 신원 증명
+- **이번 실습 범위**: `access_token`으로 프로필 API를 호출하는 순수 OAuth2 흐름을 사용
+
+---
+layout: default
+---
+
+# 꼭 필요한 scope만 요청하기
+
+- **최소 권한 원칙**: 이메일·닉네임만 필요하면 그 이상 요청하지 않음
+- **동의 포기율**: 권한 목록이 과도하면 동의 화면에서 이탈 증가
+- **피해 범위**: 필요 이상의 scope로 발급된 토큰이 유출되면 피해 범위도 함께 증가
+- **설계 시점 결정**: scope 선택은 코드를 작성하기 전, 설계 단계에서부터 최소화
+---
+layout: cover
+class: text-center
+---
+
+# oauth2Login으로 클라이언트 구성하기
+
+---
+layout: default
+---
+
+# OAuth2 클라이언트 의존성 추가
 
 ```kotlin
-implementation(platform("org.springframework.ai:spring-ai-bom:2.0.0"))
-implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
-implementation("org.springframework.ai:spring-ai-pdf-document-reader")
-implementation("org.springframework.ai:spring-ai-starter-model-google-genai")
-// Spring AI 2.0.0 GA, Spring Boot 4.0.x·4.1.x 지원
-```
-
----
-layout: default
----
-
-# Chat 모델과 API 키 설정
-
-```yaml
-spring:
-  ai:
-    google:
-      genai:
-        api-key: ${GOOGLE_AI_API_KEY}
-        chat:
-          model: ${app.ai.google.primary-model}
-```
-
----
-layout: default
----
-
-# 임베딩 모델과 차원 설정
-
-```yaml
-spring:
-  ai:
-    google:
-      genai:
-        embedding:
-          text:
-            model: gemini-embedding-001
-            dimensions: 1536
-```
-
----
-layout: default
----
-
-# 벡터 스토어 설정
-
-```yaml
-spring:
-  ai:
-    vectorstore:
-      pgvector:
-        initialize-schema: true
-        index-type: HNSW
-        distance-type: COSINE_DISTANCE
-        dimensions: 1536
-        table-name: vector_store
-```
-
----
-layout: default
----
-
-# 애플리케이션 커스텀 설정
-
-```yaml
-app:
-  ai:
-    google:
-      primary-model: gemini-3.5-flash-lite
-      fallback-model: gemini-3.1-flash-lite
-    rag:
-      top-k: 5
-      similarity-threshold: 0.7
-```
-
----
-layout: default
----
-
-# 설정값을 타입 안전하게 묶기
-
-```java
-@ConfigurationProperties(prefix = "app.ai")
-public record AiProperties(Google google, Rag rag) {
-
-    public record Google(String primaryModel, String fallbackModel) {}
-
-    public record Rag(int topK, double similarityThreshold) {}
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 }
 ```
 
@@ -409,333 +309,448 @@ public record AiProperties(Google google, Rag rag) {
 layout: default
 ---
 
-# 설정에서 조심할 것
+# 프레임워크 기본 제공 경로
 
-- **타입 안전성**: `@Value`는 오타·미설정을 기동 시점에 걸러내기 어려워 `@ConfigurationProperties` 사용
-- **기본값 유지**: pgvector 설정은 기본값 유지가 가장 안정적
-- **스키마 자동 생성**: `initialize-schema: true`는 개발·실습 단계에서만
-- **테이블 삭제 위험**: `remove-existing-vector-store-table: true`는 데이터 손실 위험
-- **키 관리**: API 키는 소스와 저장소에 남기지 않고 환경 변수로 주입
+| 경로 | 역할 |
+| :--- | :--- |
+| `/oauth2/authorization/{registrationId}` | 인가 요청 시작점 |
+| `/login/oauth2/code/{registrationId}` | 콜백 수신점 |
 
----
-layout: default
----
-
-# Spring AI가 정리해 둔 ETL 3단계
-
-| 인터페이스 | 역할 | 이번 실습 구현 |
-| :--- | :--- | :--- |
-| `DocumentReader` | 원본에서 `Document` 목록 읽기 | `PagePdfDocumentReader` |
-| `DocumentTransformer` | 정제·청크 분할 | `TokenTextSplitter` |
-| `DocumentWriter` | 저장소에 저장 | `VectorStore` 구현체 |
+- **역할 분담**: 인가 요청·콜백·토큰 교환은 프레임워크가, 설정과 회원 연동은 개발자가 담당
+- **registrationId 일치**: yml `registration` 아래 키 이름과 정확히 같아야 함
+- **콘솔 등록값**: `{baseUrl}/login/oauth2/code/{registrationId}` 형태를 그대로 등록
 
 ---
 layout: default
 ---
 
-# 업로드 요청이 처리되는 순서
+# 폼 로그인과 소셜 로그인 동시 구성
 
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#92AFD7"
-    arrowheadColor: "#92AFD7"
-    edgeLabelBackground: "#1F2F16"
-  flowchart:
-    padding: 8
-    nodeSpacing: 40
-    rankSpacing: 40
----
-flowchart LR
-  A["MultipartFile"] --> B["InputStreamResource"]
-  B --> C["페이지 단위 텍스트 추출"]
-  C --> D["청크 분할"]
-  D --> E["pgvector 저장"]
-
-  class A,B,C,D step
-  class E result
-  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
-  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
-  linkStyle default stroke:#92AFD7,stroke-width:4px
+```java
+http
+    .formLogin(form -> form
+        .loginPage("/login")
+        .permitAll())
+    .oauth2Login(oauth2 -> oauth2
+        .loginPage("/login")
+        .defaultSuccessUrl("/boards", true)
+        .userInfoEndpoint(userInfo -> userInfo
+            .userService(customOAuth2UserService)));
 ```
 
 ---
 layout: default
 ---
 
-# PDF 업로드 폼
+# 로그인 화면 하나로 수렴하는 이유
+
+- **동일 loginPage**: `formLogin`과 `oauth2Login`이 같은 `/login`을 가리킴
+- **토큰 타입은 다르되**: `UsernamePasswordAuthenticationToken`과 `OAuth2AuthenticationToken` 모두 `Authentication` 구현체
+- **인가 규칙 동일**: 이후 `@AuthenticationPrincipal`, `authorizeHttpRequests`는 경로 구분 없이 동작
+- **연동 지점**: `userInfoEndpoint`의 `userService(...)`로 소셜 사용자를 DB와 연결
+
+---
+layout: default
+---
+
+# registration과 provider의 역할 분리
+
+- **registration.\<id\>**: 서비스 애플리케이션이 특정 제공자와 맺는 클라이언트 자격 증명과 스코프
+- **provider.\<id\>**: 해당 서비스가 제공하는 인가 서버 엔드포인트 정의
+- **생략 가능 조건**: 내장 provider를 사용하면 `provider` 블록 자체가 필요 없음
+
+---
+layout: default
+---
+
+# registration 주요 속성
+
+| 속성 | 의미 |
+| :--- | :--- |
+| `client-id` | 인가 서버에 등록한 클라이언트 식별자 |
+| `client-secret` | 클라이언트 비밀 값(평문 커밋 금지) |
+| `scope` | 요청할 권한 범위 목록 |
+| `redirect-uri` | 콜백 URI 템플릿 |
+| `client-authentication-method` | 토큰 엔드포인트 인증 방식 |
+| `provider` | `provider.<id>` 블록 참조 키(내장 provider면 생략) |
+
+---
+layout: default
+---
+
+# 구글 클라이언트 등록 설정
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+```
+
+---
+layout: default
+---
+
+# 내장 제공자와 직접 명시해야 하는 제공자
+
+- **내장 5종**: 최신 `CommonOAuth2Provider`에 구글·깃허브·페이스북·X·옥타가 포함
+- **내장 시 생략**: `client-id`/`client-secret`만으로 동작
+- **직접 명시 필요**: 카카오·네이버는 내장되지 않음
+- **필수 4개 속성**: `authorization-uri`, `token-uri`, `user-info-uri`, `user-name-attribute`
+
+---
+layout: default
+---
+
+# client-secret 외부화 및 보안 관리
+
+- **평문 커밋 금지**: yml에는 `${GOOGLE_CLIENT_SECRET}` 같은 환경 변수 플레이스홀더만 기입
+- **값 분리 보관**: 로컬 환경 변수, 커밋 제외 `application-local.yml`, 배포 환경의 시크릿 매니저로 분리
+- **유출 시 대응**: 파일 삭제로는 커밋 이력이 남으므로 보안 조치로 불충분
+- **유일한 올바른 조치**: 인가 서버 콘솔에서 즉시 시크릿 재발급(회전) 후 재배포
+
+---
+layout: default
+---
+
+# UserDetails와 OAuth2User
+
+| 구분 | `UserDetails` | `OAuth2User` |
+| :--- | :--- | :--- |
+| 출처 | 폼 로그인, DB 조회 | OAuth2 user-info 응답 |
+| 식별자 표현 | `getUsername()` | `getName()` |
+| 속성 접근 | 엔티티 필드 직접 접근 | `getAttributes()` |
+
+---
+layout: default
+---
+
+# principal 타입 이원화 문제
+
+- **경로별 타입 차이**: 폼 로그인은 `CustomUserDetails`, 소셜 로그인은 `OAuth2User`
+- **기존 코드 파손**: `@AuthenticationPrincipal CustomUserDetails user` 파라미터에 `null`이 전달됨
+- **원인**: 로그인 경로에 따라 주입되는 principal 구현 타입 자체가 다름
+- **해결 예고**: 다음 파트에서 통합 타입 `CustomOAuth2User`로 흡수
+---
+layout: cover
+class: text-center
+---
+
+# Google·Kakao 연동 구현
+
+---
+layout: default
+---
+
+# 사전 작업: 인가 서버 콘솔 설정
+
+| 구분 | Google Cloud Console | Kakao Developers |
+| :--- | :--- | :--- |
+| 클라이언트 ID | 자동 발급 `xxxx.apps.googleusercontent.com` | REST API 키를 사용 |
+| 클라이언트 시크릿 | 자동 발급 | REST API 키에 기본 활성화, 값 확인 |
+| 리디렉션 URI | `.../login/oauth2/code/google` | `.../login/oauth2/code/kakao` |
+| 동의 항목 | 이메일, 프로필 | 닉네임(기본 제공), 이메일(비즈 앱 필요) |
+
+---
+layout: default
+---
+
+# 로컬 회원과 소셜 회원을 한 테이블에 담기
+
+```java
+enum AuthProvider {
+    LOCAL, GOOGLE, KAKAO
+}
+
+// UserAccount에 추가되는 필드
+private String password;   // 소셜 회원은 null 허용
+private String email;
+private AuthProvider provider = AuthProvider.LOCAL;
+private String providerId;
+```
+
+---
+layout: default
+---
+
+# 소셜 가입 회원을 만드는 팩토리
+
+```java
+static UserAccount registerSocial(
+        AuthProvider provider, String providerId,
+        String nickname, String email) {
+    return UserAccount.builder()
+            .uuid(UUID.randomUUID())
+            .username(provider.name().toLowerCase() + "_" + providerId)
+            .nickname(nickname).email(email)
+            .provider(provider).providerId(providerId)
+            .roles(EnumSet.of(Role.USER)).enabled(true)
+            .build();
+}
+```
+
+---
+layout: default
+---
+
+# 소셜 회원의 비밀번호 관리 정책
+
+- **nullable password**: `password` 컬럼의 `nullable = false`를 제거해 소셜 회원을 표현
+- **DelegatingPasswordEncoder 예외**: null이거나 인코더 식별자 없는 값은 단순 불일치가 아니라 예외로 처리될 수 있음
+- **임의 비밀번호 채우기 지양**: 더미 비밀번호로 폼 로그인을 방어하는 방식은 지양
+- **경로 분리**: `findByUsernameAndProvider(username, LOCAL)`처럼 로컬 계정 전용 진입점을 둔다
+
+---
+layout: default
+---
+
+# 복합 식별자 (provider, providerId)
+
+- **sub/id는 제공자 내부 전용**: 구글 `sub`, 카카오 `id`는 각자 안에서만 유일하며, 제공자 간 식별자가 충돌할 수 있음
+- **복합 유니크 제약**: 진짜 식별자는 `(provider, providerId)` 조합
+- **username은 접두사로 구분**: `"google_1234567890"`처럼 provider 접두사를 붙여 충돌을 원천 차단
+
+---
+layout: default
+---
+
+# 이메일 기반 자동 계정 통합 금지
+
+- **account takeover 시나리오**: 인가 서버가 이메일 소유권을 검증하지 않으면, 공격자가 피해자 이메일을 자기 소셜 프로필에 등록하고 로그인해 기존 계정을 탈취할 수 있음
+- **제공자별 별도 계정이 기본 원칙**: 이메일이 같아도 자동으로 연결하지 않음
+- **통합은 명시적 플로우로만**: 이미 로그인된 상태에서 "계정 연동하기"로 본인 확인 후 연결
+
+---
+layout: default
+---
+
+# 카카오 클라이언트 등록 설정
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            client-authentication-method: client_secret_post
+            scope: [profile_nickname]
+```
+
+---
+layout: default
+---
+
+# 카카오 인가 서버 엔드포인트 설정
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+```
+
+---
+layout: default
+---
+
+# 카카오 설정 시 주의할 사항
+
+- **client_secret_post**: 카카오 토큰 엔드포인트는 HTTP Basic 미지원, 기본값을 두면 `invalid_client`
+- **user-name-attribute: id**: 카카오 응답 최상위 키가 `id`, `OAuth2User.getName()`이 반환할 값과 일치해야 함
+- **profile_nickname만 요청**: 이메일 수령은 비즈 앱 검수가 필요해 우선 배제
+- **구글 scope에 openid 미포함**: 포함 시 OIDC 흐름을 타므로, 카카오와 같은 처리 경로로 통일하기 위함
+
+---
+layout: default
+---
+
+# 제공자마다 다른 응답 구조
+
+| 항목 | Google 응답 키 | Kakao 응답 키 |
+| :--- | :--- | :--- |
+| 고유 ID | `sub` | `id` |
+| 닉네임 | `name` | `kakao_account.profile.nickname` |
+| 이메일 | `email` | `kakao_account.email` |
+
+---
+layout: default
+---
+
+# 통합 Principal 타입 설계
+
+```java
+class CustomOAuth2User extends CustomUserDetails
+        implements OAuth2User {
+    private final Map<String, Object> attributes;
+
+    CustomOAuth2User(UserAccount account, Map<String, Object> attrs) {
+        super(account);
+        this.attributes = attrs;
+    }
+
+    public Map<String, Object> getAttributes() { return attributes; }
+    public String getName() { return String.valueOf(getId()); }
+}
+```
+
+---
+layout: default
+---
+
+# 기존 컨트롤러 호환성 유지 설계
+
+- **다형성으로 동작**: `@AuthenticationPrincipal CustomUserDetails user`로 작성된 기존 컨트롤러가 `CustomOAuth2User`도 그대로 수용
+- **getAuthorities 재구현 불필요**: 부모가 이미 권한 목록을 보관하고 있어 `OAuth2User` 요구사항을 충족
+- **instanceof 분기의 단점**: 인증 방식이 추가될 때마다 분기 코드가 컨트롤러 전반에 확산
+- **공통 인터페이스 분리의 단점**: 기존 사용처를 전부 새 타입으로 변경해야 하는 부담
+
+---
+layout: default
+---
+
+# 사용자 정보 응답 정규화
+
+```java
+OAuth2User oAuth2User = super.loadUser(userRequest);
+String registrationId = userRequest.getClientRegistration()
+        .getRegistrationId();
+Map<String, Object> attrs = oAuth2User.getAttributes();
+
+String providerId = switch (registrationId) {
+    case "google" -> requiredString(attrs.get("sub"));
+    case "kakao" -> requiredString(attrs.get("id"));
+    default -> throw new OAuth2AuthenticationException(registrationId);
+};
+```
+
+---
+layout: default
+---
+
+# 회원 조회 및 자동 가입 처리
+
+```java
+UserAccount userAccount = userAccountRepository
+        .findByProviderAndProviderId(provider, providerId)
+        .map(existing -> {
+            existing.updateFromSocial(nickname);
+            return existing;
+        })
+        .orElseGet(() -> userAccountRepository.save(
+                UserAccount.registerSocial(
+                        provider, providerId, nickname, email)));
+```
+
+---
+layout: default
+---
+
+# 자동 가입 처리 시 준수 원칙
+
+- **providerId 없으면 인증 실패**: 계정 동일성의 기준이므로 없거나 비어 있으면 요청을 거부
+- **닉네임 누락 시 기본 표시명**: 화면 표시값이므로 없으면 기본값으로 대체
+- **dirty checking으로 save 불필요**: 기존 회원 갱신은 트랜잭션 종료 시 자동 반영
+- **신규 회원은 언제나 Role.USER**: ADMIN 같은 민감 권한을 이 경로에서 부여 금지
+
+---
+layout: default
+---
+
+# 로그인 화면 접근 허용 설정
+
+```java
+http
+    .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/", "/signup", "/login").permitAll()
+        .anyRequest().authenticated())
+    .oauth2Login(oauth2 -> oauth2
+        .loginPage("/login")
+        .defaultSuccessUrl("/boards", true)
+        .userInfoEndpoint(userInfo -> userInfo
+            .userService(customOAuth2UserService)));
+```
+
+---
+layout: default
+---
+
+# OAuth2 필터 경로와 접근 규칙
+
+- **로그인 화면은 공개**: 커스텀 GET `/login`은 익명 사용자가 열 수 있도록 허용
+- **인가 요청 시작점**: `/oauth2/authorization/{registrationId}`는 OAuth2 전용 필터가 처리
+- **콜백 수신점**: `/login/oauth2/code/{registrationId}`도 OAuth2 전용 필터가 처리
+- **별도 permitAll 불필요**: 최신 공식 예제도 `anyRequest().authenticated()`와 함께 두 경로를 사용
+
+---
+layout: default
+---
+
+# 로그인 화면의 소셜 버튼
 
 ```html
-<form th:action="@{/rag/documents}" method="post" enctype="multipart/form-data">
-  <input type="file" name="file" accept="application/pdf" required />
-  <button type="submit">업로드</button>
-</form>
+<div sec:authorize="isAnonymous()">
+  <form th:action="@{/login}" method="post">
+    <input type="text" name="username" />
+    <input type="password" name="password" />
+    <button type="submit">로그인</button>
+  </form>
+  <a th:href="@{/oauth2/authorization/google}">Google로 로그인</a>
+  <a th:href="@{/oauth2/authorization/kakao}">Kakao로 로그인</a>
+</div>
 ```
 
 ---
 layout: default
 ---
 
-# 업로드 파일을 스트림으로 읽기
+# 자주 마주치는 오류 (1/2)
 
-```java
-Resource resource = new InputStreamResource(file.getInputStream());
-
-PagePdfDocumentReader reader = new PagePdfDocumentReader(
-        resource,
-        PdfDocumentReaderConfig.builder().build()
-);
-```
-
----
-layout: default
----
-
-# 청크로 나누어 벡터로 저장하기
-
-```java
-// 검색에 적합한 크기(기본 800토큰)로 분할
-List<Document> documents = new TokenTextSplitter().apply(reader.read());
-
-// 임베딩 생성 후 pgvector에 저장
-vectorStore.add(documents);
-```
-
----
-layout: default
----
-
-# PagePdfDocumentReader가 못 읽는 PDF
-
-- **기본 리더**: 목차에 의존하지 않고 페이지 단위로 추출해 실습 기본값으로 사용
-- **암호화·손상 PDF**: 추출 자체가 실패
-- **스캔 이미지 PDF**: 텍스트가 거의 존재하지 않음
-- **복잡한 레이아웃**: 다단 구성·글자 매핑 오류 시 읽기 순서가 어긋남
-
----
-layout: default
----
-
-# 업로드 파일 검증
-
-- **`accept` 속성**: 브라우저 힌트일 뿐 보안 검증 수단 아님
-- **Content-Type 헤더**: 클라이언트가 임의로 조작 가능해 신뢰 불가
-- **서버 검증**: 파일 크기 제한과 PDF 시그니처 확인 필수
-- **거부 기준**: 빈 파일·암호화·손상 파일은 저장 전에 차단
-
----
-layout: default
----
-
-# 스캔 이미지 PDF 걸러내기
-
-- **텍스트 부재**: 이미지로만 구성된 PDF는 추출 텍스트가 거의 없음
-- **저장 전 검증**: 공백 제외 전체 길이와 페이지별 추출량 확인
-- **기준 미달 처리**: 벡터 저장을 중단하고 오류 반환
-- **대안 경로**: OCR·멀티모달 처리로 전환(405-2 Multi Modal RAG에서 다룸)
-
----
-layout: default
----
-
-# 대용량 파일과 중복 업로드
-
-- **동기 처리 부담**: 읽기·분할·임베딩·저장을 한 번에 처리하면 응답 지연
-- **처리 전략**: 실습은 업로드 페이지 수 제한, 실무는 비동기 배치 처리
-- **중복 업로드 문제**: 같은 PDF 반복 업로드 시 중복 청크로 검색 결과 왜곡
-- **중복 제거**: 파일 해시·메타데이터로 검사 후 `vectorStore.delete(...)`로 재저장
-
----
-layout: default
----
-
-# 임시 파일과 트랜잭션 경계
-
-- **`InputStreamResource`의 한계**: 애플리케이션이 별도 임시 파일을 만들지 않게 할 뿐
-- **서버 임시 저장**: multipart 구현체가 임계값 초과 업로드를 서버 임시 디렉터리에 저장 가능
-- **분리된 트랜잭션**: 원본 파일 저장(객체 스토리지)과 벡터 DB 저장은 별개
-- **정합성 관리**: 한쪽만 성공하지 않도록 보정 로직 필요
-
----
-layout: default
----
-
-# 유사도 검색 요청 만들기
-
-```java
-SearchRequest request = SearchRequest.builder()
-        .query(question)
-        .topK(aiProperties.rag().topK())
-        .similarityThreshold(aiProperties.rag().similarityThreshold())
-        .build();
-
-List<Document> results = vectorStore.similaritySearch(request);
-```
-
----
-layout: default
----
-
-# 메타데이터로 검색 범위 좁히기
-
-```java
-SearchRequest.builder()
-        .query(question)
-        .topK(aiProperties.rag().topK())
-        .filterExpression("fileName == '보도자료.pdf'")
-        .build();
-```
-
----
-layout: default
----
-
-# 검색 범위 제한이 곧 보안
-
-- **1단계 점검**: 답변을 만들기 전에 `similaritySearch` 결과부터 확인
-- **범위 제한**: 특정 문서·작성자로 좁힐 때 `filterExpression` 사용
-- **다중 사용자 환경**: 소유자 필터를 필수로 적용
-- **위험**: 필터가 없으면 다른 사용자의 문서가 검색되어 유출로 이어짐
-
----
-layout: default
----
-
-# 답변이 이상할 때 점검 순서
-
-- **1단계**: `similaritySearch` 결과에 원하는 문단이 걸리는지 확인
-- **2단계**: 걸리지 않으면 청크 크기 → `topK` → `similarityThreshold` 순으로 조정
-- **기준값 주의**: `0.7`은 정답이 아니라 시작점
-- **분포 차이**: 유사도 점수 분포는 임베딩 방식과 데이터에 따라 달라짐
-- **결정 방법**: 실제 질문-정답 평가셋으로 임곗값 결정
-
----
-layout: default
----
-
-# QuestionAnswerAdvisor가 대신 해주는 일
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#92AFD7"
-    arrowheadColor: "#92AFD7"
-    edgeLabelBackground: "#1F2F16"
-  flowchart:
-    padding: 8
-    nodeSpacing: 40
-    rankSpacing: 40
----
-flowchart LR
-  A["질문"] --> B["자동 임베딩"]
-  B --> C["pgvector 유사도 검색"]
-  C --> D["프롬프트에 문서 주입"]
-  D --> E["LLM 답변"]
-
-  class A,B,C,D step
-  class E result
-  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
-  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
-  linkStyle default stroke:#92AFD7,stroke-width:4px
-```
-
----
-layout: default
----
-
-# RAG 답변 생성
-
-```java
-String answer = chatClient.prompt()
-        .advisors(QuestionAnswerAdvisor.builder(vectorStore).build())
-        .user(question)
-        .call()
-        .content();
-```
-
----
-layout: default
----
-
-# 근거 제시와 프롬프트 인젝션 대비
-
-- **출처 표시**: 검색된 `Document`의 메타데이터(파일명·페이지 번호)를 답변과 함께 화면에 표시
-- **인젝션 위험**: PDF 본문에 "기존 지시를 무시하라"는 문구가 숨어 있을 수 있음
-- **방어 프롬프트**: "검색된 문서만 근거로 답하고 없으면 모른다고 답하라"를 시스템 프롬프트에 명시
-- **확장 옵션**: 질문 재작성·멀티 쿼리 확장은 `RetrievalAugmentationAdvisor`(모듈러 RAG)로 확장
-
----
-layout: default
----
-
-# 한도가 소진되면 무엇을 바꾸나
-
-| 전환 방식 | 방법 | 주의 |
+| 오류 | 원인 | 조치 |
 | :--- | :--- | :--- |
-| 같은 공급자의 다른 모델 | 요청별 `ChatOptions` 전달 | 하나의 `ChatClient`로 가능 |
-| 다른 공급자 | 공급자별 `ChatClient` Bean을 만들고 라우터에서 선택 | Google용 `ChatClient`에 `OpenAiChatOptions`를 넘기는 방식으로는 전환 불가 |
+| `redirect_uri_mismatch` | 콘솔 등록 URI와 실제 요청 URI 불일치 | 콘솔 URI를 콜백 URI와 정확히 맞춤 |
+| `KOE006` | 카카오 콘솔에 Redirect URI 미등록 | Redirect URI 등록 메뉴에서 콜백 URI 추가 |
+| `KOE205` | scope 미설정 또는 OIDC 비활성 상태에서 `openid` 요청 | scope 활성화 또는 `openid` 제외 |
 
 ---
 layout: default
 ---
 
-# 한도 소진일 때만 대체 모델 호출
+# 자주 마주치는 오류 (2/2)
 
-```java
-public String answer(String question) {
-    try {
-        return callRag(question, aiProperties.google().primaryModel());
-    }
-    catch (RuntimeException exception) {
-        if (!isModelQuotaExceeded(exception)) throw exception;
-        return callRag(question, aiProperties.google().fallbackModel());
-    }
-}
-```
-
----
-layout: default
----
-
-# 요청마다 모델 지정하기
-
-```java
-private String callRag(String question, String model) {
-    return chatClient.prompt()
-            .options(GoogleGenAiChatOptions.builder().model(model).build())
-            .advisors(QuestionAnswerAdvisor.builder(vectorStore).build())
-            .user(question)
-            .call()
-            .content();
-}
-```
-
----
-layout: default
----
-
-# 실패 원인을 네 가지로 분류
-
-| 분류 | 대표 상황 | 처리 |
+| 오류 | 원인 | 조치 |
 | :--- | :--- | :--- |
-| `RETRYABLE` | 순간적 RPM/TPM 제한·타임아웃·5xx | `Retry-After` 또는 제한된 지수 백오프 후 같은 모델 재시도 |
-| `SWITCH_MODEL` | RPD·모델별 용량 소진 | 같은 공급자의 대체 모델을 한 번 호출 |
-| `SWITCH_PROVIDER` | 공급자 장애·전체 한도 소진 | 다른 공급자의 `ChatClient` 호출 |
-| `FAIL` | 인증·권한·잘못된 요청·안전 정책 | fallback하지 않고 사용자 안내 |
-
+| `invalid_client` | client-secret 불일치 또는 인증 방식 불일치 | `client_secret_post` 지정 여부·시크릿 값 확인 |
+| `missing_user_name_attribute` | provider 블록에 `user-name-attribute` 미지정 | `provider.kakao`에 `user-name-attribute: id` 추가 |
+| 이메일 미수령(`null`) | 카카오는 이메일 제공에 사전 검증 필요 | 이메일 수집 배제 또는 추가 입력 페이지 유도 |
 ---
 layout: default
 ---
 
-# fallback을 설계할 때의 원칙
+# 소셜 로그인 책임 분담 정리
 
-- **오류 코드 확인**: HTTP 429만 보지 말고 공급자 오류 코드까지 확인(OpenAI는 결제·사용량 한도 429가 섞여 있음)
-- **재시도 계층 분리**: 프레임워크 재시도와 애플리케이션 재시도를 겹치면 호출 횟수가 곱해지므로 한 계층만 담당
-- **순환 경로 금지**: `primary → fallback → primary` 같은 순환 경로를 만들지 않음
-- **일관성 유지**: fallback에도 같은 시스템 프롬프트·RAG Advisor·보안 필터를 그대로 적용
-- **벡터는 그대로**: 모델이 바뀌어도 임베딩 모델과 pgvector의 기존 벡터는 그대로
+| 항목 | 어디에 구현 | 왜 필요한가 |
+| :--- | :--- | :--- |
+| 인가 코드 그랜트 | 프레임워크가 수행 | 토큰을 브라우저에 노출하지 않고 백채널에서 교환 |
+| 클라이언트 등록 | `application.yml` | 자격 증명과 엔드포인트를 코드 밖으로 외부화 |
+| 응답 속성 파싱 | `CustomOAuth2UserService` | 제공자별 JSON 구조 차이를 한곳에서 흡수 |
+| 통합 principal | `CustomOAuth2User` | 폼·소셜 로그인이 같은 타입으로 주입 |
+| 소셜 계정 식별 | `(provider, providerId)` 유니크 | 제공자 간 ID 충돌과 계정 탈취 위험 차단 |
 
 ---
 layout: default
@@ -743,10 +758,10 @@ layout: default
 
 # 학습 요약 (1/2)
 
-- **RAG 구조**: 질문과 관련된 청크만 찾아 프롬프트에 넣고 답을 생성
-- **ETL 파이프라인**: `DocumentReader` → `DocumentTransformer` → `VectorStore`
-- **차원 일치**: `gemini-embedding-001`을 1536차원으로 맞춰 HNSW 제한 충족
-- **PDF 추출**: `spring-ai-pdf-document-reader`로 업로드 스트림을 그대로 읽음
+- **OAuth2의 목적**: 사용자 비밀번호를 공유하지 않고, 동의한 `scope` 범위의 접근 권한을 애플리케이션에 위임
+- **역할의 분리**: 사용자는 권한을 승인하고, 인가 서버는 코드를 발급하며, 클라이언트는 토큰으로 리소스 서버에 접근
+- **인가 코드 흐름**: 브라우저에는 일회성 `code`만 전달하고, 액세스 토큰은 서버 간 백채널에서 교환
+- **Spring Security의 역할**: `oauth2Login`이 인가 요청, `state` 검증, 콜백 처리와 토큰 교환을 담당
 
 ---
 layout: default
@@ -754,7 +769,7 @@ layout: default
 
 # 학습 요약 (2/2)
 
-- **검색 점검**: `similaritySearch`로 근거 문단이 걸리는지 먼저 확인
-- **답변 생성**: `QuestionAnswerAdvisor`로 검색·주입·생성을 한 번에 처리
-- **보안 원칙**: 소유자 필터와 방어 프롬프트로 유출·인젝션을 차단
-- **Fallback**: 오류를 분류해 재시도·모델 전환·공급자 전환을 구분
+- **제공자 설정**: `registration`에는 클라이언트 자격과 scope를, `provider`에는 엔드포인트와 사용자 식별 속성을 정의
+- **사용자 정규화**: 제공자마다 다른 응답을 `OAuth2UserService`에서 해석해 하나의 principal 타입으로 변환
+- **계정 식별**: 이메일이 아니라 `(provider, providerId)`를 기준으로 저장하고, 계정 연결은 본인 확인을 거쳐 명시적으로 수행
+- **운영 보안**: 리디렉션 URI를 정확히 일치시키고, client secret은 외부화하며 유출 시 즉시 회전
