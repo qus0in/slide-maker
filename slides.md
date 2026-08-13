@@ -12,7 +12,7 @@ lineNumbers: true
 drawings:
   persist: false
 transition: none
-title: REST API 예외 처리와 문서화
+title: CSR 연동과 CORS
 mermaid:
   theme: base
   themeVariables:
@@ -46,7 +46,7 @@ mermaid:
     activationBorderColor: '#92AFD7'
 ---
 
-# REST API 예외 처리와 문서화
+# CSR 연동과 CORS
 
 ---
 layout: default
@@ -54,10 +54,10 @@ layout: default
 
 # 학습 체크리스트 (1/2)
 
-- [ ] SSR 예외 처리와 REST 예외 처리의 차이, 상태 코드가 계약이 되는 이유 이해
-- [ ] `@ControllerAdvice`와 `@RestControllerAdvice`의 반환값 해석 차이 파악
-- [ ] RFC 9457과 `ProblemDetail`의 표준 필드·확장 필드 사용법 습득
-- [ ] `spring.mvc.problemdetails.enabled`가 커버하는 범위와 한계 파악
+- [ ] SSR에서 CSR로 렌더링 책임이 옮겨지며 생기는 구조 변화 이해
+- [ ] 브라우저에 노출된 출처 구성이 CORS 필요성을 결정한다는 점 파악
+- [ ] 출처(Origin)의 세 요소와 동일 출처 정책이 막는 범위 이해
+- [ ] 단순 요청과 사전 요청(preflight)이 갈리는 기준 습득
 
 ---
 layout: default
@@ -65,10 +65,10 @@ layout: default
 
 # 학습 체크리스트 (2/2)
 
-- [ ] 도메인 예외 설계 방식별 장단점과 선택 기준 파악
-- [ ] `ResponseEntityExceptionHandler`를 확장한 전역 핸들러 구성 습득
-- [ ] 오류 본문의 내부 정보 노출 차단과 상관관계 추적 방식 이해
-- [ ] `@ApiResponse`로 실패 계약을 Swagger 명세에 노출하는 방법 습득
+- [ ] 주요 CORS 응답 헤더의 역할과 실무 설정 기준 파악
+- [ ] 브라우저 개입 여부로 CORS가 필요한 상황을 가려내는 기준 습득
+- [ ] `WebMvcConfigurer`와 `application.yml`로 허용 출처를 외부화하는 방법 습득
+- [ ] `fetch`로 CRUD를 호출하고 CORS 오류를 진단하는 순서 파악
 
 ---
 layout: default
@@ -76,11 +76,11 @@ layout: default
 
 # 학습 범위
 
-- **선행 조건**: REST API 기초와 Swagger UI(springdoc-openapi) 세팅 완료
-- **1. 예외 처리 전환**: SSR과 다른 REST 예외 처리의 출발점
-- **2. 응답 표준화**: RFC 9457과 `ProblemDetail`
-- **3. 전역 핸들러**: 도메인 예외 설계와 `@RestControllerAdvice`
-- **4. 계약과 문서화**: 오류 응답 보안, Swagger 예외 명세
+- **선행 조건**: REST API 설계와 `ProblemDetail` 전역 예외 처리까지 완성
+- **1. 구조 변화**: SSR에서 CSR로, 그리고 배포 형태의 분리
+- **2. 브라우저 규칙**: 출처와 동일 출처 정책, CORS의 동작 방식
+- **3. 서버 설정**: Spring Boot의 CORS 허용 설정 방법
+- **4. 연동과 진단**: `fetch` 호출과 CORS 트러블슈팅
 
 ---
 layout: default
@@ -101,10 +101,10 @@ config:
     rankSpacing: 40
 ---
 flowchart LR
-  A["REST 예외 처리"] --> B["ProblemDetail 표준화"]
-  B --> C["전역 예외 핸들러"]
-  C --> D["오류 응답 계약"]
-  D --> E["Swagger 예외 명세"]
+  A["CSR과 분리 배포"] --> B["출처와 SOP"]
+  B --> C["CORS 동작 원리"]
+  C --> D["Spring CORS 설정"]
+  D --> E["fetch 연동과 진단"]
 
   class A,B,C,D step
   class E result
@@ -118,50 +118,366 @@ layout: cover
 class: text-center
 ---
 
-# REST 예외 처리의 출발점
+# 렌더링 구조와 배포 형태
 ---
 layout: default
 ---
 
-# SSR 예외 처리와 무엇이 달라지는가
+# SSR: 서버 측 렌더링 동작 방식
 
-- **SSR**: 예외를 HTML 오류 화면(뷰 이름)으로 반환
-- **REST**: 화면이 없어 기계가 파싱하는 오류 본문을 반환
-- **클라이언트**: 프런트엔드, 다른 서버, 모바일 앱
-- **핵심 변화**: 반환값이 뷰 이름에서 응답 본문으로 전환
-- **환경**: Spring Boot 4.1 (Spring Framework 7)
+- **처리 흐름**: 컨트롤러가 `Model`을 채우면 템플릿 엔진이 데이터+HTML을 결합
+- **응답**: 브라우저는 이미 완성된 HTML 문서를 받음
+- **화면 갱신**: 전통적 SSR은 링크 이동·폼 제출 시 새 HTML 문서로 이동
+- **특성**: 콘텐츠가 담긴 HTML을 보내 초기 표시·검색엔진 수집에 유리할 수 있음
+- **예시**: 지금까지 다룬 Thymeleaf 게시판이 이 방식
 
 ---
 layout: default
 ---
 
-# SSR과 REST의 오류 응답 비교
+# CSR: 클라이언트 측 렌더링 동작 방식
 
-| 구분 | SSR | REST API |
+- **최초 응답**: 전형적인 SPA는 앱 셸 HTML과 JS 번들을 먼저 전달
+- **데이터 수신**: 이후 브라우저 JS가 `fetch`로 JSON을 따로 요청
+- **DOM 구성**: 전달받은 JSON 데이터로 브라우저가 DOM을 직접 구성
+- **주의점**: 클라이언트에서만 데이터를 채우면 초기 표시·SEO를 별도로 최적화해야 함
+- **실무 활용**: Thymeleaf 화면에 일부 비동기(fetch) 갱신을 조합하는 혼합 방식도 활용
+
+---
+layout: default
+---
+
+# SSR과 CSR 비교
+
+| 구분 | SSR | CSR |
 | :--- | :--- | :--- |
-| 응답 형태 | 오류 HTML 화면 | JSON 오류 본문 |
-| 수신자 | 사람 | 기계 |
-| 상태 코드의 비중 | 화면이 맞으면 관대 | 계약 그 자체 |
-| 다음 동작 결정 | 사용자가 판단 | 클라이언트 코드가 분기 |
-
-- REST에서는 상태 코드 하나가 클라이언트 로직의 분기 기준이 됨
+| 최초 응답 본문 | 완성된 HTML | 전형적 SPA는 앱 셸 HTML + JS 번들 |
+| 화면 갱신 단위 | 보통 새 HTML 문서로 이동 | JS가 필요한 UI만 갱신 가능 |
+| 서버 책임 | 요청마다 HTML 생성 | API 제공, 브라우저가 UI 구성 |
+| 배포 단위 | 단일 서버 통합 배포 | 프런트엔드·백엔드 분리 배포 가능 |
 
 ---
 layout: default
 ---
 
-# 상태 코드가 곧 계약이다
+# 모노리식 배포와 분리 배포
 
-- **분기 기준**: 클라이언트는 본문 파싱 전 상태 코드만으로 재시도·로그인 이동·오류 노출 결정
-- **불일치의 위험**: 상태 코드가 실제 상황과 어긋나면 클라이언트 로직 전체 오작동
-- **최악의 사례**: 오류인데 200을 반환하는 경우
-- **읽는 주체**: 상태 코드는 사람이 아니라 코드가 읽는 값
+| 구분 | 모노리식 배포 | 분리 배포 |
+| :--- | :--- | :--- |
+| 출처 동일 여부 | 보통 동일 출처 | 구성에 따라 동일·교차 출처 |
+| CORS 필요 여부 | 동일 출처면 불필요 | 브라우저가 교차 출처 API를 호출할 때 필요 |
+| 독립 배포 | 전체 앱 재배포 필요 | 프런트엔드/백엔드 개별 배포 |
+| 운영 복잡도 | 낮음 | 도메인·인증서·CORS 관리 지점 증가 |
+
+- 모노리식: 정적 리소스를 `src/main/resources/static`에 함께 배치
+- 분리 배포: 프런트는 Netlify·Vercel, 백엔드는 Render 등 별도 서버
 
 ---
 layout: default
 ---
 
-# 예외가 오류 응답이 되기까지
+# 배포 아키텍처와 CORS의 관계
+
+- **핵심 개념**: CORS 필요 여부는 브라우저에 보이는 프런트·API 출처로 결정됨
+- **분리 배포**: 리버스 프록시·BFF로 단일 출처를 유지하면 CORS가 필요하지 않을 수 있음
+- **소규모 시스템**: 배포 관리 지점이 적은 모노리식 구조가 효율적일 수 있음
+- **주의사항**: CORS는 오류 발생 후 급히 조치하는 임시방편 설정이 아님
+- **결론**: 아키텍처 설계 단계부터 CORS 반영 여부를 미리 고려해야 함
+
+---
+layout: default
+---
+
+# 핵심 용어 정리
+
+> **CSR (Client-Side Rendering)**
+>
+> 브라우저의 JS가 데이터를 받아 화면 DOM을 직접 구성하는 렌더링 방식
+
+> **BFF (Backend For Frontend)**
+>
+> 특정 클라이언트 화면에 맞춰 여러 백엔드 API를 조합·중개하는 전용 서버
+
+---
+layout: cover
+class: text-center
+---
+
+# 출처와 동일 출처 정책
+---
+layout: default
+---
+
+# 출처(Origin)를 이루는 세 요소
+
+- **스킴(Scheme)**: `http`, `https` 등 프로토콜
+- **호스트(Host)**: `localhost`, `api.example.com` 같은 도메인
+- **포트(Port)**: `8080`, `443` 등 생략 시 프로토콜 기본값 적용
+- **동일 출처 조건**: 스킴·호스트·포트 셋 다 같아야 동일 출처
+- **무관한 요소**: 경로(`/api/boards`)와 쿼리스트링은 판단에 영향 없음
+
+---
+layout: default
+---
+
+# 동일 출처(Same-Origin) 판정 기준
+
+기준: `http://localhost:8080`
+
+| 비교 대상 URL | 판정 | 이유 |
+| :--- | :--- | :--- |
+| `http://localhost:8080/api/boards` | 동일 | 경로 차이는 무관 |
+| `https://localhost:8080` | 다름 | 스킴 차이 |
+| `http://127.0.0.1:8080` | 다름 | 호스트 문자열 불일치 |
+| `http://localhost:5500` | 다름 | 포트 차이 |
+| `http://api.localhost:8080` | 다름 | 서브도메인 차이로 호스트 불일치 |
+
+---
+layout: default
+---
+
+# 동일 출처 정책(SOP)의 보안 목적
+
+- **위협 모델**: 악성 사이트에서 사용자 권한으로 다른 출처 API 호출 시도
+- **자격 증명 전송**: 쿠키는 SameSite·도메인·`credentials` 등 조건에 따라 포함
+- **핵심 방어**: 스크립트가 다른 출처 응답 본문을 읽지 못하게 차단
+- **출처 격리 원칙**: 서로 다른 출처의 페이지 및 스크립트는 상호 미신뢰가 기본값
+- **결과**: 허용되지 않은 스크립트가 교차 출처 응답 데이터를 읽지 못하게 함
+
+---
+layout: default
+---
+
+# SOP의 차단 범위와 적용 기준
+
+| 구분 | 동작 | 차단 여부 |
+| :--- | :--- | :--- |
+| `<img>`, `<script>`, `<link>` | 교차 출처 리소스 로드 | 허용 |
+| `<form>` 제출 | 교차 출처로 전송 | 허용 |
+| `fetch`/`XHR` | 단순 교차 출처 요청 전송 | 먼저 전송 후 응답 읽기 판단 |
+| `fetch`/`XHR` | 비단순 교차 출처 요청 | preflight 성공 후 본 요청 전송 |
+| `fetch`/`XHR` | 응답 본문을 스크립트가 읽기 | 응답 읽기 차단 |
+
+- SOP/CORS는 요청 유형에 따라 응답 읽기 또는 본 요청 전송을 제한함
+
+---
+layout: default
+---
+
+# 요청 성공과 CORS 브라우저 차단
+
+- **서버는 처리할 수 있음**: 단순 요청은 CORS 허용 여부 확인 전에 서버까지 도달
+- **브라우저 제어**: 서버 응답을 스크립트에 전달하는 단계에서 브라우저가 차단
+- **현상 대조**: 서버 로그에는 200 OK가 기록되나, 브라우저 콘솔에는 CORS 오류 표시
+- **적용 주체**: SOP는 브라우저 내부 보안 정책 (서버 간 통신과 무관)
+- **예외 범위**: Postman, curl, 서버 간 API 호출에는 SOP 미적용
+
+---
+layout: default
+---
+
+# 핵심 용어 정리
+
+> **출처 (Origin)**
+>
+> 스킴·호스트·포트 세 가지 조합으로 정의되는 리소스의 출처 단위
+
+> **동일 출처 정책 (Same-Origin Policy)**
+>
+> 다른 출처의 응답을 스크립트가 마음대로 읽지 못하게 막는 브라우저 내장 정책
+
+---
+layout: cover
+class: text-center
+---
+
+# CORS 동작 원리
+---
+layout: default
+---
+
+# CORS: 서버 측 교차 출처 허용 메커니즘
+
+- **핵심 개념**: 브라우저의 SOP 제약을 서버 응답 헤더로 명시 허용하는 메커니즘
+- **허용 주체**: 요청을 수신하는 서버가 허용할 출처(Origin)를 지정
+- **브라우저 판단**: 서버의 CORS 응답 헤더를 확인 후 스크립트에 접근 권한 부여
+- **주의사항**: 로그인/권한 검사 등 서버의 인증·인가 기능을 대체하지 않음
+- 다중 출처 동적 허용 시 캐시 오염 방지를 위해 `Vary: Origin` 헤더 유지 필요
+
+---
+layout: default
+---
+
+# 단순 요청(Simple Request)의 성립 조건
+
+- **HTTP 메서드**: `GET`, `HEAD`, `POST` 중 하나
+- **수동 요청 헤더**: `Accept`, `Accept-Language`, `Content-Language`, `Content-Type`, 단일 범위 `Range`만 사용
+- **Content-Type 값**: `application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain` 중 하나
+
+---
+layout: default
+---
+
+# REST API 호출 시 Preflight가 발생되는 이유
+
+- **JSON 미지원**: `application/json`은 단순 요청의 Content-Type 허용 조건에 미포함
+- **JSON 데이터 전송**: 교차 출처에서 `Content-Type: application/json`을 지정하면 Preflight 트리거
+- **비단순 메서드**: `PUT`, `DELETE` 등은 메서드 자체로 Preflight 대상
+
+---
+layout: default
+---
+
+# Preflight 요청 처리 흐름
+
+```mermaid
+---
+config:
+  themeVariables:
+    lineColor: "#92AFD7"
+    actorBkg: "#1F2F16"
+    actorBorder: "#92AFD7"
+    actorTextColor: "#F4F7F0"
+    signalColor: "#92AFD7"
+    signalTextColor: "#F4F7F0"
+    activationBkgColor: "#5A7684"
+    activationBorderColor: "#92AFD7"
+    labelBoxBkgColor: "#1F2F16"
+    labelBoxBorderColor: "#5A7684"
+    labelTextColor: "#F4F7F0"
+    loopTextColor: "#F4F7F0"
+  sequence:
+    actorMargin: 48
+    messageMargin: 36
+    mirrorActors: false
+---
+sequenceDiagram
+  브라우저->>서버: OPTIONS 사전 요청
+  서버-->>브라우저: 허용 헤더 응답
+  브라우저->>서버: 본 요청 전송
+  서버-->>브라우저: 실제 응답
+```
+
+---
+layout: default
+---
+
+# Preflight 요청 헤더 구조
+
+```http
+OPTIONS /api/boards HTTP/1.1
+Host: api.example.com
+Origin: https://example-front.github.io
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: content-type
+```
+
+---
+layout: default
+---
+
+# Preflight 응답 헤더 구조
+
+```http
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://example-front.github.io
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE
+Access-Control-Allow-Headers: content-type
+Access-Control-Max-Age: 3600
+```
+
+---
+layout: default
+---
+
+# 주요 CORS 응답 헤더
+
+| 헤더 | 의미 | 실무 주의점 |
+| :--- | :--- | :--- |
+| Allow-Origin | 응답을 읽을 수 있는 출처 | 운영은 `*` 대신 구체적 출처 지정 |
+| Allow-Methods | 허용하는 HTTP 메서드 | 실제 사용하는 메서드만 나열 |
+| Allow-Headers | 허용하는 요청 헤더 | JSON 전송엔 Content-Type 필수 |
+| Expose-Headers | JS가 읽을 수 있는 응답 헤더 | Location, X-Total-Count 등 명시 |
+| Max-Age | preflight 캐시 유지 시간(초) | 브라우저별 내부 상한이 있어 설정값보다 짧을 수 있음 |
+
+---
+layout: default
+---
+
+# 쿠키 기반 교차 출처 요청
+
+- **클라이언트**: `fetch`에 `credentials: 'include'`를 명시
+- **서버**: 구체적 `Allow-Origin`과 `Allow-Credentials: true`로 응답
+- **와일드카드 금지**: 자격 증명 요청에서는 `Allow-Origin: *` 사용 불가
+- **별도 정책**: 브라우저의 서드파티 쿠키 정책은 CORS 허용과 별개로 적용
+- **CSRF 주의**: CORS는 응답 읽기를 제어할 뿐 CSRF 방어를 대체하지 않음
+
+---
+layout: default
+---
+
+# 핵심 용어 정리
+
+> **사전 요청 (Preflight)**
+>
+> 비단순 요청 전에 브라우저가 OPTIONS로 먼저 보내 허용 여부를 확인하는 절차
+
+> **단순 요청 (Simple Request)**
+>
+> 메서드·헤더·본문 조건을 만족해 사전 확인 없이 바로 전송되는 요청
+
+---
+layout: cover
+class: text-center
+---
+
+# CORS 적용 필요성 판단하기
+---
+layout: default
+---
+
+# 통신 주체별 CORS 적용 조건
+
+| 시나리오 | 브라우저 개입 | CORS 필요 | 대표 상황 |
+| :--- | :--- | :--- | :--- |
+| 서버 → 서버 | 없음 | 불필요 | 백엔드가 외부 API를 직접 호출 |
+| 동일 출처 정적 리소스 | 있음 | 불필요 | 같은 도메인의 HTML·JS·CSS 요청 |
+| 다른 출처 서버 | 있음 | 서버의 CORS 허용 필요 | 브라우저 JS가 다른 출처 API 응답을 읽음 |
+
+- CORS는 **브라우저가 개입하는 교차 출처 요청**에서만 적용됨
+- 서버 간 직접 통신은 SOP 및 CORS 제약을 받지 않음
+
+---
+layout: default
+---
+
+# 백엔드 프록시(Proxy)를 통한 회피 전략
+
+- **서버 간 통신**: `RestClient` 등을 활용하면 SOP/CORS 제약 없이 호출 가능
+- **외부 API 우회**: 외부 서비스가 CORS를 지원하지 않을 때 백엔드 프록시 활용
+- **보안 강화**: API 키 등 인증 정보를 클라이언트에 노출하지 않고 서버에서 관리
+- **데이터 정제**: 클라이언트에 필요한 필드만 가공하여 전달 가능
+
+---
+layout: default
+---
+
+# Spring RestClient를 활용한 외부 API 우회
+
+```java
+RestClient client = RestClient.create();
+
+WeatherResponse result = client.get()
+    .uri("https://api.weather.example.com/today")
+    .retrieve()
+    .body(WeatherResponse.class);
+```
+
+---
+layout: default
+---
+
+# 리버스 프록시(Reverse Proxy)를 통한 출처 단일화
 
 ```mermaid
 ---
@@ -176,12 +492,12 @@ config:
     rankSpacing: 40
 ---
 flowchart LR
-  A["컨트롤러 예외 발생"] --> B["HandlerExceptionResolver 체인"]
-  B --> C["@ExceptionHandler 매칭"]
-  C --> D["ProblemDetail 응답 본문"]
+  A["브라우저"] --> B["https://example.com (Nginx)"]
+  B --> C["정적 파일"]
+  B --> D["internal-backend:8080"]
 
-  class A,B,C step
-  class D result
+  class A,B step
+  class C,D result
   classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
   classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
   linkStyle default stroke:#92AFD7,stroke-width:4px
@@ -191,203 +507,97 @@ flowchart LR
 layout: default
 ---
 
-# 예외 해석 체계는 SSR과 동일하다
+# 개발 및 운영 환경별 출처(Origin) 구성
 
-- **동일한 체인**: `HandlerExceptionResolver`(`ExceptionHandlerExceptionResolver`, `ResponseStatusExceptionResolver`, `DefaultHandlerExceptionResolver`)
-- **동일한 규칙**: `@ExceptionHandler` 우선순위 규칙도 SSR 차시와 동일
-- **달라지는 것**: 반환값의 해석 방식 하나
-- **핵심 차이**: 뷰 이름 대신 응답 본문
+| 환경 | 프런트 출처 | 백엔드 출처 | 필요한 조치 |
+| :--- | :--- | :--- | :--- |
+| 로컬 개발 | `127.0.0.1:5500` | `localhost:8080` | 두 표기 모두 등록·접속 주소 통일 |
+| 개발 서버 프록시 | `localhost:5173` | (같은 출처) | proxy 설정으로 CORS 불필요 |
+| 모노리식 배포 | static 폴더 | (같은 출처) | 상대 경로 호출 |
+| 서브도메인 분리 | `app.example.com` | `api.example.com` | 운영 허용 출처 등록 |
+| 타사 분리 배포 | `<user>.github.io` | `<app>.onrender.com` | 배포 도메인을 운영 프로파일에 등록 |
 
----
-layout: default
----
-
-# @ControllerAdvice와 @RestControllerAdvice
-
-| 항목 | `@ControllerAdvice` | `@RestControllerAdvice` |
-| :--- | :--- | :--- |
-| 내부 구성 | `@ControllerAdvice` | `@ControllerAdvice` + `@ResponseBody` |
-| 반환 문자열 | 뷰 이름 | 본문 문자열 |
-| 반환 객체 | 뷰 모델 | `HttpMessageConverter`가 JSON 직렬화 |
-| 주 사용처 | Thymeleaf SSR | REST API |
-
-- 두 애노테이션 모두 예외 처리 로직은 동일하게 작성
+- `localhost`와 `127.0.0.1`은 동일 IP 머신이라도 문자열이 달라 교차 출처로 판정됨
 
 ---
 layout: default
 ---
 
-# 두 advice를 한 프로젝트에서 나눠 쓰기
+# 핵심 용어 정리
 
-- **혼용 가능**: SSR 화면과 REST API를 함께 제공하는 경우
-- **범위 분리**: `basePackages`, `assignableTypes`로 적용 범위 지정
-- **오적용 위험**: `@RestControllerAdvice`를 SSR 컨트롤러에 걸면 오류 화면 대신 JSON 문자열이 브라우저에 그대로 노출
-- **원칙**: 컨트롤러 성격에 맞는 advice를 명시적으로 분리
+> **리버스 프록시 (Reverse Proxy)**
+>
+> 여러 서버를 하나의 출처로 감싸 클라이언트에게 단일 진입점처럼 보이게 하는 중개 서버
+
+> **상대 경로 요청 (Relative Path Request)**
+>
+> `fetch('/api/boards')`처럼 도메인을 생략해 현재 출처를 그대로 따라가는 요청 방식
+
 ---
 layout: cover
 class: text-center
 ---
 
-# ProblemDetail로 응답 표준화
+# Spring Boot CORS 설정 방법
 ---
 layout: default
 ---
 
-# 오류 응답이 제각각일 때
+# Spring Boot에서 CORS를 적용하는 3가지 방식
 
-- **자유도**: `@RestControllerAdvice`로 어떤 JSON이든 만들 수 있음
-- **구조 불일치**: 엔드포인트마다 필드 이름·구조가 다르면 클라이언트가 파싱 코드를 따로 작성
-- **공통 처리 불가**: 프런트엔드에서 공통 에러 핸들링을 만들기 어려움
-- **온보딩 비용**: 신규 합류자가 매번 응답 구조를 재확인해야 함
+| 방식 | 적용 범위 | 주의점 |
+| :--- | :--- | :--- |
+| `@CrossOrigin` | 메서드·클래스 단위 | 설정 분산 시 유지보수 및 허용 범위 파악 어려움 |
+| `WebMvcConfigurer#addCorsMappings` | 애플리케이션 전역 | 전역 CORS 정책을 한곳에서 통합 관리 |
+| `CorsFilter` 빈 | 서블릿 필터 단계 | Security보다 먼저 처리하도록 순서 통합 필요 |
 
----
-layout: default
----
-
-# 흩어진 오류 스키마
-
-```json
-{ "error": "게시글이 없습니다" }
-
-{ "message": "not found", "code": 404 }
-```
+- 세 방식을 병행할 수 있으나, 관리 효율을 위해 일관된 단일 방식 채택 권장
 
 ---
 layout: default
 ---
 
-# RFC 9457 Problem Details
+# 실무 권장 CORS 설정 전략
 
-> **문제 상세 (Problem Details)**
->
-> HTTP 오류 응답의 필드 구조와 미디어 타입(`application/problem+json`)을 정의한 표준
-
-- **대체 관계**: 이전 표준 RFC 7807을 대체
-- **Spring 지원**: `org.springframework.http.ProblemDetail` 타입으로 지원
-
----
-layout: default
----
-
-# ProblemDetail의 표준 필드
-
-| 필드 | 의미 |
-| :--- | :--- |
-| type | 문제 유형 식별 URI, 생략 시 `about:blank` |
-| title | 짧은 사람이 읽는 요약 |
-| status | HTTP 상태 코드 |
-| detail | 이번 요청에 한정된 설명 |
-| instance | 문제가 발생한 요청 URI |
+- **전역 설정 통합**: Security 미사용 시 `WebMvcConfigurer`로 중앙 관리
+- **Security 연동**: `http.cors(...)`로 MVC 설정을 사용하거나 `CorsConfigurationSource` 제공
+- **설정 외부화**: 허용 출처는 `application.yml`에서 프로파일별로 분리
+- **예외적 처리**: 특정 컨트롤러/엔드포인트에만 `@CrossOrigin` 제한적 적용
+- **분산 방지**: 애노테이션 남용 시 출처 허용 범위 파악이 어려움
+- **불변성 유지**: `record` 및 생성자 주입으로 불변 프로퍼티 구조 설계
 
 ---
 layout: default
 ---
 
-# 반환값이 곧 상태 코드가 되는 규칙
-
-- **상태 반영**: `@ExceptionHandler`가 `ProblemDetail`을 반환하면 객체의 `status`가 실제 HTTP 상태 코드가 됨
-- **미디어 타입**: 응답 미디어 타입은 `application/problem+json` 우선
-- **경로 자동 채움**: `instance`를 지정하지 않으면 Spring이 현재 요청 경로를 채움
-
----
-layout: default
----
-
-# 게시글 없음 문제를 표현하는 ProblemDetail
-
-```java
-ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-        HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다. id=" + boardId);
-problem.setType(URI.create("https://api.example.com/problems/board-not-found"));
-problem.setTitle("Board Not Found");
-problem.setProperty("boardId", boardId);
-```
-
----
-layout: default
----
-
-# type과 title을 정하는 기준
-
-- **확장 필드**: `setProperty(name, value)`로 추가, JSON 최상위에 표준 필드와 나란히 직렬화
-- **기본값 권고**: `about:blank`이면 `title`은 상태 문구(`Not Found`) 권고
-- **고유 URI**: 애플리케이션 고유 문제 유형은 문서화된 고유 URI를 `type`으로
-- **분기 기준**: 클라이언트는 번역될 수 있는 `title`·`detail`이 아니라 `type`으로 분기
-
----
-layout: default
----
-
-# 표준 예외를 ProblemDetail로 돌리는 설정
+# 프로파일(Profile)별 허용 출처 분리 설정
 
 ```yaml
-spring:
-  mvc:
-    problemdetails:
-      enabled: true
+app:
+  cors:
+    allowed-origins: [ "http://localhost:5500" ]
+---
+spring.config.activate.on-profile: local
+app:
+  cors:
+    allowed-origins: [ "http://localhost:5500", "http://127.0.0.1:5500" ]
+---
+spring.config.activate.on-profile: prod
+app:
+  cors:
+    allowed-origins: [ "https://example-front.github.io" ]
 ```
 
 ---
 layout: default
 ---
 
-# 설정 하나로 커버되는 범위
-
-- **자동 구성**: Boot가 `ResponseEntityExceptionHandler`를 자동 구성
-- **표준 예외 처리**: `HttpRequestMethodNotSupportedException`, `HttpMediaTypeNotSupportedException`, `MethodArgumentNotValidException`, `NoResourceFoundException` 등 MVC 표준 예외를 별도 핸들러 없이 처리
-- **끄면**: `BasicErrorController`의 `/error` 응답(timestamp·status·error·path) 형식
-- **한계**: `BoardNotFoundException` 같은 도메인 예외는 커버되지 않아 전역 핸들러가 필요
----
-layout: cover
-class: text-center
----
-
-# 도메인 예외와 전역 핸들러
----
-layout: default
----
-
-# 예외에 상태 코드를 붙일 것인가
-
-- **선택지**: 커스텀 예외에 상태 코드를 결합할지, 예외는 모르게 두고 전역 핸들러에서 매핑할지
-- **이어지는 흐름**: SSR 차시의 `@ResponseStatus`·`ResponseStatusException`이 그대로 이어짐
-- **새 선택지**: `ErrorResponseException`이 `ProblemDetail` 기반 대안으로 추가됨
-
----
-layout: default
----
-
-# 도메인 예외 설계 방식 비교
-
-| 방식 | 장점 | 단점 |
-| :--- | :--- | :--- |
-| 커스텀 예외 + `@ResponseStatus` | 예외만 보면 상태를 앎 | 상황별 다른 상태 코드 유연성 부족 |
-| 커스텀 예외 + 전역 핸들러 매핑 | 상태 결정이 한 곳에 모임, 문맥별 응답 가능 | 예외만 봐선 상태를 모름 |
-| `ResponseStatusException` | 클래스 없이 즉석 상태 코드 | 도메인 의미가 문자열에만 남아 타입 분기 불가 |
-| `ErrorResponseException` | 예외가 ProblemDetail을 들고 다녀 핸들러 없이도 표준 응답 | 도메인과 웹 계층 경계가 흐려짐 |
-
----
-layout: default
----
-
-# 이번 교안이 택한 기준
-
-- **순수성**: 도메인 예외 타입은 순수하게 도메인 실패만 표현
-- **집중**: 상태 코드 매핑은 전역 `@RestControllerAdvice` 한 곳에 집중
-- **재사용성**: 예외 클래스가 HTTP를 몰라 서비스 계층에서 재사용하기 쉬움
-- **유지보수**: 상태 코드 정책 변경 시 핸들러 하나만 수정
-
----
-layout: default
----
-
-# 상태 코드를 모르는 도메인 예외
+# record 기반 CORS 프로퍼티 클래스
 
 ```java
-class BoardNotFoundException extends RuntimeException {
-    BoardNotFoundException(Long id) {
-        super("게시글을 찾을 수 없습니다. id=" + id);
-    }
+// record이므로 Lombok 없이 불변 보장
+@ConfigurationProperties("app.cors")
+record CorsProperties(List<String> allowedOrigins) {
 }
 ```
 
@@ -395,61 +605,15 @@ class BoardNotFoundException extends RuntimeException {
 layout: default
 ---
 
-# 예외가 모이는 한 지점
-
-```mermaid
----
-config:
-  themeVariables:
-    lineColor: "#92AFD7"
-    arrowheadColor: "#92AFD7"
-    edgeLabelBackground: "#1F2F16"
-  flowchart:
-    padding: 8
-    nodeSpacing: 40
-    rankSpacing: 40
----
-flowchart LR
-  A["도메인 예외"] --> D["전역 @RestControllerAdvice"]
-  B["검증 실패 예외"] --> D
-  C["예상 못 한 예외"] --> D
-  D --> E["ProblemDetail 응답"]
-
-  class A,B,C,D step
-  class E result
-  classDef step fill:#1F2F16,stroke:#92AFD7,color:#F4F7F0,stroke-width:2px
-  classDef result fill:#5A7684,stroke:#C5D1EB,color:#F4F7F0,stroke-width:2px
-  linkStyle default stroke:#92AFD7,stroke-width:4px
-```
-
----
-layout: default
----
-
-# ResponseEntityExceptionHandler를 상속하는 이유
-
-- **안전한 재정의**: 내장 MVC 예외 응답을 바꿀 때는 `@ExceptionHandler` 추가보다 protected 메서드 재정의가 안전
-- **기본 우선순위**: `spring.mvc.problemdetails.enabled=true`가 만든 advice의 order는 0
-- **충돌 위험**: 우선순위를 모른 채 섞으면 작성한 검증 핸들러가 호출되지 않음
-- **과도한 폴백**: 높은 우선순위의 `Exception` 폴백이 405·415까지 500으로 바꿔버림
-
----
-layout: default
----
-
-# 전역 핸들러의 뼈대와 도메인 예외 매핑
+# WebMvcConfigurer 기반 WebConfig 구현
 
 ```java
-@RestControllerAdvice
-class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(CorsProperties.class)
+@RequiredArgsConstructor
+class WebConfig implements WebMvcConfigurer {
 
-    @ExceptionHandler(BoardNotFoundException.class)
-    ProblemDetail handleBoardNotFound(BoardNotFoundException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Board Not Found");
-        return problem;
-    }
+    private final CorsProperties corsProperties; // 생성자 주입
 }
 ```
 
@@ -457,28 +621,17 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 layout: default
 ---
 
-# 검증 실패 필드를 담는 확장 타입
-
-```java
-record FieldErrorItem(String field, String message) {
-}
-```
-
----
-layout: default
----
-
-# 검증 실패 응답에 필드 목록 싣기
+# addCorsMappings를 이용한 글로벌 CORS 설정
 
 ```java
 @Override
-protected ResponseEntity<Object> handleMethodArgumentNotValid(
-        MethodArgumentNotValidException ex, HttpHeaders headers,
-        HttpStatusCode status, WebRequest request) {
-    ProblemDetail problem = createProblemDetail(
-            ex, status, "요청 값이 유효하지 않습니다.", null, null, request);
-    problem.setProperty("errors", toFieldErrors(ex));
-    return handleExceptionInternal(ex, problem, headers, status, request);
+public void addCorsMappings(CorsRegistry registry) {
+    registry.addMapping("/api/**")
+            .allowedOrigins(corsProperties.allowedOrigins().toArray(String[]::new))
+            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
+            .allowedHeaders("Content-Type", "Authorization")
+            .exposedHeaders("Location")
+            .maxAge(3600);
 }
 ```
 
@@ -486,15 +639,25 @@ protected ResponseEntity<Object> handleMethodArgumentNotValid(
 layout: default
 ---
 
-# 마지막 방어선이 되는 폴백 핸들러
+# allowedOrigins 및 allowedOriginPatterns 비교
+
+- **정확한 매칭**: 지정한 출처 문자열과 정확히 일치할 때만 허용
+- **패턴 매칭**: 와일드카드를 활용한 동적 출처 매칭 허용
+- **보안 주의**: `https://*` 등 지나치게 포괄적인 패턴은 보안에 취약
+- **권장 사항**: 서브도메인 등 최소한의 단위로 패턴 범위 제한
+- **헤더 최소화**: 서비스에 필요한 헤더(예: `Content-Type`)만 엄격히 지정
+
+---
+layout: default
+---
+
+# @CrossOrigin을 이용한 특정 엔드포인트 정책 추가
 
 ```java
-@ExceptionHandler(Exception.class)
-ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
-    log.error("처리되지 않은 예외: path={}", request.getRequestURI(), ex);
-    return ProblemDetail.forStatusAndDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+@CrossOrigin(origins = "https://partner.example.com")
+@GetMapping("/api/boards/export")
+List<BoardResponse> export() {
+    return boardService.getAll();
 }
 ```
 
@@ -502,31 +665,36 @@ ProblemDetail handleUnexpected(Exception ex, HttpServletRequest request) {
 layout: default
 ---
 
-# 400 안에서도 원인은 갈린다
+# 핵심 용어 정리
 
-- **필드 검증**: `@NotBlank`·`@Size` 위반은 `errors` 배열 포함
-- **파싱 실패**: 깨진 JSON·타입 불일치는 필드 검증으로 위장 말고 일반 detail로
-- **추가 케이스**: `HandlerMethodValidationException`도 발생 가능해 테스트 포함
-- **보안 예외**: 401·403은 필터 체인에서 발생해 advice 미도달, `AuthenticationEntryPoint`·`AccessDeniedHandler`로 계약 유지
+> **프로파일 (Profile)**
+>
+> 환경(local, prod 등)에 따라 다른 설정값을 활성화하는 스프링의 구성 단위
+
+> **설정 외부화 (Externalized Configuration)**
+>
+> 코드에 값을 하드코딩하지 않고 `application.yml` 등 외부 파일에서 읽어오는 방식
+
 ---
 layout: cover
 class: text-center
 ---
 
-# 오류 응답 계약과 보안
+# fetch 연동 및 CORS 트러블슈팅
 ---
 layout: default
 ---
 
-# 리소스를 찾지 못했을 때의 응답
+# GET 요청: fetch를 이용한 목록 조회
 
-```json
-{
-    "type": "https://api.example.com/problems/board-not-found",
-    "title": "Board Not Found",
-    "status": 404,
-    "detail": "게시글을 찾을 수 없습니다. id=999",
-    "instance": "/api/boards/999"
+```javascript
+const API_BASE = 'http://localhost:8080'
+// 같은 출처면 '', 다른 출처면 전체 URL
+
+async function listBoards() {
+  const response = await fetch(`${API_BASE}/api/boards`)
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  return response.json()
 }
 ```
 
@@ -534,17 +702,18 @@ layout: default
 layout: default
 ---
 
-# 검증에 실패했을 때의 응답
+# POST 요청: fetch를 이용한 데이터 생성
 
-```json
-{
-    "title": "Validation Failed",
-    "status": 400,
-    "detail": "요청 값이 유효하지 않습니다.",
-    "instance": "/api/boards",
-    "errors": [
-        { "field": "title", "message": "제목은 비워둘 수 없습니다." }
-    ]
+```javascript
+async function createBoard(data) {
+  const response = await fetch(`${API_BASE}/api/boards`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  return { location: response.headers.get('Location'),
+    body: await response.json() }
 }
 ```
 
@@ -552,177 +721,124 @@ layout: default
 layout: default
 ---
 
-# 오류 본문에 새면 안 되는 정보
+# PUT 요청: fetch를 이용한 데이터 수정
 
-- **SQL 노출 금지**: SQL 구문·쿼리 자체를 응답에 담지 않는다
-- **경로 노출 금지**: `com.example.board.repository...` 같은 패키지 전체 경로 비공개
-- **버전 노출 금지**: 라이브러리·프레임워크 버전 정보 비공개
-- **공격 표면 축소**: 위 정보는 공격자가 취약점 탐색 범위를 좁히는 단서가 됨
-
----
-layout: default
----
-
-# 계정 열거를 막는 인증 실패 문구
-
-> **계정 열거 (Account Enumeration)**
->
-> 응답 차이만으로 어떤 아이디가 실제 가입되어 있는지 확인하는 공격
-
-- **원인 구분 금지**: "아이디 없음"과 "비밀번호 틀림"을 구분하면 가입 여부가 드러남
-- **문구 통일**: 인증 실패는 원인과 무관하게 "아이디 또는 비밀번호가 올바르지 않습니다"로 통일
+```javascript
+async function updateBoard(id, data) {
+  const response = await fetch(`${API_BASE}/api/boards/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  return response.json()
+}
+```
 
 ---
 layout: default
 ---
 
-# Boot 4의 오류 노출 기본값
+# DELETE 요청: fetch를 이용한 데이터 삭제
 
-| 설정 | 기본값 | 의미 |
+```javascript
+async function deleteBoard(id) {
+  const response = await fetch(`${API_BASE}/api/boards/${id}`, {
+    method: 'DELETE'
+  })
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+}
+```
+
+---
+layout: default
+---
+
+# CRUD 메서드별 Preflight 발생 기준
+
+| 동작 | 메서드·경로 | 성공 코드 | preflight |
+| :--- | :--- | :--- | :--- |
+| 목록 조회 | GET /api/boards | 200 | 보통 없음* |
+| 등록 | POST /api/boards | 201 | JSON이면 발생 |
+| 수정 | PUT /api/boards/{id} | 200 | 발생 |
+| 삭제 | DELETE /api/boards/{id} | 204 | 발생 |
+
+\* `Authorization` 같은 비허용 요청 헤더를 추가하면 GET도 preflight 발생
+
+---
+layout: default
+---
+
+# 응답 헤더의 Location이 null로 조회되는 원인
+
+- **서버 정상 응답**: 201 Created 응답 시 Location 헤더에 자원 경로 포함
+- **브라우저 보안 제약**: 교차 출처 환경에서는 JS가 기본 응답 헤더만 조회 가능
+- **서버 설정 필요**: `Access-Control-Expose-Headers: Location`을 명시해야 JS에서 읽기 가능
+- **주요 문제 현상**: 서버에서 헤더를 전송해도 프런트엔드에서는 null로 반환됨
+
+---
+layout: default
+---
+
+# 대표적인 CORS 오류 원인과 해결 방법
+
+| 증상 | 원인 | 조치 |
 | :--- | :--- | :--- |
-| `spring.web.error.include-message` | `never` | 예외 메시지 노출 여부 |
-| `spring.web.error.include-stacktrace` | `never` | 스택트레이스 노출 여부 |
-| `spring.web.error.include-binding-errors` | `never` | 바인딩 오류 상세 노출 여부 |
-
-- **안전 우선**: 기본값을 가장 안전한 쪽에 두고 필요할 때 개발 프로파일에서만 상향
-- **별도 처리 필요**: 직접 만든 `ProblemDetail`에는 이 설정이 적용되지 않아 별도로 안전하게 작성 (Boot 3의 `server.error.*`와 혼동 주의)
+| Allow-Origin 헤더 없음 | 설정 없음·경로 패턴 불일치 | addMapping 경로를 API 경로에 맞춤 |
+| OPTIONS 응답이 4xx | Security·인증 필터가 먼저 거부 | `http.cors(...)` 또는 선행 `CorsFilter` 구성 |
+| 로컬은 되는데 운영만 실패 | prod 프로파일에 출처 누락 | 스킴·포트까지 정확히 추가 |
+| 특정 헤더를 JS가 못 읽음 | Expose-Headers 누락 | Location 등 명시 |
+| Allow-Origin이 두 번 들어감 | CorsFilter·WebMvcConfigurer 중복 | 처리 지점을 한쪽으로 통일 |
 
 ---
 layout: default
 ---
 
-# 로그와 응답을 잇는 상관관계 식별자
+# CORS 오류 단계별 진단 순서
 
-> **상관관계 식별자 (Correlation ID)**
+- **1단계**: 네트워크 탭에서 `OPTIONS` 발생 여부와 상태 코드 확인
+- **2단계**: `OPTIONS`와 본 요청의 `Access-Control-*` 응답 헤더를 기대값과 대조
+- **3단계**: `curl`로 서버 단독 응답을 재현해 브라우저 변수 배제
+- **4단계**: 서버 로그로 요청이 실제로 도달했는지 확인
+- **5단계**: 경로 패턴·활성 프로파일·필터 순서 등 설정 적용 범위 점검
+
+---
+layout: default
+---
+
+# curl을 이용한 Preflight 요청 테스트
+
+```bash
+curl -i -X OPTIONS http://localhost:8080/api/boards \
+  -H "Origin: http://localhost:5173" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type"
+```
+
+---
+layout: default
+---
+
+# 핵심 용어 정리
+
+> **Preflight 캐시 (Access-Control-Max-Age)**
 >
-> 하나의 요청을 처리하는 동안의 모든 로그를 묶어 추적하기 위해 요청마다 부여하는 고유 값
+> 브라우저가 OPTIONS 응답을 저장해 같은 요청의 재확인을 건너뛰게 하는 유효시간(초)
 
-- **추적 어려움**: 같은 시간대 요청이 몰리면 어떤 로그가 어떤 요청인지 찾기 어려움
-- **응답에 반영**: 확장 필드(`traceId`)나 응답 헤더로 되돌려 주면 장애 신고 시 로그를 즉시 조회
-- **instance와 구분**: `instance`는 요청 URI를 나타내므로 추적 ID로 덮어쓰지 않음
+> **응답 헤더 노출 (Access-Control-Expose-Headers)**
+>
+> 교차 출처 응답에서 JS가 추가로 읽을 헤더 목록을 서버가 지정하는 설정
 
----
-layout: default
----
-
-# 식별자를 심는 위치
-
-- **생성 시점**: 필터·인터셉터에서 요청 시작 시 식별자 생성
-- **로깅 컨텍스트**: MDC 등 로깅 컨텍스트에 저장해 이후 모든 로그에 자동 포함
-- **범위 안내**: 세부 구현은 로깅·모니터링 차시에서 별도로 다룸
----
-layout: cover
-class: text-center
----
-
-# 예외 계약 문서화와 검증
----
-layout: default
----
-
-# 성공만 적힌 명세의 한계
-
-- **편중된 자동 생성**: 자동 생성 명세는 주로 성공 응답 스키마만 채움
-- **직접 확인의 비용**: 클라이언트 개발자는 어떤 실패가 오는지 알 수 없어 직접 호출해 확인
-- **동등한 계약**: 실패 계약도 성공과 동등한 API 계약
-- **형식 재사용**: `ProblemDetail`로 형식을 통일했다면 명세에도 그대로 노출 가능
-
----
-layout: default
----
-
-# 실패 응답을 명세에 노출하는 방법
-
-- **속성 지정**: `@ApiResponse`의 `content` 속성으로 실패 스키마 지정
-- **미디어 타입 명시**: 실제 응답과 같은 `application/problem+json`으로 명시
-- **예측 가능성**: 명세만 보고 실패 상황과 응답 구조를 예측할 수 있게 함
-
----
-layout: default
----
-
-# 조회 API의 성공·실패 응답 명세
-
-```java
-@Operation(summary = "게시글 상세 조회")
-@ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공",
-                content = @Content(schema = @Schema(implementation = BoardResponse.class))),
-        @ApiResponse(responseCode = "404", description = "게시글 없음",
-                content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
-                        schema = @Schema(implementation = ProblemDetail.class)))
-})
-```
-
----
-layout: default
----
-
-# 확장 필드까지 드러내는 검증 실패 스키마
-
-```java
-@ApiResponse(responseCode = "400", description = "요청 값 검증 실패",
-        content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
-                schema = @Schema(implementation = ValidationProblemResponse.class)))
-```
-
----
-layout: default
----
-
-# ProblemDetail.class만으로 부족한 이유
-
-- **누락되는 확장 필드**: 기본 `ProblemDetail.class`만 지정하면 확장 필드 `errors`가 명세에 나타나지 않음
-- **별도 문서 DTO**: 검증 실패용 문서 DTO(`ValidationProblemResponse`)나 명시적 schema·example을 별도로 둠
-- **공통 응답 재사용**: 공통 400·401·403·500은 `@ApiResponse(ref = "#/components/responses/...")`로 재사용해 중복 제거
-
----
-layout: default
----
-
-# 예외 계약은 코드가 아니라 HTTP로 검증한다
-
-| 검증 항목 | 기대 결과 |
-| :--- | :--- |
-| 없는 게시글 조회 | 404 + `application/problem+json`, `type`·`status`·`instance` 일치 |
-| 빈 제목 등록 | 400 + `errors[*].field`·`errors[*].message` 포함 |
-| 깨진 JSON | 400, 내부 Jackson 메시지 미노출 |
-| 지원하지 않는 메서드·본문 형식 | 405 + `Allow` 헤더 / 415 유지 |
-| 예상 못 한 예외 | 500, 스택트레이스·SQL·클래스명 미포함 |
-
----
-layout: default
----
-
-# 명세 자체를 회귀 검증하기
-
-- **HTTP 계약 고정**: `MockMvc` 통합 테스트로 실제 HTTP 계약을 고정
-- **인가 상태 검증**: 미인증 401 + `WWW-Authenticate`, 권한 부족은 정책에 따라 403 또는 404
-- **문서 diff**: 생성된 OpenAPI 문서를 CI에서 이전 버전과 diff해 확장 필드·상태 코드 누락 감지
-
----
-layout: default
----
-
-# REST 예외 처리 전략 정리
-
-| 계층 | 언제 쓰는가 |
-| :--- | :--- |
-| `spring.mvc.problemdetails.enabled` | 커스터마이징 없이 내장 예외를 표준 형식으로 |
-| `ResponseEntityExceptionHandler` 확장 | 내장 예외의 상태·헤더는 보존하며 본문만 일관되게 확장 |
-| 도메인 예외 + `@RestControllerAdvice` | 프로젝트 정의 실패를 일관된 ProblemDetail로 매핑 |
-| 컨트롤러 로컬 `@ExceptionHandler` | 그 컨트롤러만의 특수 예외 |
-| `Exception` 폴백 | 예상 못 한 예외를 500과 일반 문구로 통일 |
 ---
 layout: default
 ---
 
 # 학습 요약 (1/2)
 
-- **응답 대상 전환**: 오류는 화면이 아니라 클라이언트가 파싱할 본문으로 반환
-- **상태 코드**: 클라이언트 분기의 기준이므로 실제 상황과 반드시 일치
-- **표준 형식**: RFC 9457 `ProblemDetail`로 오류 스키마를 하나로 고정
-- **확장 필드**: `setProperty`로 검증 오류 등 도메인 정보를 표준 필드와 함께 전달
+- **구조 변화**: CSR에서는 브라우저 JS가 API를 호출해 UI를 구성
+- **출처가 결정**: 분리 배포여도 프록시로 동일 출처를 만들면 CORS 불필요
+- **출처**: 스킴·호스트·포트 셋 중 하나만 달라도 다른 출처
+- **SOP**: 브라우저가 교차 출처 응답을 스크립트에 넘기지 않는 정책
 
 ---
 layout: default
@@ -730,7 +846,46 @@ layout: default
 
 # 학습 요약 (2/2)
 
-- **예외 설계**: 도메인 예외는 순수하게 두고 상태 코드 매핑은 전역 advice 한 곳에
-- **핸들러 구성**: `ResponseEntityExceptionHandler` 확장으로 내장 예외의 상태·헤더 보존
-- **정보 보호**: SQL·패키지 경로·스택트레이스를 응답에서 배제하고 폴백은 일반 문구로
-- **문서화**: `@ApiResponse`에 `application/problem+json` 스키마를 명시해 실패 계약 노출
+- **CORS**: 요청받는 서버가 응답 헤더로 교차 출처를 허용하는 절차
+- **preflight**: 교차 출처 JSON 요청·비단순 메서드는 `OPTIONS` 확인 후 본 요청
+- **설정 위치**: MVC 또는 Security 연동 지점에서 중앙 관리하고 출처는 외부화
+- **진단 순서**: 네트워크 탭 → 응답 헤더 → `curl` 재현 → 서버 로그 → 적용 범위
+
+---
+layout: cover
+class: text-center
+---
+
+# 예상 질문과 답변
+---
+layout: default
+---
+
+# Q&A: CORS 설정 적용 및 처리 방식
+
+- **Q. 전역 설정과 `@CrossOrigin`을 함께 써도 되나요?**
+- A. 됩니다. 다만 정책이 흩어져 허용 범위 파악이 어려워지므로, 예외 정책이 꼭 필요한 엔드포인트에만 제한합니다.
+- **Q. `OPTIONS` 요청을 받는 핸들러를 직접 만들어야 하나요?**
+- A. 아닙니다. 설정이 매칭되면 프레임워크가 처리합니다. 4xx면 CORS 경로와 Security·필터 순서를 확인합니다.
+
+---
+layout: default
+---
+
+# Q&A: Preflight 성능 영향과 최적화
+
+- **Q. 요청마다 `OPTIONS`가 한 번씩 더 나가나요?**
+- A. `Access-Control-Max-Age` 캐시가 유효한 동안은 생략되며, 브라우저마다 상한이 있어 큰 값은 잘려 적용됩니다.
+- **Q. 지연을 더 줄이려면 무엇을 봐야 하나요?**
+- A. 별도 헤더 없는 `GET`은 대개 단순 요청입니다. 프록시로 동일 출처를 만들면 CORS preflight가 사라집니다.
+
+---
+layout: default
+---
+
+# Q&A: CORS 허용 범위와 보안 고려사항
+
+- **Q. 모든 출처를 허용하면 문제가 해결되나요?**
+- A. 오류만 가려질 뿐입니다. CORS는 브라우저만 지키는 규칙이라 인증·인가를 대신하지 못합니다.
+- **Q. 개발 중 브라우저 보안 기능을 끄는 방식은 어떤가요?**
+- A. 운영에서 같은 오류가 그대로 재현됩니다. 원인은 서버 설정과 배포 구조에서 해결해야 합니다.
